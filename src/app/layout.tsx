@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 import { siteConfig } from "@/config/site";
-import { TopNav } from "@/components/layout/top-nav";
 
 export const metadata: Metadata = {
   title: {
@@ -18,7 +17,6 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="zh-CN">
       <body className="min-h-screen text-foreground">
-        <TopNav />
         <main>{children}</main>
       </body>
     </html>
