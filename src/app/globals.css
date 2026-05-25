@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-0: #000000;
+  --bg-1: #0a0a0b;
+  --bg-2: #111214;
+  --bg-3: #17181b;
+  --line-1: #232428;
+  --line-2: #2f3136;
+  --line-3: rgba(255, 255, 255, 0.12);
+  --text-1: #ffffff;
+  --text-2: #c9cbd1;
+  --text-3: #8b8e97;
+  --text-4: #5f636b;
+  --white-soft: #f5f5f3;
+  --black-soft: #050505;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 34%),
+      linear-gradient(180deg, rgba(15, 15, 16, 0.98), rgba(0, 0, 0, 1));
+    min-height: 100vh;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  ::selection {
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--text-1);
+  }
+}
+
+@layer components {
+  .page-container {
+    @apply mx-auto w-full max-w-content px-5 sm:px-8 lg:px-10;
+  }
+
+  .surface-panel {
+    @apply rounded-lg border border-border bg-panel shadow-panel backdrop-blur-sm;
+  }
+
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.32em] text-subtle;
+  }
+
+  .section-copy {
+    @apply max-w-reading text-base leading-7 text-muted;
+  }
+}
