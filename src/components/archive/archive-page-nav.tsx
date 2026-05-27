@@ -1,28 +1,10 @@
+import { SiteBrand } from "@/components/layout/site-brand";
+
 type ArchivePageNavProps = {
   activeChannel: string;
   channelCount: string;
   supportCount: string;
 };
-
-function BrandMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="archive-brand-mark"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M12 3.5 21 19H3L12 3.5Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.35"
-      />
-      <path d="M12 7.5V14.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" />
-      <path d="M9.5 14.5H14.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.2" />
-    </svg>
-  );
-}
 
 function PlayIcon() {
   return (
@@ -69,7 +51,12 @@ function BellIcon() {
         strokeLinejoin="round"
         strokeWidth="1.4"
       />
-      <path d="M8.3 14.4a1.8 1.8 0 0 0 3.4 0" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
+      <path
+        d="M8.3 14.4a1.8 1.8 0 0 0 3.4 0"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.4"
+      />
     </svg>
   );
 }
@@ -92,11 +79,26 @@ function UserIcon({ plus = false }: { plus?: boolean }) {
   return (
     <svg aria-hidden="true" className="archive-auth-svg" fill="none" viewBox="0 0 18 18">
       <circle cx="7" cy="6" r="2.6" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M2.8 14c.9-2 2.5-3 4.2-3s3.3 1 4.2 3" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
+      <path
+        d="M2.8 14c.9-2 2.5-3 4.2-3s3.3 1 4.2 3"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.3"
+      />
       {plus ? (
         <>
-          <path d="M13.5 5.2v4.4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
-          <path d="M11.3 7.4h4.4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
+          <path
+            d="M13.5 5.2v4.4"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="1.3"
+          />
+          <path
+            d="M11.3 7.4h4.4"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="1.3"
+          />
         </>
       ) : null}
     </svg>
@@ -112,18 +114,14 @@ export function ArchivePageNav({
     <header className="archive-page-nav">
       <div className="page-container archive-page-nav__inner">
         <div className="archive-page-nav__cluster">
-          <div className="archive-brand">
-            <div className="archive-brand__mark-wrap">
-              <BrandMark />
-            </div>
-            <div className="archive-brand__copy">
-              <div className="archive-brand__title-row">
-                <span className="archive-brand__title">雪笠微光</span>
-                <span className="archive-beta-badge">BETA</span>
-              </div>
-              <span className="archive-brand__subtitle">VIDEO ARCHIVE</span>
-            </div>
-          </div>
+          <SiteBrand
+            badge="BETA"
+            className="archive-brand"
+            markClassName="archive-brand__mark-wrap"
+            subtitle="VIDEO ARCHIVE"
+            subtitleClassName="archive-brand__subtitle"
+            titleClassName="archive-brand__title"
+          />
 
           <div className="archive-page-nav__status" aria-label="频道状态">
             <div
@@ -156,7 +154,7 @@ export function ArchivePageNav({
             </button>
           </div>
 
-          <div className="archive-page-nav__auth" aria-label="账号操作">
+          <div className="archive-page-nav__auth" aria-label="账户操作">
             <button className="archive-auth-button" type="button">
               <UserIcon />
               <span>登录</span>

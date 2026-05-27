@@ -61,7 +61,7 @@ export default function CollectionsPage() {
                     <h3 className="text-xl font-semibold text-foreground">Collection Card {index + 1}</h3>
                     <p className="text-sm leading-7 text-muted">内容位、标签位、统计位都已预留。</p>
                   </div>
-                  <span className="font-mono text-xs uppercase tracking-[0.24em] text-subtle">
+                  <span className="font-sans text-xs uppercase tracking-[0.24em] text-subtle">
                     Placeholder
                   </span>
                 </div>

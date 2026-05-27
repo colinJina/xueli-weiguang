@@ -19,15 +19,7 @@ const config: Config = {
         reverse: "var(--white-soft)",
       },
       fontFamily: {
-        sans: [
-          "Noto Sans SC",
-          "PingFang SC",
-          "Hiragino Sans GB",
-          "Microsoft YaHei",
-          "sans-serif",
-        ],
-        display: ["Geist", "Noto Sans SC", "PingFang SC", "sans-serif"],
-        mono: ["Geist Mono", "JetBrains Mono", "SFMono-Regular", "monospace"],
+        sans: ["var(--font-geist-sans)", "Noto Sans SC", "sans-serif"],
       },
       borderRadius: {
         sm: "10px",

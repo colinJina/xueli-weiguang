@@ -39,7 +39,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     <h3 className="text-xl font-semibold text-foreground">Public Card {index + 1}</h3>
                     <p className="text-sm leading-7 text-muted">公开展示区的内容与卡片节奏占位。</p>
                   </div>
-                  <span className="font-mono text-xs uppercase tracking-[0.24em] text-subtle">
+                  <span className="font-sans text-xs uppercase tracking-[0.24em] text-subtle">
                     Module
                   </span>
                 </div>
