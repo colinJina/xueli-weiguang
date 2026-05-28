@@ -1,3 +1,6 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 
 import {
@@ -6,6 +9,7 @@ import {
   HomeSearchIcon,
   HomeUploadIcon,
 } from "@/components/home/home-icons";
+import { createFadeUp } from "@/components/home/home-motion";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { cn } from "@/lib/utils";
 
@@ -16,14 +20,24 @@ type HomeNavigationItem = {
 
 type HomeHeaderProps = {
   navigation: readonly HomeNavigationItem[];
+  motionReady?: boolean;
 };
 
 const iconButtonClassName =
   "inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent text-[#a8adb6] transition duration-200 hover:border-white/10 hover:bg-white/[0.04] hover:text-white";
 
-export function HomeHeader({ navigation }: HomeHeaderProps) {
+const headerVariants = createFadeUp(10, 0.04, 0.32);
+
+export function HomeHeader({ navigation, motionReady = true }: HomeHeaderProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/6 bg-[rgba(3,3,4,0.94)] backdrop-blur-[14px]">
+    <motion.header
+      className="fixed inset-x-0 top-0 z-50 border-b border-white/6 bg-[rgba(3,3,4,0.94)] backdrop-blur-[14px]"
+      initial={prefersReducedMotion ? false : "hidden"}
+      animate={prefersReducedMotion ? undefined : motionReady ? "visible" : "hidden"}
+      variants={headerVariants}
+    >
       <div className="page-container flex h-[72px] items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-8">
           <SiteBrand
@@ -75,6 +89,6 @@ export function HomeHeader({ navigation }: HomeHeaderProps) {
           </Link>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

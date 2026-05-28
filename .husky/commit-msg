@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 MESSAGE_FILE="$1" node <<'NODE'
 const fs = require('node:fs');
 

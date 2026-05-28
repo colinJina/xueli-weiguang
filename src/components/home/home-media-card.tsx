@@ -1,3 +1,6 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 
 import type {
@@ -6,6 +9,7 @@ import type {
   HomeCardVisual,
 } from "@/components/home/home-content";
 import { HomeImageIcon } from "@/components/home/home-icons";
+import { hoverTransition } from "@/components/home/home-motion";
 import { cn } from "@/lib/utils";
 
 type HomeMediaCardProps = {
@@ -17,6 +21,26 @@ const coverHeights: Record<HomeCardLayout, string> = {
   compact: "min-h-[11rem]",
   feature: "min-h-[22rem]",
   ghost: "min-h-[14rem]",
+};
+
+const cardVariants = {
+  rest: {
+    y: 0,
+  },
+  hover: {
+    y: -4,
+    transition: hoverTransition,
+  },
+};
+
+const coverVariants = {
+  rest: {
+    scale: 1,
+  },
+  hover: {
+    scale: 1.015,
+    transition: hoverTransition,
+  },
 };
 
 function CardVisual({ visual }: { visual: HomeCardVisual }) {
@@ -58,58 +82,67 @@ function CardVisual({ visual }: { visual: HomeCardVisual }) {
 }
 
 export function HomeMediaCard({ item }: HomeMediaCardProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <Link
-      className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-white/8 bg-[#111214] shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:border-white/16"
-      href={item.href}
-    >
-      <div
-        className={cn(
-          "relative overflow-hidden border-b border-white/6",
-          coverHeights[item.layout],
-        )}
+    <Link className="group block h-full" href={item.href}>
+      <motion.article
+        className="flex h-full flex-col overflow-hidden rounded-[22px] border border-white/8 bg-[#111214] shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition-colors duration-300 group-hover:border-white/16"
+        initial={prefersReducedMotion ? false : "rest"}
+        animate={prefersReducedMotion ? undefined : "rest"}
+        whileHover={prefersReducedMotion ? undefined : "hover"}
+        variants={cardVariants}
       >
-        <CardVisual visual={item.visual} />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(0,0,0,0.32))]" />
+        <div
+          className={cn(
+            "relative overflow-hidden border-b border-white/6",
+            coverHeights[item.layout],
+          )}
+        >
+          <motion.div className="absolute inset-0" variants={coverVariants}>
+            <CardVisual visual={item.visual} />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(0,0,0,0.32))]" />
+          </motion.div>
 
-        <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-          <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
-            {item.source}
-          </span>
-          <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 font-sans text-[11px] tracking-[0.12em] text-muted">
-            {item.duration}
-          </span>
+          <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
+            <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+              {item.source}
+            </span>
+            <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 font-sans text-[11px] tracking-[0.12em] text-muted">
+              {item.duration}
+            </span>
+          </div>
+
+          <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
+            <span className="rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-foreground">
+              {item.tag}
+            </span>
+            <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+              {item.metric}
+            </span>
+          </div>
         </div>
 
-        <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
-          <span className="rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-foreground">
-            {item.tag}
-          </span>
-          <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
-            {item.metric}
-          </span>
-        </div>
-      </div>
+        <div className="flex flex-1 flex-col justify-between gap-5 bg-[#111214] p-4">
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold leading-[1.2] tracking-[-0.04em] text-foreground transition duration-200 group-hover:text-white">
+              {item.title}
+            </h2>
+            <p className="text-sm leading-6 text-muted">{item.description}</p>
+          </div>
 
-      <div className="flex flex-1 flex-col justify-between gap-5 bg-[#111214] p-4">
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold leading-[1.2] tracking-[-0.04em] text-foreground transition duration-200 group-hover:text-white">
-            {item.title}
-          </h2>
-          <p className="text-sm leading-6 text-muted">{item.description}</p>
+          <div className="flex items-center justify-between gap-4 border-t border-white/6 pt-3">
+            <span className="font-sans text-[11px] uppercase tracking-[0.18em] text-subtle">
+              {item.stats}
+            </span>
+            <span className="flex items-center gap-1.5" aria-hidden="true">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/85" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/28" />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/28" />
+            </span>
+          </div>
         </div>
-
-        <div className="flex items-center justify-between gap-4 border-t border-white/6 pt-3">
-          <span className="font-sans text-[11px] uppercase tracking-[0.18em] text-subtle">
-            {item.stats}
-          </span>
-          <span className="flex items-center gap-1.5" aria-hidden="true">
-            <span className="h-1.5 w-1.5 rounded-full bg-white/85" />
-            <span className="h-1.5 w-1.5 rounded-full bg-white/28" />
-            <span className="h-1.5 w-1.5 rounded-full bg-white/28" />
-          </span>
-        </div>
-      </div>
+      </motion.article>
     </Link>
   );
 }
