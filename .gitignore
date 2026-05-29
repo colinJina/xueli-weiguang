@@ -16,3 +16,8 @@ design-input
 docs
 CLAUDE.md
 AGENTS.md
+.claude
+.playwright-mcp
+.vercel
+.superpowers
+.agents
