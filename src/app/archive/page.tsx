@@ -11,14 +11,29 @@ import {
 } from "@/components/archive/archive-data";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
 import { ArchivePageNav } from "@/components/archive/archive-page-nav";
+import { ArchiveSubmitDialog } from "@/components/archive/archive-submit-dialog";
+import { AuthDialog } from "@/components/auth/auth-dialog";
 import { ToneScale } from "@/components/archive/tone-scale";
+import { useAuth } from "@/lib/auth/use-auth";
 
 const DEFAULT_CATEGORY = "歌曲 PV";
 const TONE_WINDOW = 3;
 
 export default function ArchivePage() {
+  const {
+    user,
+    isReady,
+    isAuthenticated,
+    logout,
+    dialogMode,
+    openLogin,
+    openRegister,
+    closeDialog,
+    switchMode,
+  } = useAuth();
   const [activeCategory, setActiveCategory] = useState<string>(DEFAULT_CATEGORY);
   const [activeTone, setActiveTone] = useState<number>(4);
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
 
   const visibleItems = useMemo(() => {
     return archiveVideos.filter((item) => {
@@ -35,7 +50,13 @@ export default function ArchivePage() {
       <ArchivePageNav
         activeChannel={archiveNavSummary.activeChannel}
         channelCount={archiveNavSummary.channelCount}
+        onLoginClick={openLogin}
+        onLogout={logout}
+        onRegisterClick={openRegister}
+        onSubmitLoginRequest={openLogin}
+        onSubmitOpen={() => setIsSubmitDialogOpen(true)}
         supportCount={archiveNavSummary.supportCount}
+        user={user}
       />
 
       <section className="page-container">
@@ -56,6 +77,21 @@ export default function ArchivePage() {
       <section className="archive-page__content page-container">
         <ArchiveGrid items={visibleItems} />
       </section>
+
+      {dialogMode ? (
+        <AuthDialog
+          mode={dialogMode}
+          onClose={closeDialog}
+          onSuccess={closeDialog}
+          onSwitchMode={switchMode}
+          open
+        />
+      ) : null}
+
+      <ArchiveSubmitDialog
+        onClose={() => setIsSubmitDialogOpen(false)}
+        open={isSubmitDialogOpen && isReady && isAuthenticated}
+      />
     </div>
   );
 }

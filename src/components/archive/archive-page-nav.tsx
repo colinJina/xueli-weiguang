@@ -1,9 +1,19 @@
+import type { User } from "@supabase/supabase-js";
+
 import { SiteBrand } from "@/components/layout/site-brand";
+import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
+import { UserMenu } from "@/components/auth/user-menu";
 
 type ArchivePageNavProps = {
   activeChannel: string;
   channelCount: string;
   supportCount: string;
+  user: User | null;
+  onLoginClick: () => void;
+  onRegisterClick: () => void;
+  onSubmitLoginRequest: () => void;
+  onSubmitOpen: () => void;
+  onLogout: () => void;
 };
 
 function PlayIcon() {
@@ -109,7 +119,14 @@ export function ArchivePageNav({
   activeChannel,
   channelCount,
   supportCount,
+  user,
+  onLoginClick,
+  onRegisterClick,
+  onSubmitLoginRequest,
+  onSubmitOpen,
+  onLogout,
 }: ArchivePageNavProps) {
+  const isAuthenticated = Boolean(user);
   return (
     <header className="archive-page-nav">
       <div className="page-container archive-page-nav__inner">
@@ -155,22 +172,27 @@ export function ArchivePageNav({
           </div>
 
           <div className="archive-page-nav__auth" aria-label="账户操作">
-            <button className="archive-auth-button" type="button">
-              <UserIcon />
-              <span>登录</span>
-            </button>
-            <button className="archive-auth-button" type="button">
-              <UserIcon plus />
-              <span>注册</span>
-            </button>
+            {isAuthenticated && user ? (
+              <UserMenu user={user} onLogout={onLogout} variant="expanded" />
+            ) : (
+              <>
+                <button className="archive-auth-button" onClick={onLoginClick} type="button">
+                  <UserIcon />
+                  <span>登录</span>
+                </button>
+                <button className="archive-auth-button" onClick={onRegisterClick} type="button">
+                  <UserIcon plus />
+                  <span>注册</span>
+                </button>
+              </>
+            )}
           </div>
 
-          <button className="archive-submit-button" type="button">
-            <span aria-hidden="true" className="archive-submit-button__plus">
-              +
-            </span>
-            <span>推荐投稿</span>
-          </button>
+          <ArchiveSubmitTrigger
+            isAuthenticated={isAuthenticated}
+            onRequestLogin={onSubmitLoginRequest}
+            onRequestSubmit={onSubmitOpen}
+          />
         </div>
       </div>
     </header>

@@ -3,6 +3,7 @@
 import { useLayoutEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 
+import { AuthDialog } from "@/components/auth/auth-dialog";
 import type {
   HomeCardItem,
   HomeHeroContent,
@@ -17,6 +18,7 @@ import {
   homeIntroDurationMs,
   homeIntroSessionKey,
 } from "@/components/home/home-motion";
+import { useAuth } from "@/lib/auth/use-auth";
 
 type HomeNavigationItem = {
   href: string;
@@ -39,6 +41,8 @@ export function HomePageShell({
   const prefersReducedMotion = useReducedMotion();
   const [showIntro, setShowIntro] = useState(false);
   const [motionReady, setMotionReady] = useState(false);
+  const { user, logout, dialogMode, openLogin, openRegister, closeDialog, switchMode } =
+    useAuth();
 
   useLayoutEffect(() => {
     const hasSeenIntro = window.sessionStorage.getItem(homeIntroSessionKey) === "1";
@@ -65,7 +69,14 @@ export function HomePageShell({
   return (
     <div className="bg-[linear-gradient(180deg,#050505_0,#020202_53rem,#f5f5f3_53rem,#efefeb_100%)] pb-12 sm:pb-16 lg:pb-20">
       <HomeIntroLoader visible={showIntro} />
-      <HomeHeader navigation={navigation} motionReady={motionReady} />
+      <HomeHeader
+        motionReady={motionReady}
+        navigation={navigation}
+        onLoginClick={openLogin}
+        onLogout={logout}
+        onRegisterClick={openRegister}
+        user={user}
+      />
 
       <main>
         <HomeHero content={heroContent} motionReady={motionReady} />
@@ -75,6 +86,16 @@ export function HomePageShell({
           <HomeFeaturedGrid items={featuredItems} motionReady={motionReady} />
         </div>
       </main>
+
+      {dialogMode ? (
+        <AuthDialog
+          mode={dialogMode}
+          onClose={closeDialog}
+          onSuccess={closeDialog}
+          onSwitchMode={switchMode}
+          open
+        />
+      ) : null}
     </div>
   );
 }
