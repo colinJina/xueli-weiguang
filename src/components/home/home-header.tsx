@@ -2,7 +2,9 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 
+import { UserMenu } from "@/components/auth/user-menu";
 import {
   HomeCogIcon,
   HomeLoginIcon,
@@ -21,6 +23,10 @@ type HomeNavigationItem = {
 type HomeHeaderProps = {
   navigation: readonly HomeNavigationItem[];
   motionReady?: boolean;
+  user: User | null;
+  onLoginClick: () => void;
+  onRegisterClick: () => void;
+  onLogout: () => void;
 };
 
 const iconButtonClassName =
@@ -28,8 +34,16 @@ const iconButtonClassName =
 
 const headerVariants = createFadeUp(10, 0.04, 0.32);
 
-export function HomeHeader({ navigation, motionReady = true }: HomeHeaderProps) {
+export function HomeHeader({
+  navigation,
+  motionReady = true,
+  user,
+  onLoginClick,
+  onRegisterClick,
+  onLogout,
+}: HomeHeaderProps) {
   const prefersReducedMotion = useReducedMotion();
+  const isAuthenticated = Boolean(user);
 
   return (
     <motion.header
@@ -80,13 +94,29 @@ export function HomeHeader({ navigation, motionReady = true }: HomeHeaderProps) 
             <HomeCogIcon className="h-[1.3rem] w-[1.3rem]" />
           </button>
 
-          <Link
-            className="ml-2 inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-black/10 bg-white px-5 text-[1rem] font-semibold text-black shadow-[0_4px_16px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-px hover:bg-[#f5f5f3]"
-            href="/profile/curator-x"
-          >
-            <HomeLoginIcon className="h-[1.1rem] w-[1.1rem]" />
-            <span>登录</span>
-          </Link>
+          {isAuthenticated && user ? (
+            <div className="ml-2">
+              <UserMenu onLogout={onLogout} user={user} variant="expanded" />
+            </div>
+          ) : (
+            <div className="ml-2 flex items-center gap-2">
+              <button
+                className="inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-white/15 bg-transparent px-4 text-[1rem] font-semibold text-white transition duration-200 hover:border-white/35 hover:bg-white/[0.06]"
+                onClick={onRegisterClick}
+                type="button"
+              >
+                <span>注册</span>
+              </button>
+              <button
+                className="inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-black/10 bg-white px-5 text-[1rem] font-semibold text-black shadow-[0_4px_16px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-px hover:bg-[#f5f5f3]"
+                onClick={onLoginClick}
+                type="button"
+              >
+                <HomeLoginIcon className="h-[1.1rem] w-[1.1rem]" />
+                <span>登录</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </motion.header>

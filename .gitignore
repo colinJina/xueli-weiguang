@@ -6,13 +6,21 @@ coverage
 *.log
 
 .env
+.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.mcp.json
+skills-lock.json
 design-input
 .vercel
 *.tsbuildinfo
 docs
 CLAUDE.md
 AGENTS.md
+.claude
+.playwright-mcp
+.vercel
+.superpowers
+.agents

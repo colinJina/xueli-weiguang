@@ -1,14 +1,25 @@
+import type { User } from "@supabase/supabase-js";
+
 import { SiteBrand } from "@/components/layout/site-brand";
+import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
+import { UserMenu } from "@/components/auth/user-menu";
+import { cn } from "@/lib/utils";
 
 type ArchivePageNavProps = {
   activeChannel: string;
   channelCount: string;
   supportCount: string;
+  user: User | null;
+  onLoginClick: () => void;
+  onRegisterClick: () => void;
+  onSubmitLoginRequest: () => void;
+  onSubmitOpen: () => void;
+  onLogout: () => void;
 };
 
 function PlayIcon() {
   return (
-    <svg aria-hidden="true" className="archive-pill-icon" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="h-[13px] w-[13px]" fill="none" viewBox="0 0 16 16">
       <path
         d="M6 4.75 10.5 8 6 11.25V4.75Z"
         fill="currentColor"
@@ -22,7 +33,7 @@ function PlayIcon() {
 
 function HeartIcon() {
   return (
-    <svg aria-hidden="true" className="archive-pill-icon" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="h-[13px] w-[13px]" fill="none" viewBox="0 0 16 16">
       <path
         d="M8 12.5 3.7 8.35A2.7 2.7 0 0 1 7.5 4.6L8 5.1l.5-.5a2.7 2.7 0 0 1 3.8 3.75L8 12.5Z"
         stroke="currentColor"
@@ -35,7 +46,7 @@ function HeartIcon() {
 
 function SearchIcon() {
   return (
-    <svg aria-hidden="true" className="archive-tool-svg" fill="none" viewBox="0 0 20 20">
+    <svg aria-hidden="true" className="h-[17px] w-[17px]" fill="none" viewBox="0 0 20 20">
       <circle cx="9" cy="9" r="4.7" stroke="currentColor" strokeWidth="1.5" />
       <path d="m12.7 12.7 3.6 3.6" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
     </svg>
@@ -44,7 +55,7 @@ function SearchIcon() {
 
 function BellIcon() {
   return (
-    <svg aria-hidden="true" className="archive-tool-svg" fill="none" viewBox="0 0 20 20">
+    <svg aria-hidden="true" className="h-[17px] w-[17px]" fill="none" viewBox="0 0 20 20">
       <path
         d="M10 4.2a3.6 3.6 0 0 0-3.6 3.6v2.3c0 .7-.2 1.3-.6 1.9l-1 1.4h10.4l-1-1.4a3.2 3.2 0 0 1-.6-1.9V7.8A3.6 3.6 0 0 0 10 4.2Z"
         stroke="currentColor"
@@ -63,7 +74,7 @@ function BellIcon() {
 
 function SettingsIcon() {
   return (
-    <svg aria-hidden="true" className="archive-tool-svg" fill="none" viewBox="0 0 20 20">
+    <svg aria-hidden="true" className="h-[17px] w-[17px]" fill="none" viewBox="0 0 20 20">
       <path
         d="M10 4.6 11.2 3l1.8 1 .2 2 1.8.8 1.8-1 1.2 1.6-1.1 1.8.5 2 1.8 1-.7 2-2 .1-1.3 1.6.3 2-2 .7-1.2-1.6H9l-1.2 1.6-2-.7.3-2-1.3-1.6-2-.1-.7-2 1.8-1 .5-2L2.8 6.6 4 5l1.8 1 1.8-.8.2-2 1.8-1L10 4.6Z"
         stroke="currentColor"
@@ -77,7 +88,7 @@ function SettingsIcon() {
 
 function UserIcon({ plus = false }: { plus?: boolean }) {
   return (
-    <svg aria-hidden="true" className="archive-auth-svg" fill="none" viewBox="0 0 18 18">
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 18 18">
       <circle cx="7" cy="6" r="2.6" stroke="currentColor" strokeWidth="1.3" />
       <path
         d="M2.8 14c.9-2 2.5-3 4.2-3s3.3 1 4.2 3"
@@ -109,68 +120,91 @@ export function ArchivePageNav({
   activeChannel,
   channelCount,
   supportCount,
+  user,
+  onLoginClick,
+  onRegisterClick,
+  onSubmitLoginRequest,
+  onSubmitOpen,
+  onLogout,
 }: ArchivePageNavProps) {
+  const isAuthenticated = Boolean(user);
+
+  const statusPillClass =
+    "inline-flex min-h-9 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 text-[0.94rem] font-semibold text-muted transition duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
+  const statusPillCountClass =
+    "rounded-full bg-white/[0.06] px-[7px] py-[3px] font-sans text-[0.72rem] leading-none text-muted";
+  const toolButtonClass =
+    "inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.02] text-muted transition duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
+  const authButtonClass =
+    "inline-flex min-h-10 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-3.5 text-[0.92rem] font-semibold text-muted transition duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
+
   return (
-    <header className="archive-page-nav">
-      <div className="page-container archive-page-nav__inner">
-        <div className="archive-page-nav__cluster">
+    <header className="border-b border-white/[0.06] bg-[rgba(3,3,4,0.94)] backdrop-blur-[14px]">
+      <div className="page-container flex min-h-[72px] items-center justify-between gap-5 py-2 max-xl:flex-wrap">
+        <div className="flex min-w-0 items-center gap-7 max-xl:flex-wrap">
           <SiteBrand
             badge="BETA"
-            className="archive-brand"
-            markClassName="archive-brand__mark-wrap"
+            className="gap-3"
             subtitle="VIDEO ARCHIVE"
-            subtitleClassName="archive-brand__subtitle"
-            titleClassName="archive-brand__title"
+            titleClassName="max-md:text-[1.45rem]"
           />
 
-          <div className="archive-page-nav__status" aria-label="频道状态">
+          <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="频道状态">
             <div
               aria-current="page"
-              className="archive-status-pill archive-status-pill--active"
+              className={cn(
+                statusPillClass,
+                "bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_65%),rgba(255,255,255,0.05)] text-foreground",
+              )}
             >
               <PlayIcon />
               <span>{activeChannel}</span>
-              <span className="archive-status-pill__count">{channelCount}</span>
+              <span className={statusPillCountClass}>{channelCount}</span>
             </div>
 
-            <div className="archive-status-pill" aria-label={`支持 ${supportCount}`}>
+            <div className={statusPillClass} aria-label={`支持 ${supportCount}`}>
               <HeartIcon />
               <span>支持</span>
-              <span className="archive-status-pill__count">{supportCount}</span>
+              <span className={statusPillCountClass}>{supportCount}</span>
             </div>
           </div>
         </div>
 
-        <div className="archive-page-nav__actions">
-          <div className="archive-page-nav__tools" aria-label="工具栏">
-            <button aria-label="搜索" className="archive-tool-button" type="button">
+        <div className="flex items-center justify-end gap-3 max-xl:w-full max-xl:justify-start">
+          <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="工具栏">
+            <button aria-label="搜索" className={toolButtonClass} type="button">
               <SearchIcon />
             </button>
-            <button aria-label="通知" className="archive-tool-button" type="button">
+            <button aria-label="通知" className={toolButtonClass} type="button">
               <BellIcon />
             </button>
-            <button aria-label="设置" className="archive-tool-button" type="button">
+            <button aria-label="设置" className={toolButtonClass} type="button">
               <SettingsIcon />
             </button>
           </div>
 
-          <div className="archive-page-nav__auth" aria-label="账户操作">
-            <button className="archive-auth-button" type="button">
-              <UserIcon />
-              <span>登录</span>
-            </button>
-            <button className="archive-auth-button" type="button">
-              <UserIcon plus />
-              <span>注册</span>
-            </button>
+          <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="账户操作">
+            {isAuthenticated && user ? (
+              <UserMenu user={user} onLogout={onLogout} variant="expanded" />
+            ) : (
+              <>
+                <button className={authButtonClass} onClick={onLoginClick} type="button">
+                  <UserIcon />
+                  <span>登录</span>
+                </button>
+                <button className={authButtonClass} onClick={onRegisterClick} type="button">
+                  <UserIcon plus />
+                  <span>注册</span>
+                </button>
+              </>
+            )}
           </div>
 
-          <button className="archive-submit-button" type="button">
-            <span aria-hidden="true" className="archive-submit-button__plus">
-              +
-            </span>
-            <span>推荐投稿</span>
-          </button>
+          <ArchiveSubmitTrigger
+            isAuthenticated={isAuthenticated}
+            onRequestLogin={onSubmitLoginRequest}
+            onRequestSubmit={onSubmitOpen}
+          />
         </div>
       </div>
     </header>
