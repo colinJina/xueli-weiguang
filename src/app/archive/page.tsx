@@ -47,7 +47,7 @@ export default function ArchivePage() {
   }, [activeCategory, activeTone]);
 
   return (
-    <div className="archive-page">
+    <div className="min-h-screen bg-[#020202]">
       <ArchivePageNav
         activeChannel={archiveNavSummary.activeChannel}
         channelCount={archiveNavSummary.channelCount}
@@ -81,7 +81,7 @@ export default function ArchivePage() {
         />
       </section>
 
-      <section className="archive-page__content page-container">
+      <section className="page-container pb-16 pt-[22px] max-md:pt-[18px]">
         <ArchiveGrid items={visibleItems} />
       </section>
 
