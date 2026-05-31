@@ -34,6 +34,7 @@ export default function ArchivePage() {
   const [activeCategory, setActiveCategory] = useState<string>(DEFAULT_CATEGORY);
   const [activeTone, setActiveTone] = useState<number>(4);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [shouldContinueToSubmit, setShouldContinueToSubmit] = useState(false);
 
   const visibleItems = useMemo(() => {
     return archiveVideos.filter((item) => {
@@ -53,8 +54,14 @@ export default function ArchivePage() {
         onLoginClick={openLogin}
         onLogout={logout}
         onRegisterClick={openRegister}
-        onSubmitLoginRequest={openLogin}
-        onSubmitOpen={() => setIsSubmitDialogOpen(true)}
+        onSubmitLoginRequest={() => {
+          setShouldContinueToSubmit(true);
+          openLogin();
+        }}
+        onSubmitOpen={() => {
+          setShouldContinueToSubmit(false);
+          setIsSubmitDialogOpen(true);
+        }}
         supportCount={archiveNavSummary.supportCount}
         user={user}
       />
@@ -81,8 +88,17 @@ export default function ArchivePage() {
       {dialogMode ? (
         <AuthDialog
           mode={dialogMode}
-          onClose={closeDialog}
-          onSuccess={closeDialog}
+          onClose={() => {
+            setShouldContinueToSubmit(false);
+            closeDialog();
+          }}
+          onSuccess={() => {
+            closeDialog();
+            if (shouldContinueToSubmit) {
+              setShouldContinueToSubmit(false);
+              setIsSubmitDialogOpen(true);
+            }
+          }}
           onSwitchMode={switchMode}
           open
         />
