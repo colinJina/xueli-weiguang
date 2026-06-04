@@ -1,4 +1,5 @@
-import type { VideoDetail } from "@/components/video/video-detail-content";
+import Image from "next/image";
+
 import { DeferredVideoPlayer } from "@/components/video/deferred-video-player";
 import { VideoDetailActions } from "@/components/video/video-detail-actions";
 import {
@@ -7,6 +8,7 @@ import {
   VideoVisibilityIcon,
 } from "@/components/video/video-detail-icons";
 import { VideoDetailNav } from "@/components/video/video-detail-nav";
+import type { VideoDetail } from "@/lib/videos/serialize-video";
 
 type VideoDetailPageViewProps = {
   video: VideoDetail;
@@ -37,8 +39,18 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base text-muted">
                     <div className="flex items-center gap-2">
-                      <VideoUserIcon className="h-4 w-4 text-subtle" />
-                      <span>原作者: UID: {video.authorUid}</span>
+                      {video.authorAvatar ? (
+                        <Image
+                          alt=""
+                          className="h-5 w-5 rounded-full object-cover"
+                          height={20}
+                          src={video.authorAvatar}
+                          width={20}
+                        />
+                      ) : (
+                        <VideoUserIcon className="h-4 w-4 text-subtle" />
+                      )}
+                      <span>原作者: {video.authorName}</span>
                     </div>
 
                     <span
@@ -49,34 +61,48 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
                     <div className="flex items-center gap-2">
                       <VideoArchiveIcon className="h-4 w-4 text-subtle" />
                       <span>
-                        由 <span className="text-foreground">{video.curatorName}</span> 添加于{" "}
-                        {video.addedAt}
+                        发布于 <span className="text-foreground">{video.publishedAtLabel}</span>
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="shrink-0">
-                  <VideoDetailActions likeCount={video.likeCount} />
+                  <VideoDetailActions likeCount={video.likeCountLabel} />
                 </div>
               </div>
             </div>
 
             <div className="max-w-reading space-y-5">
               <p className="text-base leading-8 text-muted sm:text-[1.05rem]">
-                {video.description}
-                <span className="ml-1 font-semibold text-foreground">展开阅读</span>
+                {video.description || "该作品暂无文字简介。"}
               </p>
 
               <div className="flex flex-wrap gap-3">
-                {video.tags.map((tag) => (
+                <span className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm text-foreground">
+                  {video.category.name}
+                </span>
+                {[...video.tags, ...video.tones].map((tag) => (
                   <span
-                    key={tag}
+                    key={tag.id}
                     className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-muted transition duration-200 hover:border-white/16 hover:text-foreground"
                   >
-                    {tag}
+                    {tag.name}
                   </span>
                 ))}
+              </div>
+
+              <div className="flex flex-wrap gap-3 border-t border-white/8 pt-5 text-sm text-subtle">
+                <span>{video.viewCountLabel} 播放</span>
+                <span>{video.likeCountLabel} 喜欢</span>
+                <a
+                  className="text-muted transition duration-200 hover:text-foreground"
+                  href={video.sourceUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  查看原始链接
+                </a>
               </div>
             </div>
           </section>

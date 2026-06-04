@@ -1,15 +1,23 @@
+import { notFound } from "next/navigation";
+
 import { VideoDetailPageView } from "@/components/video/video-detail-page-view";
-import { getVideoDetail } from "@/components/video/video-detail-content";
+import { getVideoById } from "@/lib/videos/get-video-by-id";
+
+export const revalidate = 60;
 
 type VideoDetailPageProps = {
   params: Promise<{
-    slug: string;
+    id: string;
   }>;
 };
 
 export default async function VideoDetailPage({ params }: VideoDetailPageProps) {
-  const { slug } = await params;
-  const video = getVideoDetail(slug);
+  const { id } = await params;
+  const video = await getVideoById(id);
+
+  if (!video) {
+    notFound();
+  }
 
   return <VideoDetailPageView video={video} />;
 }
