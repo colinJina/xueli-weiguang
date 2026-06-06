@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { Chip } from "@/components/ui/chip";
 import { DeferredVideoPlayer } from "@/components/video/deferred-video-player";
 import { VideoDetailActions } from "@/components/video/video-detail-actions";
 import {
@@ -79,16 +80,13 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
               </p>
 
               <div className="flex flex-wrap gap-3">
-                <span className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm text-foreground">
+                <Chip size="md" variant="strong">
                   {video.category.name}
-                </span>
+                </Chip>
                 {[...video.tags, ...video.tones].map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-muted transition duration-200 hover:border-white/16 hover:text-foreground"
-                  >
+                  <Chip key={tag.id} size="md">
                     {tag.name}
-                  </span>
+                  </Chip>
                 ))}
               </div>
 
@@ -114,9 +112,9 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
 
 function VisibilityPill({ label }: { label: string }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-sm text-muted">
+    <Chip size="md">
       <VideoVisibilityIcon className="h-2.5 w-2.5 text-foreground" />
       <span>{label}</span>
-    </div>
+    </Chip>
   );
 }

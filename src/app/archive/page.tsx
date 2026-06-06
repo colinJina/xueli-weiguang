@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArchiveClientShell } from "@/components/archive/archive-client-shell";
 import { ArchiveFilterBar, getArchivePageHref } from "@/components/archive/archive-filter-bar";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
+import { buttonVariants } from "@/components/ui/button";
+import { chipVariants } from "@/components/ui/chip";
 import { getArchiveVideos, type ArchiveFilters } from "@/lib/videos/get-videos";
 import { formatCompactNumber } from "@/lib/videos/serialize-video";
 import { cn } from "@/lib/utils";
@@ -38,18 +40,6 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
       </section>
 
       <section className="page-container pb-16 pt-[22px] max-md:pt-[18px]">
-        <div className="mb-5 flex flex-col justify-between gap-3 border-b border-white/[0.06] pb-4 sm:flex-row sm:items-end">
-          <div>
-            <p className="font-sans text-[0.68rem] tracking-[0.18em] text-subtle">ARCHIVE</p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.045em] text-foreground">
-              已发布作品
-            </h1>
-          </div>
-          <p className="font-sans text-[0.78rem] tracking-[0.12em] text-subtle">
-            {formatCompactNumber(totalCount)} ITEMS / PAGE {filters.page}
-          </p>
-        </div>
-
         <ArchiveGrid items={items} />
         <ArchivePagination filters={filters} pageCount={pageCount} />
       </section>
@@ -84,8 +74,8 @@ function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pa
             <Link
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "grid h-9 w-9 place-items-center rounded-full border border-white/[0.08] bg-white/[0.03] font-sans text-[0.78rem] text-muted transition duration-200 hover:border-white/15 hover:text-foreground",
-                isActive && "border-white/15 bg-white-soft text-black-soft",
+                chipVariants({ size: "sm", variant: isActive ? "selected" : "default" }),
+                "h-9 w-9 px-0 py-0 font-sans text-[0.78rem]",
               )}
               href={getArchivePageHref(filters, page)}
               key={page}
@@ -114,7 +104,7 @@ function PageLink({
   href: string;
 }) {
   const className =
-    "inline-flex min-h-10 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 text-[0.86rem] font-semibold text-muted transition duration-200 hover:border-white/15 hover:text-foreground";
+    buttonVariants({ variant: "pill", size: "md", className: "gap-2 text-[0.86rem]" });
 
   if (disabled) {
     return (

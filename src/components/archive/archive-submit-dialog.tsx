@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { DialogShell } from "@/components/ui/dialog-shell";
+import { FormMessage } from "@/components/ui/form-message";
+import { TextField } from "@/components/ui/text-field";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
-import { cn } from "@/lib/utils";
 
 type ArchiveSubmitDialogProps = {
   open: boolean;
@@ -12,19 +15,6 @@ type ArchiveSubmitDialogProps = {
 };
 
 type SubmissionStatus = "idle" | "submitting" | "success" | "error";
-
-function CloseIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M4 4l8 8M12 4l-8 8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
 
 function LinkIcon() {
   return (
@@ -102,17 +92,12 @@ function StatusNotice({
     );
 
   return (
-    <p
-      className={cn(
-        "flex items-start gap-2 rounded-xl border px-4 py-3 text-sm",
-        status === "error"
-          ? "border-white/15 bg-white/[0.04] text-foreground"
-          : "border-white/10 bg-white/[0.03] text-muted",
-      )}
+    <FormMessage
+      icon={icon}
+      variant={status === "error" ? "error" : status === "submitting" ? "loading" : "success"}
     >
-      <span className="mt-0.5 text-foreground">{icon}</span>
-      <span className="flex-1">{message}</span>
-    </p>
+      {message}
+    </FormMessage>
   );
 }
 
@@ -174,86 +159,52 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
   const isSubmitting = status === "submitting";
 
   return (
-    <div
-      aria-modal="true"
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/82 px-5 py-8 backdrop-blur-sm"
-      role="dialog"
+    <DialogShell
+      closeLabel="关闭投稿弹窗"
+      description="粘贴一条 Bilibili 视频链接。我们会先记录投稿，再进入人工审核。"
+      eyebrow="ARCHIVE SUBMISSION"
+      onClose={onClose}
+      title="推荐你喜欢的视频"
     >
-      <div aria-hidden="true" className="absolute inset-0" onClick={onClose} />
-
-      <div className="relative z-[1] w-full max-w-[520px] rounded-2xl border border-border bg-background px-6 py-6 shadow-overlay sm:px-7">
-        <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
-          <div className="space-y-2">
-            <p className="font-sans text-[11px] uppercase tracking-[0.28em] text-muted">
-              ARCHIVE SUBMISSION
-            </p>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-                推荐你喜欢的视频
-              </h2>
-              <p className="text-sm leading-6 text-muted">
-                粘贴一条 Bilibili 视频链接。我们会先记录投稿，再进入人工审核。
-              </p>
-            </div>
-          </div>
-
-          <button
-            aria-label="关闭投稿弹窗"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-muted transition hover:border-white/20 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            onClick={onClose}
-            type="button"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-
-        <div className="mt-5 flex items-center gap-3 border-b border-border pb-4">
-          <button
-            aria-current="page"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white bg-reverse px-4 text-sm font-semibold text-black"
-            type="button"
-          >
+      <div className="mt-5 flex items-center gap-3 border-b border-border pb-4">
+        <Chip aria-current="page" size="md" variant="selected">
+          <span className="inline-flex items-center gap-1.5">
             <LinkIcon />
             输入链接
-          </button>
+          </span>
+        </Chip>
+      </div>
+
+      <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-4 rounded-lg border border-border bg-surface px-5 py-5">
+          <TextField
+            autoFocus
+            icon={<LinkIcon />}
+            label="BILIBILI URL"
+            onChange={(event) => setUrl(event.target.value)}
+            placeholder="https://www.bilibili.com/video/BV..."
+            type="text"
+            value={url}
+          />
+
+          <p className="text-xs leading-6 text-subtle">
+            支持完整视频链接、裸 BV 号，以及 `b23.tv` 短链接。
+          </p>
         </div>
 
-        <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-2xl border border-border bg-surface px-5 py-5">
-            <label className="block space-y-2">
-              <span className="inline-flex items-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.22em] text-muted">
-                <LinkIcon />
-                BILIBILI URL
-              </span>
-              <input
-                autoFocus
-                className="h-12 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition placeholder:text-subtle focus:border-white/20"
-                onChange={(event) => setUrl(event.target.value)}
-                placeholder="https://www.bilibili.com/video/BV..."
-                type="text"
-                value={url}
-              />
-            </label>
+        {status === "submitting" || status === "success" || status === "error" ? (
+          <StatusNotice message={message} status={status} />
+        ) : null}
 
-            <p className="text-xs leading-6 text-subtle">
-              支持完整视频链接、裸 BV 号，以及 `b23.tv` 短链接。
-            </p>
-          </div>
-
-          {status === "submitting" || status === "success" || status === "error" ? (
-            <StatusNotice message={message} status={status} />
-          ) : null}
-
-          <div className="flex justify-end">
-            <Button className="rounded-xl" disabled={isSubmitting} type="submit">
-              <span className="inline-flex items-center gap-2">
-                {isSubmitting ? <SpinnerIcon /> : <LinkIcon />}
-                {isSubmitting ? "提交中" : "提交链接"}
-              </span>
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex justify-end">
+          <Button disabled={isSubmitting} type="submit">
+            <span className="inline-flex items-center gap-2">
+              {isSubmitting ? <SpinnerIcon /> : <LinkIcon />}
+              {isSubmitting ? "提交中" : "提交链接"}
+            </span>
+          </Button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }

@@ -13,6 +13,8 @@ import {
 } from "@/components/home/home-icons";
 import { createFadeUp } from "@/components/home/home-motion";
 import { SiteBrand } from "@/components/layout/site-brand";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 
 type HomeNavigationItem = {
@@ -28,9 +30,6 @@ type HomeHeaderProps = {
   onRegisterClick: () => void;
   onLogout: () => void;
 };
-
-const iconButtonClassName =
-  "inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent text-[#a8adb6] transition duration-200 hover:border-white/10 hover:bg-white/[0.04] hover:text-white";
 
 const headerVariants = createFadeUp(10, 0.04, 0.32);
 
@@ -84,15 +83,15 @@ export function HomeHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <button aria-label="搜索" className={iconButtonClassName} type="button">
+          <IconButton aria-label="搜索" size="lg" variant="ghost">
             <HomeSearchIcon className="h-[1.35rem] w-[1.35rem]" />
-          </button>
-          <button aria-label="上传" className={iconButtonClassName} type="button">
+          </IconButton>
+          <IconButton aria-label="上传" size="lg" variant="ghost">
             <HomeUploadIcon className="h-[1.2rem] w-[1.2rem]" />
-          </button>
-          <button aria-label="设置" className={iconButtonClassName} type="button">
+          </IconButton>
+          <IconButton aria-label="设置" size="lg" variant="ghost">
             <HomeCogIcon className="h-[1.3rem] w-[1.3rem]" />
-          </button>
+          </IconButton>
 
           {isAuthenticated && user ? (
             <div className="ml-2">
@@ -100,21 +99,25 @@ export function HomeHeader({
             </div>
           ) : (
             <div className="ml-2 flex items-center gap-2">
-              <button
-                className="inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-white/15 bg-transparent px-4 text-[1rem] font-semibold text-white transition duration-200 hover:border-white/35 hover:bg-white/[0.06]"
+              <Button
+                className="text-base"
                 onClick={onRegisterClick}
+                size="default"
                 type="button"
+                variant="secondary"
               >
                 <span>注册</span>
-              </button>
-              <button
-                className="inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-black/10 bg-white px-5 text-[1rem] font-semibold text-black shadow-[0_4px_16px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-px hover:bg-[#f5f5f3]"
+              </Button>
+              <Button
+                className="gap-2 text-base"
                 onClick={onLoginClick}
+                size="default"
                 type="button"
+                variant="primary"
               >
                 <HomeLoginIcon className="h-[1.1rem] w-[1.1rem]" />
                 <span>登录</span>
-              </button>
+              </Button>
             </div>
           )}
         </div>

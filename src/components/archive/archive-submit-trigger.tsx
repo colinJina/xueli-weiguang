@@ -1,10 +1,25 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 type ArchiveSubmitTriggerProps = {
   isAuthenticated: boolean;
   onRequestLogin: () => void;
   onRequestSubmit: () => void;
 };
+
+function PlusIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
+      <path
+        d="M8 3.5v9M3.5 8h9"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
 
 export function ArchiveSubmitTrigger({
   isAuthenticated,
@@ -21,15 +36,15 @@ export function ArchiveSubmitTrigger({
   }
 
   return (
-    <button
-      className="inline-flex min-h-[42px] items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.08] px-[18px] text-base font-bold text-foreground transition duration-200 hover:border-white/15 hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90"
+    <Button
+      className="bg-white/[0.08] text-base font-bold text-foreground hover:bg-white/[0.06]"
       onClick={handleClick}
+      size="md"
       type="button"
+      variant="pill"
     >
-      <span aria-hidden="true" className="text-[1.35rem] leading-none">
-        +
-      </span>
+      <PlusIcon />
       <span>推荐投稿</span>
-    </button>
+    </Button>
   );
 }

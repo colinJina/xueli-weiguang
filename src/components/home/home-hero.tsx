@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { HomeHeroContent } from "@/components/home/home-content";
 import { HomePlayIcon } from "@/components/home/home-icons";
 import { createFadeUp, createStagger, homeEase } from "@/components/home/home-motion";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type HomeHeroProps = {
@@ -121,10 +122,14 @@ export function HomeHero({ content, motionReady = true }: HomeHeroProps) {
                 key={action.href}
                 href={action.href}
                 className={cn(
-                  "inline-flex min-h-14 items-center justify-center rounded-[14px] border px-8 text-[1.5rem] font-semibold tracking-[-0.03em] transition duration-200 hover:-translate-y-px max-sm:min-h-12 max-sm:px-6 max-sm:text-[1.15rem]",
+                  buttonVariants({
+                    size: "hero",
+                    variant: index === 0 ? "primary" : "secondary",
+                  }),
                   index === 0
-                    ? "gap-3 border-white bg-white text-black hover:bg-[#f5f5f3]"
+                    ? "gap-3"
                     : "border-white/70 bg-transparent text-white hover:border-white hover:bg-white/6",
+                  "max-sm:min-h-12 max-sm:px-6 max-sm:text-[1.15rem]",
                 )}
               >
                 {index === 0 ? <HomePlayIcon className="h-5 w-5" /> : null}

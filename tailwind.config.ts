@@ -17,6 +17,8 @@ const config: Config = {
         subtle: "var(--text-3)",
         disabled: "var(--text-4)",
         reverse: "var(--white-soft)",
+        "white-soft": "var(--white-soft)",
+        "black-soft": "var(--black-soft)",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "Noto Sans SC", "sans-serif"],

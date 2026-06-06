@@ -4,7 +4,7 @@ out
 dist
 coverage
 *.log
-
+.tmp
 .env
 .env.example
 .env.local

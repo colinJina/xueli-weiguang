@@ -20,7 +20,7 @@ type FilterPatch = Partial<{
 }>;
 
 const filterPillClass =
-  "inline-flex min-h-[34px] shrink-0 items-center rounded-full border border-white/[0.08] bg-white/[0.03] px-[15px] text-[0.84rem] font-semibold text-subtle transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
+  "inline-flex min-h-[34px] shrink-0 items-center rounded-full border px-[15px] text-[0.84rem] font-semibold transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
 
 function buildArchiveHref(filters: ArchiveFilters, patch: FilterPatch) {
   const nextFilters = {
@@ -59,7 +59,7 @@ export function getArchivePageHref(filters: ArchiveFilters, page: number) {
   return buildArchiveHref(filters, { page });
 }
 
-export function ArchiveFilterBar({ categories, tags, tones, filters }: ArchiveFilterBarProps) {
+export function ArchiveFilterBar({ categories, tags: _tags, tones, filters }: ArchiveFilterBarProps) {
   return (
     <div className="space-y-4 overflow-hidden border-b border-white/[0.06] py-[14px] pb-5">
       <FilterRow label="类型">
@@ -76,8 +76,8 @@ export function ArchiveFilterBar({ categories, tags, tones, filters }: ArchiveFi
           </FilterLink>
         ))}
       </FilterRow>
-
-      <FilterRow label="标签">
+        {/* 暂时不展示 */}
+      {/* <FilterRow label="标签">
         {tags.length ? (
           tags.map((tag) => (
             <FilterLink
@@ -91,7 +91,7 @@ export function ArchiveFilterBar({ categories, tags, tones, filters }: ArchiveFi
         ) : (
           <span className="whitespace-nowrap text-[0.78rem] text-subtle">暂无标签</span>
         )}
-      </FilterRow>
+      </FilterRow> */}
 
       <FilterRow label="色调">
         {tones.length ? (
@@ -102,7 +102,7 @@ export function ArchiveFilterBar({ categories, tags, tones, filters }: ArchiveFi
               <Link
                 aria-pressed={isActive}
                 className={cn(
-                  "inline-flex min-h-[34px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 text-[0.84rem] font-semibold text-subtle transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90",
+                  "inline-flex min-h-[34px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 text-[0.94rem] font-semibold text-subtle transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90",
                   isActive && "border-white/15 bg-white-soft text-black-soft",
                 )}
                 href={buildArchiveHref(filters, { toneIds: toggleId(filters.toneIds, tone.id) })}
@@ -152,7 +152,12 @@ function FilterLink({
   return (
     <Link
       aria-pressed={active}
-      className={cn(filterPillClass, active && "border-white/15 bg-white-soft text-black-soft")}
+      className={cn(
+        filterPillClass,
+        active
+          ? "border-white/15 bg-white-soft text-black-soft"
+          : "border-white/[0.08] bg-white/[0.03] text-subtle",
+      )}
       href={href}
     >
       {children}

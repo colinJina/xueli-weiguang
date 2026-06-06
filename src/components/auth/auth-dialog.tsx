@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DialogShell } from "@/components/ui/dialog-shell";
+import { FormMessage } from "@/components/ui/form-message";
+import { TextField } from "@/components/ui/text-field";
 import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth/translate-error";
 import { cn } from "@/lib/utils";
@@ -35,19 +38,6 @@ const registerCopy: Record<RegisterStep, { title: string; description: string }>
     description: "为后续登录创建密码。建议使用至少 8 位的强密码。",
   },
 };
-
-function CloseIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M4 4l8 8M12 4l-8 8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
 
 function AlertIcon() {
   return (
@@ -139,18 +129,17 @@ function ModeTab({
   onClick: () => void;
 }) {
   return (
-    <button
-      className={cn(
-        "inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20",
-        active
-          ? "border-white bg-reverse text-black"
-          : "border-border bg-surface text-muted hover:border-white/20 hover:text-foreground",
-      )}
+    <Button
+      className={active ? undefined : "hover:border-white/20"}
       onClick={onClick}
+      role="tab"
+      aria-selected={active}
       type="button"
+      variant={active ? "pillActive" : "pill"}
+      size="md"
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -337,174 +326,130 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
       : "登录";
 
   return (
-    <div
-      aria-modal="true"
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/82 px-5 py-8 backdrop-blur-sm"
-      role="dialog"
+    <DialogShell
+      closeLabel="关闭认证弹窗"
+      description={currentCopy.description}
+      eyebrow="PUBLIC SITE ACCESS"
+      maxWidthClassName="max-w-[460px]"
+      onClose={onClose}
+      title={currentCopy.title}
     >
-      <div aria-hidden="true" className="absolute inset-0" onClick={onClose} />
-
-      <div className="relative z-[1] w-full max-w-[460px] rounded-2xl border border-border bg-background px-6 py-6 shadow-overlay sm:px-7">
-        <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
-          <div className="space-y-2">
-            <p className="font-sans text-[11px] uppercase tracking-[0.28em] text-muted">
-              PUBLIC SITE ACCESS
-            </p>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-                {currentCopy.title}
-              </h2>
-              <p className="text-sm leading-6 text-muted">{currentCopy.description}</p>
-            </div>
-          </div>
-
-          <button
-            aria-label="关闭认证弹窗"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-muted transition hover:border-white/20 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            onClick={onClose}
-            type="button"
-          >
-            <CloseIcon />
-          </button>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2" role="tablist" aria-label="登录或注册">
+          <ModeTab active={mode === "login"} onClick={() => onSwitchMode("login")}>
+            登录
+          </ModeTab>
+          <ModeTab active={mode === "register"} onClick={() => onSwitchMode("register")}>
+            注册
+          </ModeTab>
         </div>
-
-        <div className="mt-5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2" role="tablist" aria-label="登录或注册">
-            <ModeTab active={mode === "login"} onClick={() => onSwitchMode("login")}>
-              登录
-            </ModeTab>
-            <ModeTab active={mode === "register"} onClick={() => onSwitchMode("register")}>
-              注册
-            </ModeTab>
-          </div>
-          {isRegister ? <StepIndicator current={registerStep} /> : null}
-        </div>
-
-        <form
-          className="mt-6 space-y-4"
-          onSubmit={isRegister ? handleRegisterSubmit : handleLoginSubmit}
-        >
-          <label className="block space-y-2">
-            <span className="inline-flex items-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.22em] text-muted">
-              <MailIcon />
-              邮箱
-            </span>
-            <input
-              autoComplete="email"
-              className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition placeholder:text-subtle focus:border-white/20"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="name@example.com"
-              type="email"
-              value={email}
-            />
-          </label>
-
-          {isRegister && registerStep === "code" ? (
-            <div className="space-y-2">
-              <label className="block space-y-2">
-                <span className="font-sans text-[11px] uppercase tracking-[0.22em] text-muted">
-                  6 位验证码
-                </span>
-                <input
-                  autoComplete="one-time-code"
-                  className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-center text-lg tracking-[0.6em] text-foreground outline-none transition placeholder:tracking-[0.3em] placeholder:text-subtle focus:border-white/20"
-                  inputMode="numeric"
-                  maxLength={6}
-                  onChange={(event) =>
-                    setToken(event.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
-                  placeholder="000000"
-                  value={token}
-                />
-              </label>
-              <div className="flex items-center justify-between text-xs text-subtle">
-                <span>未收到验证码？</span>
-                <button
-                  className={cn(
-                    "inline-flex items-center gap-1 underline-offset-2",
-                    isOnCooldown
-                      ? "cursor-not-allowed text-subtle"
-                      : "text-foreground hover:underline",
-                  )}
-                  disabled={isOnCooldown || isSubmitting}
-                  onClick={handleResend}
-                  type="button"
-                >
-                  {isOnCooldown ? `${cooldownSeconds} 秒后可重发` : "重新发送"}
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          {!isRegister || registerStep === "password" ? (
-            <label className="block space-y-2">
-              <span className="inline-flex items-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.22em] text-muted">
-                <LockIcon />
-                密码
-              </span>
-              <input
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition placeholder:text-subtle focus:border-white/20"
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder={mode === "login" ? "输入密码" : "设置至少 8 位密码"}
-                type="password"
-                value={password}
-              />
-            </label>
-          ) : null}
-
-          {errorMessage ? (
-            <p className="flex items-start gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm text-foreground">
-              <span className="mt-0.5 text-foreground">
-                <AlertIcon />
-              </span>
-              <span className="flex-1">{errorMessage}</span>
-            </p>
-          ) : null}
-
-          {successMessage ? (
-            <p className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-muted">
-              <span className="mt-0.5 text-foreground">
-                <CheckIcon />
-              </span>
-              <span className="flex-1">{successMessage}</span>
-            </p>
-          ) : null}
-
-          <div className="flex flex-col gap-3 border-t border-border pt-4">
-            <Button className="w-full rounded-xl" disabled={submitDisabled} type="submit">
-              <span className="inline-flex items-center gap-2">
-                {submitLabel}
-                {!isSubmitting ? <ArrowRightIcon /> : null}
-              </span>
-            </Button>
-
-            {isRegister && registerStep === "email" ? (
-              <p className="text-xs leading-6 text-subtle">
-                已经注册过？
-                <button
-                  className="ml-1 underline-offset-2 hover:text-foreground hover:underline"
-                  onClick={() => onSwitchMode("login")}
-                  type="button"
-                >
-                  改用登录
-                </button>
-              </p>
-            ) : !isRegister ? (
-              <p className="text-xs leading-6 text-subtle">
-                尚无账号？
-                <button
-                  className="ml-1 underline-offset-2 hover:text-foreground hover:underline"
-                  onClick={() => onSwitchMode("register")}
-                  type="button"
-                >
-                  去注册
-                </button>
-              </p>
-            ) : null}
-          </div>
-        </form>
+        {isRegister ? <StepIndicator current={registerStep} /> : null}
       </div>
-    </div>
+
+      <form
+        className="mt-6 space-y-4"
+        onSubmit={isRegister ? handleRegisterSubmit : handleLoginSubmit}
+      >
+        <TextField
+          autoComplete="email"
+          icon={<MailIcon />}
+          label="邮箱"
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="name@example.com"
+          type="email"
+          value={email}
+        />
+
+        {isRegister && registerStep === "code" ? (
+          <div className="space-y-2">
+            <TextField
+              autoComplete="one-time-code"
+              className="text-center text-lg tracking-[0.6em] placeholder:tracking-[0.3em]"
+              inputMode="numeric"
+              label="6 位验证码"
+              maxLength={6}
+              onChange={(event) =>
+                setToken(event.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              placeholder="000000"
+              value={token}
+            />
+            <div className="flex items-center justify-between text-xs text-subtle">
+              <span>未收到验证码？</span>
+              <button
+                className={cn(
+                  "inline-flex items-center gap-1 underline-offset-2",
+                  isOnCooldown
+                    ? "cursor-not-allowed text-subtle"
+                    : "text-foreground hover:underline",
+                )}
+                disabled={isOnCooldown || isSubmitting}
+                onClick={handleResend}
+                type="button"
+              >
+                {isOnCooldown ? `${cooldownSeconds} 秒后可重发` : "重新发送"}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {!isRegister || registerStep === "password" ? (
+          <TextField
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            icon={<LockIcon />}
+            label="密码"
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder={mode === "login" ? "输入密码" : "设置至少 8 位密码"}
+            type="password"
+            value={password}
+          />
+        ) : null}
+
+        {errorMessage ? (
+          <FormMessage icon={<AlertIcon />} variant="error">
+            {errorMessage}
+          </FormMessage>
+        ) : null}
+
+        {successMessage ? (
+          <FormMessage icon={<CheckIcon />} variant="success">
+            {successMessage}
+          </FormMessage>
+        ) : null}
+
+        <div className="flex flex-col gap-3 border-t border-border pt-4">
+          <Button className="w-full" disabled={submitDisabled} type="submit">
+            <span className="inline-flex items-center gap-2">
+              {submitLabel}
+              {!isSubmitting ? <ArrowRightIcon /> : null}
+            </span>
+          </Button>
+
+          {isRegister && registerStep === "email" ? (
+            <p className="text-xs leading-6 text-subtle">
+              已经注册过？
+              <button
+                className="ml-1 underline-offset-2 hover:text-foreground hover:underline"
+                onClick={() => onSwitchMode("login")}
+                type="button"
+              >
+                改用登录
+              </button>
+            </p>
+          ) : !isRegister ? (
+            <p className="text-xs leading-6 text-subtle">
+              尚无账号？
+              <button
+                className="ml-1 underline-offset-2 hover:text-foreground hover:underline"
+                onClick={() => onSwitchMode("register")}
+                type="button"
+              >
+                去注册
+              </button>
+            </p>
+          ) : null}
+        </div>
+      </form>
+    </DialogShell>
   );
 }

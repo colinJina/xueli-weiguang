@@ -1,9 +1,7 @@
 import { HomeCogIcon } from "@/components/home/home-icons";
 import { SiteBrand } from "@/components/layout/site-brand";
+import { IconButton } from "@/components/ui/icon-button";
 import { VideoUserIcon } from "@/components/video/video-detail-icons";
-
-const navIconButtonClassName =
-  "inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-subtle transition duration-200 hover:border-white/10 hover:bg-white/[0.04] hover:text-foreground";
 
 export function VideoDetailNav() {
   return (
@@ -17,12 +15,12 @@ export function VideoDetailNav() {
         />
 
         <div className="flex shrink-0 items-center gap-2">
-          <button aria-label="设置" className={navIconButtonClassName} type="button">
+          <IconButton aria-label="设置" variant="ghost">
             <HomeCogIcon className="h-[1.1rem] w-[1.1rem]" />
-          </button>
-          <button aria-label="个人中心" className={navIconButtonClassName} type="button">
+          </IconButton>
+          <IconButton aria-label="个人中心" variant="ghost">
             <VideoUserIcon className="h-[1.15rem] w-[1.15rem]" />
-          </button>
+          </IconButton>
         </div>
       </div>
     </header>

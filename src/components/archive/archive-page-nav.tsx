@@ -3,7 +3,9 @@ import type { User } from "@supabase/supabase-js";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
 import { UserMenu } from "@/components/auth/user-menu";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { IconButton } from "@/components/ui/icon-button";
 
 type ArchivePageNavProps = {
   activeChannel: string;
@@ -129,15 +131,6 @@ export function ArchivePageNav({
 }: ArchivePageNavProps) {
   const isAuthenticated = Boolean(user);
 
-  const statusPillClass =
-    "inline-flex min-h-9 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 text-[0.94rem] font-semibold text-muted transition duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
-  const statusPillCountClass =
-    "rounded-full bg-white/[0.06] px-[7px] py-[3px] font-sans text-[0.72rem] leading-none text-muted";
-  const toolButtonClass =
-    "inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.02] text-muted transition duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
-  const authButtonClass =
-    "inline-flex min-h-10 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-3.5 text-[0.92rem] font-semibold text-muted transition duration-200 hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
-
   return (
     <header className="border-b border-white/[0.06] bg-[rgba(3,3,4,0.94)] backdrop-blur-[14px]">
       <div className="page-container flex min-h-[72px] items-center justify-between gap-5 py-2 max-xl:flex-wrap">
@@ -149,38 +142,37 @@ export function ArchivePageNav({
             titleClassName="max-md:text-[1.45rem]"
           />
 
-          <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="频道状态">
-            <div
+          <div className="flex items-center gap-2.5 max-md:flex-wrap " aria-label="频道状态">
+            <Chip
               aria-current="page"
-              className={cn(
-                statusPillClass,
-                "bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_65%),rgba(255,255,255,0.05)] text-foreground",
-              )}
+              className="bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_65%),rgba(255,255,255,0.05)] text-foreground"
+              size="sm"
+              variant="strong"
             >
               <PlayIcon />
-              <span>{activeChannel}</span>
-              <span className={statusPillCountClass}>{channelCount}</span>
-            </div>
+              <span className="text-base">{activeChannel}</span>
+              <Chip size="count" variant="count">{channelCount}</Chip>
+            </Chip>
 
-            <div className={statusPillClass} aria-label={`支持 ${supportCount}`}>
+            <Chip aria-label={`支持 ${supportCount}`} size="sm">
               <HeartIcon />
-              <span>支持</span>
-              <span className={statusPillCountClass}>{supportCount}</span>
-            </div>
+              <span className="text-base">支持</span>
+              <Chip size="count" variant="count">{supportCount}</Chip>
+            </Chip>
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 max-xl:w-full max-xl:justify-start">
           <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="工具栏">
-            <button aria-label="搜索" className={toolButtonClass} type="button">
+            <IconButton aria-label="搜索">
               <SearchIcon />
-            </button>
-            <button aria-label="通知" className={toolButtonClass} type="button">
+            </IconButton>
+            <IconButton aria-label="通知">
               <BellIcon />
-            </button>
-            <button aria-label="设置" className={toolButtonClass} type="button">
+            </IconButton>
+            <IconButton aria-label="设置">
               <SettingsIcon />
-            </button>
+            </IconButton>
           </div>
 
           <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="账户操作">
@@ -188,14 +180,14 @@ export function ArchivePageNav({
               <UserMenu user={user} onLogout={onLogout} variant="expanded" />
             ) : (
               <>
-                <button className={authButtonClass} onClick={onLoginClick} type="button">
+                <Button onClick={onLoginClick} size="md" type="button" variant="pill">
                   <UserIcon />
                   <span>登录</span>
-                </button>
-                <button className={authButtonClass} onClick={onRegisterClick} type="button">
+                </Button>
+                <Button onClick={onRegisterClick} size="md" type="button" variant="pill">
                   <UserIcon plus />
                   <span>注册</span>
-                </button>
+                </Button>
               </>
             )}
           </div>
