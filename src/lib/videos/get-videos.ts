@@ -1,17 +1,20 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import {
+  serializeDictionaryItem,
   serializeArchiveVideo,
   type ArchiveVideoItem,
   type VideoBaseRow,
   type VideoDictionaryItem,
+  type VideoDictionaryRow,
 } from "@/lib/videos/serialize-video";
+import { getToneFilterOption, getToneFilterOptions } from "@/lib/videos/tone-options";
 
 export const ARCHIVE_PAGE_SIZE = 24;
 
 export type ArchiveFilters = {
   categoryId: string | null;
   tagIds: string[];
-  toneIds: string[];
+  toneKeys: string[];
   page: number;
 };
 
@@ -65,6 +68,23 @@ function parseIdList(value: SearchParamValue) {
   );
 }
 
+function parseToneKeyList(value: SearchParamValue) {
+  const rawValue = getSingleParam(value);
+
+  if (!rawValue) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      rawValue
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => Boolean(getToneFilterOption(item))),
+    ),
+  );
+}
+
 export function parseArchiveFilters(searchParams: SearchParamsInput): ArchiveFilters {
   const categoryValue = getSingleParam(searchParams.category);
   const pageValue = Number(getSingleParam(searchParams.page) ?? "1");
@@ -73,7 +93,7 @@ export function parseArchiveFilters(searchParams: SearchParamsInput): ArchiveFil
   return {
     categoryId: categoryValue && UUID_PATTERN.test(categoryValue) ? categoryValue : null,
     tagIds: parseIdList(searchParams.tags),
-    toneIds: parseIdList(searchParams.tones),
+    toneKeys: parseToneKeyList(searchParams.tones),
     page: safePage,
   };
 }
@@ -82,7 +102,7 @@ async function listDictionaries(supabase: PublicSupabaseClient): Promise<Archive
   const [categoriesResult, tagsResult, tonesResult] = await Promise.all([
     supabase.from("categories").select("id,name").order("sort_order", { ascending: true }),
     supabase.from("tags").select("id,name").order("name", { ascending: true }),
-    supabase.from("tones").select("id,name").order("name", { ascending: true }),
+    supabase.from("tones").select("id,name,color_hex").order("name", { ascending: true }),
   ]);
 
   if (categoriesResult.error) {
@@ -98,9 +118,9 @@ async function listDictionaries(supabase: PublicSupabaseClient): Promise<Archive
   }
 
   return {
-    categories: (categoriesResult.data ?? []) as VideoDictionaryItem[],
-    tags: (tagsResult.data ?? []) as VideoDictionaryItem[],
-    tones: (tonesResult.data ?? []) as VideoDictionaryItem[],
+    categories: ((categoriesResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
+    tags: ((tagsResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
+    tones: ((tonesResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
   };
 }
 
@@ -139,6 +159,20 @@ function intersectVideoIdSets(sets: Array<Set<string> | null>) {
 
 function createDictionaryMap(items: VideoDictionaryItem[]) {
   return new Map(items.map((item) => [item.id, item]));
+}
+
+function getToneIdsForFilter(tones: readonly VideoDictionaryItem[], toneKeys: readonly string[]) {
+  const selectedHexes = new Set<string>(
+    getToneFilterOptions(toneKeys).map((option) => option.colorHex),
+  );
+
+  if (selectedHexes.size === 0) {
+    return [];
+  }
+
+  return tones
+    .filter((tone) => tone.colorHex && selectedHexes.has(tone.colorHex))
+    .map((tone) => tone.id);
 }
 
 async function listVideoRelations(
@@ -197,9 +231,22 @@ export async function getArchiveVideos(
   const supabase = createPublicClient();
   const filters = parseArchiveFilters(rawSearchParams);
   const dictionaries = await listDictionaries(supabase);
+  const selectedToneOptions = getToneFilterOptions(filters.toneKeys);
+  const selectedToneIds = getToneIdsForFilter(dictionaries.tones, filters.toneKeys);
+
+  if (selectedToneOptions.length > 0 && selectedToneIds.length === 0) {
+    return {
+      items: [],
+      dictionaries,
+      filters,
+      totalCount: 0,
+      pageCount: 1,
+    };
+  }
+
   const [tagVideoIds, toneVideoIds] = await Promise.all([
     getVideoIdsForRelation(supabase, "video_tags", "tag_id", filters.tagIds),
-    getVideoIdsForRelation(supabase, "video_tones", "tone_id", filters.toneIds),
+    getVideoIdsForRelation(supabase, "video_tones", "tone_id", selectedToneIds),
   ]);
   const constrainedVideoIds = intersectVideoIdSets([tagVideoIds, toneVideoIds]);
 

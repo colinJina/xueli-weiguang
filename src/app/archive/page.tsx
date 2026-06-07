@@ -34,8 +34,6 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
         <ArchiveFilterBar
           categories={dictionaries.categories}
           filters={filters}
-          tags={dictionaries.tags}
-          tones={dictionaries.tones}
         />
       </section>
 
@@ -46,7 +44,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
     </ArchiveClientShell>
   );
 }
-
+ 
 function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pageCount: number }) {
   if (pageCount <= 1) {
     return null;

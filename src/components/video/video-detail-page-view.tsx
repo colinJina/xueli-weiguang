@@ -9,7 +9,7 @@ import {
   VideoVisibilityIcon,
 } from "@/components/video/video-detail-icons";
 import { VideoDetailNav } from "@/components/video/video-detail-nav";
-import type { VideoDetail } from "@/lib/videos/serialize-video";
+import type { VideoDetail, VideoDictionaryItem } from "@/lib/videos/serialize-video";
 
 type VideoDetailPageViewProps = {
   video: VideoDetail;
@@ -83,8 +83,9 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
                 <Chip size="md" variant="strong">
                   {video.category.name}
                 </Chip>
-                {[...video.tags, ...video.tones].map((tag) => (
+                {[...video.tags].map((tag) => (
                   <Chip key={tag.id} size="md">
+                    <ToneSwatch item={tag} />
                     {tag.name}
                   </Chip>
                 ))}
@@ -107,6 +108,20 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
         </div>
       </main>
     </div>
+  );
+}
+
+function ToneSwatch({ item }: { item: VideoDictionaryItem }) {
+  if (!item.colorHex) {
+    return null;
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="h-2.5 w-2.5 rounded-full border border-white/15"
+      style={{ backgroundColor: item.colorHex }}
+    />
   );
 }
 

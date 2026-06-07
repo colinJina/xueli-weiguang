@@ -1,6 +1,15 @@
+import { normalizeToneColorHex } from "@/lib/videos/tone-options";
+
 export type VideoDictionaryItem = {
   id: string;
   name: string;
+  colorHex?: string;
+};
+
+export type VideoDictionaryRow = {
+  id: string;
+  name: string;
+  color_hex?: string | null;
 };
 
 export type VideoBaseRow = {
@@ -24,6 +33,7 @@ export type ArchiveCardSize = "short" | "medium" | "tall";
 
 export type ArchiveVideoItem = {
   id: string;
+  platform: string;
   title: string;
   sourceLabel: string;
   category: VideoDictionaryItem;
@@ -41,6 +51,7 @@ export type ArchiveVideoItem = {
 
 export type VideoDetail = {
   id: string;
+  platform: string;
   title: string;
   sourceLabel: string;
   visibilityLabel: string;
@@ -66,6 +77,7 @@ type VideoRelations = {
 
 const sourceLabels: Record<string, string> = {
   bilibili: "Bilibili",
+  youtube: "YouTube",
 };
 
 const cardSizePattern: ArchiveCardSize[] = ["medium", "tall", "short", "medium", "tall", "short"];
@@ -108,6 +120,16 @@ function getFallbackCategory(category: VideoDictionaryItem | null): VideoDiction
   return category ?? { id: "uncategorized", name: "未分类" };
 }
 
+export function serializeDictionaryItem(row: VideoDictionaryRow): VideoDictionaryItem {
+  const colorHex = normalizeToneColorHex(row.color_hex);
+
+  return {
+    id: row.id,
+    name: row.name,
+    ...(colorHex ? { colorHex } : {}),
+  };
+}
+
 function normalizeMediaUrl(value: string | null) {
   if (!value) {
     return null;
@@ -127,6 +149,7 @@ export function serializeArchiveVideo(
 
   return {
     id: row.id,
+    platform: row.platform,
     title: row.title,
     sourceLabel: getSourceLabel(row.platform),
     category,
@@ -146,6 +169,7 @@ export function serializeArchiveVideo(
 export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelations): VideoDetail {
   return {
     id: row.id,
+    platform: row.platform,
     title: row.title,
     sourceLabel: getSourceLabel(row.platform),
     visibilityLabel: "公开",
