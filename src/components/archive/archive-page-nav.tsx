@@ -21,7 +21,12 @@ type ArchivePageNavProps = {
 
 function PlayIcon() {
   return (
-    <svg aria-hidden="true" className="h-[13px] w-[13px]" fill="none" viewBox="0 0 16 16">
+    <svg
+      aria-hidden="true"
+      className="h-[13px] w-[13px]"
+      fill="none"
+      viewBox="0 0 16 16"
+    >
       <path
         d="M6 4.75 10.5 8 6 11.25V4.75Z"
         fill="currentColor"
@@ -35,7 +40,12 @@ function PlayIcon() {
 
 function HeartIcon() {
   return (
-    <svg aria-hidden="true" className="h-[13px] w-[13px]" fill="none" viewBox="0 0 16 16">
+    <svg
+      aria-hidden="true"
+      className="h-[13px] w-[13px]"
+      fill="none"
+      viewBox="0 0 16 16"
+    >
       <path
         d="M8 12.5 3.7 8.35A2.7 2.7 0 0 1 7.5 4.6L8 5.1l.5-.5a2.7 2.7 0 0 1 3.8 3.75L8 12.5Z"
         stroke="currentColor"
@@ -48,16 +58,31 @@ function HeartIcon() {
 
 function SearchIcon() {
   return (
-    <svg aria-hidden="true" className="h-[17px] w-[17px]" fill="none" viewBox="0 0 20 20">
+    <svg
+      aria-hidden="true"
+      className="h-[17px] w-[17px]"
+      fill="none"
+      viewBox="0 0 20 20"
+    >
       <circle cx="9" cy="9" r="4.7" stroke="currentColor" strokeWidth="1.5" />
-      <path d="m12.7 12.7 3.6 3.6" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+      <path
+        d="m12.7 12.7 3.6 3.6"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
 
 function BellIcon() {
   return (
-    <svg aria-hidden="true" className="h-[17px] w-[17px]" fill="none" viewBox="0 0 20 20">
+    <svg
+      aria-hidden="true"
+      className="h-[17px] w-[17px]"
+      fill="none"
+      viewBox="0 0 20 20"
+    >
       <path
         d="M10 4.2a3.6 3.6 0 0 0-3.6 3.6v2.3c0 .7-.2 1.3-.6 1.9l-1 1.4h10.4l-1-1.4a3.2 3.2 0 0 1-.6-1.9V7.8A3.6 3.6 0 0 0 10 4.2Z"
         stroke="currentColor"
@@ -76,14 +101,24 @@ function BellIcon() {
 
 function SettingsIcon() {
   return (
-    <svg aria-hidden="true" className="h-[17px] w-[17px]" fill="none" viewBox="0 0 20 20">
+    <svg
+      className="w-[17px] h-[17px]"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
       <path
-        d="M10 4.6 11.2 3l1.8 1 .2 2 1.8.8 1.8-1 1.2 1.6-1.1 1.8.5 2 1.8 1-.7 2-2 .1-1.3 1.6.3 2-2 .7-1.2-1.6H9l-1.2 1.6-2-.7.3-2-1.3-1.6-2-.1-.7-2 1.8-1 .5-2L2.8 6.6 4 5l1.8 1 1.8-.8.2-2 1.8-1L10 4.6Z"
-        stroke="currentColor"
+        strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1"
-      />
-      <circle cx="10" cy="10" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+        strokeWidth="2"
+        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+      ></path>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+      ></path>
     </svg>
   );
 }
@@ -142,7 +177,10 @@ export function ArchivePageNav({
             titleClassName="max-md:text-[1.45rem]"
           />
 
-          <div className="flex items-center gap-2.5 max-md:flex-wrap " aria-label="频道状态">
+          <div
+            className="flex items-center gap-2.5 max-md:flex-wrap "
+            aria-label="频道状态"
+          >
             <Chip
               aria-current="page"
               className="bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_65%),rgba(255,255,255,0.05)] text-foreground"
@@ -151,19 +189,26 @@ export function ArchivePageNav({
             >
               <PlayIcon />
               <span className="text-base">{activeChannel}</span>
-              <Chip size="count" variant="count">{channelCount}</Chip>
+              <Chip size="count" variant="count">
+                {channelCount}
+              </Chip>
             </Chip>
 
             <Chip aria-label={`支持 ${supportCount}`} size="sm">
               <HeartIcon />
               <span className="text-base">支持</span>
-              <Chip size="count" variant="count">{supportCount}</Chip>
+              <Chip size="count" variant="count">
+                {supportCount}
+              </Chip>
             </Chip>
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 max-xl:w-full max-xl:justify-start">
-          <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="工具栏">
+          <div
+            className="flex items-center gap-2.5 max-md:flex-wrap"
+            aria-label="工具栏"
+          >
             <IconButton aria-label="搜索">
               <SearchIcon />
             </IconButton>
@@ -175,16 +220,29 @@ export function ArchivePageNav({
             </IconButton>
           </div>
 
-          <div className="flex items-center gap-2.5 max-md:flex-wrap" aria-label="账户操作">
+          <div
+            className="flex items-center gap-2.5 max-md:flex-wrap"
+            aria-label="账户操作"
+          >
             {isAuthenticated && user ? (
               <UserMenu user={user} onLogout={onLogout} variant="expanded" />
             ) : (
               <>
-                <Button onClick={onLoginClick} size="md" type="button" variant="pill">
+                <Button
+                  onClick={onLoginClick}
+                  size="md"
+                  type="button"
+                  variant="pill"
+                >
                   <UserIcon />
                   <span>登录</span>
                 </Button>
-                <Button onClick={onRegisterClick} size="md" type="button" variant="pill">
+                <Button
+                  onClick={onRegisterClick}
+                  size="md"
+                  type="button"
+                  variant="pill"
+                >
                   <UserIcon plus />
                   <span>注册</span>
                 </Button>

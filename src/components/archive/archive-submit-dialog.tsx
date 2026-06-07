@@ -162,7 +162,6 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
     <DialogShell
       closeLabel="关闭投稿弹窗"
       description="粘贴一条 Bilibili 视频链接。我们会先记录投稿，再进入人工审核。"
-      eyebrow="ARCHIVE SUBMISSION"
       onClose={onClose}
       title="推荐你喜欢的视频"
     >

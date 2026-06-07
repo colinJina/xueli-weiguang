@@ -10,7 +10,6 @@ type DialogShellProps = {
   className?: string;
   closeLabel: string;
   description: ReactNode;
-  eyebrow: string;
   maxWidthClassName?: string;
   onClose: () => void;
   title: ReactNode;
@@ -35,7 +34,6 @@ export function DialogShell({
   className,
   closeLabel,
   description,
-  eyebrow,
   maxWidthClassName = "max-w-[520px]",
   onClose,
   title,
@@ -58,9 +56,6 @@ export function DialogShell({
       >
         <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
           <div className="min-w-0 space-y-2">
-            <p className="font-sans text-[11px] uppercase tracking-[0.28em] text-muted">
-              {eyebrow}
-            </p>
             <div className="space-y-1">
               <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
                 {title}

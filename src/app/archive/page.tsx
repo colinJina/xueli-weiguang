@@ -44,7 +44,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
     </ArchiveClientShell>
   );
 }
- 
+
 function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pageCount: number }) {
   if (pageCount <= 1) {
     return null;

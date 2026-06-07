@@ -329,7 +329,6 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
     <DialogShell
       closeLabel="关闭认证弹窗"
       description={currentCopy.description}
-      eyebrow="PUBLIC SITE ACCESS"
       maxWidthClassName="max-w-[460px]"
       onClose={onClose}
       title={currentCopy.title}
