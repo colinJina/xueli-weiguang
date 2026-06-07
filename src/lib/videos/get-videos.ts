@@ -45,7 +45,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const videoSelect =
-  "id,platform,source_url,embed_url,title,cover_url,description,author_name,author_avatar,view_count,like_count,category_id,published_at,created_at";
+  "id,platform,storage_provider,source_url,embed_url,playback_ref,title,cover_url,description,author_name,author_avatar,view_count,like_count,category_id,published_at,created_at";
 
 function getSingleParam(value: SearchParamValue) {
   return Array.isArray(value) ? value[0] : value;

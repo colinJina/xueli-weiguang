@@ -16,6 +16,7 @@ type CreateSubmissionInput = {
 type SubmissionInsertResult = {
   id: string;
   status: string;
+  storage_provider: string;
   external_id: string;
   created_at: string;
 };
@@ -29,11 +30,12 @@ export async function createSubmission(
     .insert({
       user_id: input.userId,
       platform: "bilibili",
+      storage_provider: "bilibili",
       source_url: input.sourceUrl,
       external_id: input.bvid,
       status: "pending",
     })
-    .select("id, status, external_id, created_at")
+    .select("id, status, storage_provider, external_id, created_at")
     .single();
 
   if (error) {

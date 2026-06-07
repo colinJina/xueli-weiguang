@@ -12,11 +12,15 @@ export type VideoDictionaryRow = {
   color_hex?: string | null;
 };
 
+export type VideoStorageProvider = "bilibili" | "cos";
+
 export type VideoBaseRow = {
   id: string;
   platform: string;
-  source_url: string;
-  embed_url: string;
+  storage_provider?: string | null;
+  source_url: string | null;
+  embed_url: string | null;
+  playback_ref?: string | null;
   title: string;
   cover_url: string | null;
   description: string | null;
@@ -34,6 +38,7 @@ export type ArchiveCardSize = "short" | "medium" | "tall";
 export type ArchiveVideoItem = {
   id: string;
   platform: string;
+  storageProvider: VideoStorageProvider;
   title: string;
   sourceLabel: string;
   category: VideoDictionaryItem;
@@ -52,6 +57,7 @@ export type ArchiveVideoItem = {
 export type VideoDetail = {
   id: string;
   platform: string;
+  storageProvider: VideoStorageProvider;
   title: string;
   sourceLabel: string;
   visibilityLabel: string;
@@ -66,6 +72,7 @@ export type VideoDetail = {
   tones: VideoDictionaryItem[];
   coverImageUrl: string | null;
   embedUrl: string;
+  playbackRef: string | null;
   sourceUrl: string;
 };
 
@@ -77,6 +84,7 @@ type VideoRelations = {
 
 const sourceLabels: Record<string, string> = {
   bilibili: "Bilibili",
+  cos: "原创",
   youtube: "YouTube",
 };
 
@@ -116,6 +124,10 @@ function getSourceLabel(platform: string) {
   return sourceLabels[platform] ?? platform;
 }
 
+function normalizeStorageProvider(value: string | null | undefined): VideoStorageProvider {
+  return value === "cos" ? "cos" : "bilibili";
+}
+
 function getFallbackCategory(category: VideoDictionaryItem | null): VideoDictionaryItem {
   return category ?? { id: "uncategorized", name: "未分类" };
 }
@@ -144,14 +156,16 @@ export function serializeArchiveVideo(
   index: number,
 ): ArchiveVideoItem {
   const category = getFallbackCategory(relations.category);
+  const storageProvider = normalizeStorageProvider(row.storage_provider ?? row.platform);
   const viewCountLabel = formatCompactNumber(row.view_count);
   const likeCountLabel = formatCompactNumber(row.like_count);
 
   return {
     id: row.id,
     platform: row.platform,
+    storageProvider,
     title: row.title,
-    sourceLabel: getSourceLabel(row.platform),
+    sourceLabel: getSourceLabel(storageProvider),
     category,
     tags: relations.tags,
     tones: relations.tones,
@@ -167,11 +181,14 @@ export function serializeArchiveVideo(
 }
 
 export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelations): VideoDetail {
+  const storageProvider = normalizeStorageProvider(row.storage_provider ?? row.platform);
+
   return {
     id: row.id,
     platform: row.platform,
+    storageProvider,
     title: row.title,
-    sourceLabel: getSourceLabel(row.platform),
+    sourceLabel: getSourceLabel(storageProvider),
     visibilityLabel: "公开",
     authorName: row.author_name ?? "未知作者",
     authorAvatar: normalizeMediaUrl(row.author_avatar),
@@ -183,7 +200,8 @@ export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelation
     tags: relations.tags,
     tones: relations.tones,
     coverImageUrl: normalizeMediaUrl(row.cover_url),
-    embedUrl: row.embed_url,
-    sourceUrl: row.source_url,
+    embedUrl: row.embed_url ?? "",
+    playbackRef: row.playback_ref ?? null,
+    sourceUrl: row.source_url ?? "",
   };
 }
