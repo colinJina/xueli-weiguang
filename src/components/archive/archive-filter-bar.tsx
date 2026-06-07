@@ -79,7 +79,7 @@ export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps)
         ))}
       </FilterRow>
 
-      <FilterRow label="色调">
+      <FilterRow align="end" label="色调">
         {TONE_FILTER_OPTIONS.map((tone) => {
           const isActive = filters.toneKeys.includes(tone.key);
 
@@ -88,8 +88,8 @@ export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps)
               aria-label={isActive ? `清除${tone.label}色色调筛选` : `筛选${tone.label}色色调`}
               aria-pressed={isActive}
               className={cn(
-                "inline-flex min-h-[34px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 text-[0.94rem] font-semibold text-subtle transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90 lg:gap-1.5",
-                isActive && "border-white/15 bg-white-soft text-black-soft",
+                "group relative inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full transition duration-200 hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90",
+                isActive && "bg-white/[0.08]",
               )}
               href={buildArchiveHref(filters, {
                 toneKeys: selectSingleToneKey(filters.toneKeys, tone.key),
@@ -98,16 +98,16 @@ export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps)
             >
               <span
                 className={cn(
-                  "flex h-4 w-4 items-center justify-center rounded-full border border-white/15 bg-black/40",
-                  isActive && "border-black-soft bg-black-soft/10",
+                  "h-3.5 w-3.5 rounded-full transition duration-200 group-hover:scale-110",
+                  isActive && "h-4 w-4",
                 )}
-              >
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: tone.colorHex }}
-                />
-              </span>
-              <span>{tone.label}</span>
+                style={{ backgroundColor: tone.colorHex }}
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-full left-1/2 mb-2 h-6 w-10 -translate-x-1/2 rounded-full opacity-0 shadow-overlay transition duration-200 group-hover:translate-y-[-2px] group-hover:opacity-100 group-focus-visible:translate-y-[-2px] group-focus-visible:opacity-100"
+                style={{ backgroundColor: tone.colorHex }}
+              />
             </Link>
           );
         })}
@@ -117,16 +117,19 @@ export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps)
 }
 
 function FilterRow({
+  align = "start",
   children,
   label,
 }: {
+  align?: "start" | "end";
   children: ReactNode;
   label: string;
 }) {
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-3.5 max-md:flex-col max-md:gap-2"
+        "flex min-w-0 items-start gap-3.5 max-md:flex-col max-md:gap-2",
+        align === "end" && "lg:justify-end",
       )}
     >
       <p className="mt-2 shrink-0 font-sans text-[0.68rem] tracking-[0.18em] text-subtle">
@@ -134,7 +137,8 @@ function FilterRow({
       </p>
       <div
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-2.5 overflow-x-auto pb-0.5 max-md:w-full max-md:flex-wrap",
+          "flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden pb-0.5 max-md:w-full max-md:flex-wrap",
+          align === "end" && "lg:flex-none lg:justify-end",
         )}
       >
         {children}

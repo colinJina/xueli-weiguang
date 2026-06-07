@@ -37,7 +37,7 @@ export function ArchiveGrid({ items }: ArchiveGridProps) {
       role="list"
     >
       {items.map((item) => (
-        <div key={item.id} role="listitem">
+        <div className="h-full w-full min-w-0" key={item.id} role="listitem">
           <VideoArchiveCard item={item} />
         </div>
       ))}
