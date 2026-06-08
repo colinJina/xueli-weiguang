@@ -1,5 +1,8 @@
 import { resolveCosPublicUrl } from "@/lib/storage/cos/public-url";
+import { formatCompactNumber, toMetricNumber } from "@/lib/videos/metrics";
 import { normalizeToneColorHex } from "@/lib/videos/tone-options";
+
+export { formatCompactNumber } from "@/lib/videos/metrics";
 
 export type VideoDictionaryItem = {
   id: string;
@@ -65,6 +68,8 @@ export type VideoDetail = {
   authorName: string;
   authorAvatar: string | null;
   publishedAtLabel: string;
+  viewCount: number;
+  likeCount: number;
   viewCountLabel: string;
   likeCountLabel: string;
   description: string;
@@ -91,18 +96,6 @@ const sourceLabels: Record<string, string> = {
 };
 
 const cardSizePattern: ArchiveCardSize[] = ["medium", "tall", "short", "medium", "tall", "short"];
-
-function toNumber(value: number | string) {
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) ? numericValue : 0;
-}
-
-export function formatCompactNumber(value: number | string) {
-  return new Intl.NumberFormat("zh-CN", {
-    maximumFractionDigits: 1,
-    notation: "compact",
-  }).format(toNumber(value));
-}
 
 export function formatPublishedDate(value: string | null) {
   if (!value) {
@@ -202,6 +195,8 @@ export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelation
     authorName: row.author_name ?? "未知作者",
     authorAvatar: normalizeMediaUrl(row.author_avatar),
     publishedAtLabel: formatPublishedDate(row.published_at ?? row.created_at),
+    viewCount: toMetricNumber(row.view_count),
+    likeCount: toMetricNumber(row.like_count),
     viewCountLabel: formatCompactNumber(row.view_count),
     likeCountLabel: formatCompactNumber(row.like_count),
     description: row.description ?? "",

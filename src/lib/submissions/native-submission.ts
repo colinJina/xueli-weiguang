@@ -519,5 +519,5 @@ export async function completeNativeSubmission(
     throw error;
   }
 
-  return data as NativeSubmissionInsertResult;
+  return data;
 }
