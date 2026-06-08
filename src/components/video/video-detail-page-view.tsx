@@ -94,14 +94,16 @@ export function VideoDetailPageView({ video }: VideoDetailPageViewProps) {
               <div className="flex flex-wrap gap-3 border-t border-white/8 pt-5 text-sm text-subtle">
                 <span>{video.viewCountLabel} 播放</span>
                 <span>{video.likeCountLabel} 喜欢</span>
-                <a
-                  className="text-muted transition duration-200 hover:text-foreground"
-                  href={video.sourceUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  查看原始链接
-                </a>
+                {video.sourceUrl ? (
+                  <a
+                    className="text-muted transition duration-200 hover:text-foreground"
+                    href={video.sourceUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    查看原始链接
+                  </a>
+                ) : null}
               </div>
             </div>
           </section>

@@ -44,7 +44,8 @@ function CoverFallback() {
 export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
   const visibleTags = item.tags.slice(0, 4);
   const visibleTones = item.tones.filter((tone) => tone.colorHex).slice(0, 4);
-
+  console.log('item',item);
+  
   return (
     <Link
       className="group isolate flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:-translate-y-0.5"
@@ -81,12 +82,13 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
           className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[6px]——#141415 bg-[#141415]"
         />
         
-        <div className="absolute inset-x-5 bottom-5 flex items-end justify-end gap-4">
-          <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-white/20 bg-black/55 backdrop-blur-sm">
+        <div className="absolute inset-x-5 bottom-5 flex min-w-0 items-end justify-end gap-4">
+          <span className="inline-flex h-[34px] max-w-full items-center gap-2 rounded-full border border-white/20 bg-black/55 px-3 text-[0.72rem] font-medium tracking-[0.04em] text-foreground backdrop-blur-sm">
             <VideoSourceIcon
               className="h-[18px] w-[18px]"
-              platform={item.platform}
+              platform={item.storageProvider}
             />
+            <span className="min-w-0 truncate">{item.sourceLabel}</span>
           </span>
         </div>
       </div>
