@@ -1,3 +1,4 @@
+import { resolveCosPublicUrl } from "@/lib/storage/cos/public-url";
 import { normalizeToneColorHex } from "@/lib/videos/tone-options";
 
 export type VideoDictionaryItem = {
@@ -73,7 +74,8 @@ export type VideoDetail = {
   coverImageUrl: string | null;
   embedUrl: string;
   playbackRef: string | null;
-  sourceUrl: string;
+  playbackUrl: string | null;
+  sourceUrl: string | null;
 };
 
 type VideoRelations = {
@@ -150,6 +152,13 @@ function normalizeMediaUrl(value: string | null) {
   return value.startsWith("http://") ? `https://${value.slice("http://".length)}` : value;
 }
 
+function resolvePublicMediaUrl(
+  storageProvider: VideoStorageProvider,
+  value: string | null | undefined,
+) {
+  return storageProvider === "cos" ? resolveCosPublicUrl(value) : normalizeMediaUrl(value ?? null);
+}
+
 export function serializeArchiveVideo(
   row: VideoBaseRow,
   relations: VideoRelations,
@@ -172,7 +181,7 @@ export function serializeArchiveVideo(
     metricLabel: viewCountLabel,
     viewCountLabel,
     likeCountLabel,
-    coverUrl: normalizeMediaUrl(row.cover_url),
+    coverUrl: resolvePublicMediaUrl(storageProvider, row.cover_url),
     description: row.description ?? "",
     authorName: row.author_name ?? "未知作者",
     publishedAtLabel: formatPublishedDate(row.published_at ?? row.created_at),
@@ -199,9 +208,10 @@ export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelation
     category: getFallbackCategory(relations.category),
     tags: relations.tags,
     tones: relations.tones,
-    coverImageUrl: normalizeMediaUrl(row.cover_url),
+    coverImageUrl: resolvePublicMediaUrl(storageProvider, row.cover_url),
     embedUrl: row.embed_url ?? "",
     playbackRef: row.playback_ref ?? null,
-    sourceUrl: row.source_url ?? "",
+    playbackUrl: storageProvider === "cos" ? resolveCosPublicUrl(row.playback_ref) : null,
+    sourceUrl: normalizeMediaUrl(row.source_url),
   };
 }
