@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 import { Chip } from "@/components/ui/chip";
@@ -31,6 +31,7 @@ function isVideoViewResponse(value: unknown): value is VideoViewResponse {
 }
 
 export function VideoDetailEngagement({ video }: VideoDetailEngagementProps) {
+  const hasRequestedViewRef = useRef(false);
   const [viewCountLabel, setViewCountLabel] = useState(video.viewCountLabel);
   const [likeCount, setLikeCount] = useState(video.likeCount);
   const [likeCountLabel, setLikeCountLabel] = useState(video.likeCountLabel);
@@ -40,7 +41,13 @@ export function VideoDetailEngagement({ video }: VideoDetailEngagementProps) {
     setLikeCountLabel(nextLabel);
   }, []);
 
-  const handleCosPlay = useCallback(async () => {
+  const handleCosView = useCallback(async () => {
+    if (video.storageProvider !== "cos" || hasRequestedViewRef.current) {
+      return;
+    }
+
+    hasRequestedViewRef.current = true;
+
     try {
       const response = await fetch(`/api/videos/${video.id}/view`, {
         method: "POST",
@@ -50,6 +57,7 @@ export function VideoDetailEngagement({ video }: VideoDetailEngagementProps) {
       });
 
       if (!response.ok) {
+        hasRequestedViewRef.current = false;
         return;
       }
 
@@ -59,13 +67,18 @@ export function VideoDetailEngagement({ video }: VideoDetailEngagementProps) {
         setViewCountLabel(payload.viewCountLabel);
       }
     } catch (error) {
+      hasRequestedViewRef.current = false;
       console.error("Failed to record video view", error);
     }
-  }, [video.id]);
+  }, [video.id, video.storageProvider]);
+
+  useEffect(() => {
+    void handleCosView();
+  }, [handleCosView]);
 
   return (
     <>
-      <DeferredVideoPlayer onCosPlay={handleCosPlay} video={video} />
+      <DeferredVideoPlayer onCosPlay={handleCosView} video={video} />
 
       <section className="flex flex-col gap-7">
         <div className="space-y-5">
