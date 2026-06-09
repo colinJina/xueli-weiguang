@@ -4,6 +4,6 @@ export const siteConfig = {
   navigation: [
     { href: "/", label: "探索" },
     { href: "/archive", label: "库" },
-    { href: "/collections", label: "趋势" },
+    { href: "/user", label: "档案" },
   ],
 };

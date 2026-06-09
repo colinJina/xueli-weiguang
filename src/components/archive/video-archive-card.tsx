@@ -44,8 +44,7 @@ function CoverFallback() {
 export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
   const visibleTags = item.tags.slice(0, 4);
   const visibleTones = item.tones.filter((tone) => tone.colorHex).slice(0, 4);
-  console.log('item',item);
-  
+
   return (
     <Link
       className="group isolate flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:-translate-y-0.5"

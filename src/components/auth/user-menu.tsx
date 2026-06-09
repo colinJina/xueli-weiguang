@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
 import { cn } from "@/lib/utils";
@@ -160,18 +161,15 @@ export function UserMenu({ user, onLogout, variant = "compact" }: UserMenuProps)
               <p className="mt-1 truncate text-sm font-medium text-foreground">{display}</p>
             </div>
 
-            <button
+            <Link
               className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface hover:text-foreground"
-              disabled
+              href="/user"
+              onClick={() => setOpen(false)}
               role="menuitem"
-              type="button"
             >
               <ProfileIcon />
               <span>我的档案</span>
-              <span className="ml-auto font-sans text-[10px] uppercase tracking-[0.18em] text-subtle">
-                即将开放
-              </span>
-            </button>
+            </Link>
 
             <button
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface hover:text-foreground"
