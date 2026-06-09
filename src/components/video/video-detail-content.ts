@@ -1,1 +1,1 @@
-export type { VideoDetail } from "@/lib/videos/serialize-video";
+export type { VideoDetail } from "@/lib/videos/types";

@@ -9,13 +9,18 @@ import {
 import { getNativeCosObjectKeys } from "@/lib/storage/cos/keys";
 import { createCosUploadCredential } from "@/lib/storage/cos/signature";
 import {
+  NATIVE_PENDING_SUBMISSION_LIMIT,
+  type CompleteNativeSubmissionInput,
+  type CreateNativeUploadSignatureInput,
+  type NativeCosUploadCredentialResponse,
+  type NativeSubmissionErrorCode,
+  type NativeSubmissionInsertResult,
+  type NativeSubmissionLimits,
+} from "@/lib/submissions/types";
+import {
   ALLOWED_COVER_MIME_TYPES,
   ALLOWED_VIDEO_MIME_TYPES,
-  NATIVE_PENDING_SUBMISSION_LIMIT,
-  type NativeCosUploadCredentialResponse,
   type NativeCoverMimeType,
-  type NativeSubmissionErrorCode,
-  type NativeSubmissionLimits,
   type NativeVideoMimeType,
 } from "@/lib/storage/types";
 
@@ -42,35 +47,6 @@ export class NativeSubmissionApiError extends Error {
     this.extra = input.extra ?? {};
   }
 }
-
-export type CreateNativeUploadSignatureInput = {
-  userId: string;
-  videoMimeType: unknown;
-  videoSize: unknown;
-  coverMimeType: unknown;
-};
-
-export type CompleteNativeSubmissionInput = {
-  userId: string;
-  submissionId: unknown;
-  videoKey: unknown;
-  coverKey: unknown;
-  title: unknown;
-  description: unknown;
-  videoSize: unknown;
-  videoMimeType: unknown;
-  coverMimeType: unknown;
-};
-
-type NativeSubmissionInsertResult = {
-  id: string;
-  status: string;
-  storage_provider: "cos";
-  source_ref: string;
-  source_etag: string | null;
-  cover_etag: string | null;
-  created_at: string;
-};
 
 function validationError(message: string, extra?: UnknownRecord) {
   return new NativeSubmissionApiError({
@@ -519,5 +495,5 @@ export async function completeNativeSubmission(
     throw error;
   }
 
-  return data as NativeSubmissionInsertResult;
+  return data;
 }

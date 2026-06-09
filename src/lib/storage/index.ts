@@ -1,7 +1,6 @@
 export type {
   CosUploadCredential,
-  NativeCosUploadCredentialResponse,
-  NativeSubmissionErrorCode,
-  NativeSubmissionLimits,
+  NativeCoverMimeType,
+  NativeVideoMimeType,
   StorageProvider,
 } from "./types";

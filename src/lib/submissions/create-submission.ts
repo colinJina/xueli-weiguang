@@ -1,25 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type {
+  CreateSubmissionInput,
+  SubmissionInsertResult,
+} from "@/lib/submissions/types";
+
 export class DuplicateSubmissionError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "DuplicateSubmissionError";
   }
 }
-
-type CreateSubmissionInput = {
-  userId: string;
-  sourceUrl: string;
-  bvid: string;
-};
-
-type SubmissionInsertResult = {
-  id: string;
-  status: string;
-  storage_provider: string;
-  external_id: string;
-  created_at: string;
-};
 
 export async function createSubmission(
   client: SupabaseClient,

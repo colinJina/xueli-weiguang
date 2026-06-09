@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import type { VideoDetail } from "@/lib/videos/serialize-video";
+import type { VideoDetail } from "@/lib/videos/types";
 import { VideoSourceIcon } from "@/components/ui/video-source-icon";
 
 type DeferredVideoPlayerProps = {
+  onCosPlay?: () => void;
   video: VideoDetail;
 };
 
-export function DeferredVideoPlayer({ video }: DeferredVideoPlayerProps) {
+export function DeferredVideoPlayer({ onCosPlay, video }: DeferredVideoPlayerProps) {
+  const hasReportedPlayRef = useRef(false);
   const [hasVideoError, setHasVideoError] = useState(false);
   const shouldRenderBilibili = video.storageProvider === "bilibili" && Boolean(video.embedUrl);
   const shouldRenderCosVideo =
     video.storageProvider === "cos" && Boolean(video.playbackUrl) && !hasVideoError;
+
+  function handleCosPlay() {
+    if (hasReportedPlayRef.current) {
+      return;
+    }
+
+    hasReportedPlayRef.current = true;
+    onCosPlay?.();
+  }
 
   return (
     <section
@@ -45,6 +56,7 @@ export function DeferredVideoPlayer({ video }: DeferredVideoPlayerProps) {
             className="h-full w-full bg-black object-contain"
             controls
             onError={() => setHasVideoError(true)}
+            onPlay={handleCosPlay}
             poster={video.coverImageUrl ?? undefined}
             preload="metadata"
             src={video.playbackUrl ?? undefined}

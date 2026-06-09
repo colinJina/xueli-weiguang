@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { TONE_FILTER_OPTIONS } from "@/lib/videos/tone-options";
-import type { ArchiveFilters } from "@/lib/videos/get-videos";
-import type { VideoDictionaryItem } from "@/lib/videos/serialize-video";
+import type { ArchiveFilters, VideoDictionaryItem } from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
 
 type ArchiveFilterBarProps = {

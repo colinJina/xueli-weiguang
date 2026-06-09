@@ -1,36 +1,16 @@
 import { createPublicClient } from "@/lib/supabase/public";
-import {
-  serializeDictionaryItem,
-  serializeArchiveVideo,
-  type ArchiveVideoItem,
-  type VideoBaseRow,
-  type VideoDictionaryItem,
-  type VideoDictionaryRow,
-} from "@/lib/videos/serialize-video";
+import { serializeDictionaryItem, serializeArchiveVideo } from "@/lib/videos/serialize-video";
 import { getToneFilterOption, getToneFilterOptions } from "@/lib/videos/tone-options";
+import type {
+  ArchiveDictionaries,
+  ArchiveFilters,
+  ArchiveVideosResult,
+  VideoBaseRow,
+  VideoDictionaryItem,
+  VideoDictionaryRow,
+} from "@/lib/videos/types";
 
 export const ARCHIVE_PAGE_SIZE = 24;
-
-export type ArchiveFilters = {
-  categoryId: string | null;
-  tagIds: string[];
-  toneKeys: string[];
-  page: number;
-};
-
-export type ArchiveDictionaries = {
-  categories: VideoDictionaryItem[];
-  tags: VideoDictionaryItem[];
-  tones: VideoDictionaryItem[];
-};
-
-export type ArchiveVideosResult = {
-  items: ArchiveVideoItem[];
-  dictionaries: ArchiveDictionaries;
-  filters: ArchiveFilters;
-  totalCount: number;
-  pageCount: number;
-};
 
 type SearchParamValue = string | string[] | undefined;
 type SearchParamsInput = Record<string, SearchParamValue>;

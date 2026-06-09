@@ -10,6 +10,10 @@ import { FormMessage } from "@/components/ui/form-message";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/lib/utils";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
+import type {
+  NativeCosUploadCredentialResponse,
+  NativeSubmissionApiErrorPayload,
+} from "@/lib/submissions/types";
 
 type ArchiveSubmitDialogProps = {
   open: boolean;
@@ -18,38 +22,6 @@ type ArchiveSubmitDialogProps = {
 
 type SubmitMode = "link" | "upload";
 type SubmissionStatus = "idle" | "submitting" | "success" | "error";
-
-type NativeUploadCredentialResponse = {
-  storageProvider: "cos";
-  submissionId: string;
-  bucket: string;
-  region: string;
-  videoKey: string;
-  coverKey: string;
-  credential: {
-    tmpSecretId: string;
-    tmpSecretKey: string;
-    sessionToken: string;
-    startTime: number;
-    expiredTime: number;
-  };
-  expiresAt: string;
-  limits: {
-    maxBytes: number;
-    pendingLimit: number;
-    allowedVideoMimeTypes: string[];
-    allowedCoverMimeTypes: string[];
-  };
-};
-
-type NativeApiErrorPayload = {
-  code?: string;
-  message?: string;
-  max?: number;
-  pending?: number;
-  allowed?: string[];
-  fields?: Record<string, string>;
-};
 
 type UploadProgressInfo = {
   loaded?: number;
@@ -265,7 +237,7 @@ function getProgressPercent(info: UploadProgressInfo) {
   return 0;
 }
 
-function parseNativeError(payload: NativeApiErrorPayload | null) {
+function parseNativeError(payload: NativeSubmissionApiErrorPayload | null) {
   if (!payload) {
     return "上传失败，请稍后重试。";
   }
@@ -558,15 +530,15 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
     });
 
     const payload = (await response.json().catch(() => null)) as
-      | NativeUploadCredentialResponse
-      | NativeApiErrorPayload
+      | NativeCosUploadCredentialResponse
+      | NativeSubmissionApiErrorPayload
       | null;
 
     if (!response.ok) {
-      throw new Error(parseNativeError(payload as NativeApiErrorPayload | null));
+      throw new Error(parseNativeError(payload as NativeSubmissionApiErrorPayload | null));
     }
 
-    return payload as NativeUploadCredentialResponse;
+    return payload as NativeCosUploadCredentialResponse;
   }
 
   async function completeNativeUpload(input: {
@@ -587,7 +559,9 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
       body: JSON.stringify(input),
     });
 
-    const payload = (await response.json().catch(() => null)) as NativeApiErrorPayload | null;
+    const payload = (await response.json().catch(() => null)) as
+      | NativeSubmissionApiErrorPayload
+      | null;
 
     if (!response.ok) {
       throw new Error(parseNativeError(payload));

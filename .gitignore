@@ -16,9 +16,8 @@ skills-lock.json
 design-input
 .vercel
 *.tsbuildinfo
-docs
 CLAUDE.md
-AGENTS.md
+.codex
 .claude
 .playwright-mcp
 .vercel

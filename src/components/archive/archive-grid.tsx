@@ -1,5 +1,5 @@
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
-import type { ArchiveVideoItem } from "@/lib/videos/serialize-video";
+import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type ArchiveGridProps = {
   items: ArchiveVideoItem[];
