@@ -1,12 +1,11 @@
 import { createPublicClient } from "@/lib/supabase/public";
-import {
-  serializeDictionaryItem,
-  serializeVideoDetail,
-  type VideoBaseRow,
-  type VideoDictionaryRow,
-  type VideoDetail,
-  type VideoDictionaryItem,
-} from "@/lib/videos/serialize-video";
+import { serializeDictionaryItem, serializeVideoDetail } from "@/lib/videos/serialize-video";
+import type {
+  VideoBaseRow,
+  VideoDetail,
+  VideoDictionaryItem,
+  VideoDictionaryRow,
+} from "@/lib/videos/types";
 
 type RelationRow = {
   tag_id?: string;

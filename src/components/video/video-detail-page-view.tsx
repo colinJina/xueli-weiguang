@@ -1,6 +1,6 @@
 import { VideoDetailEngagement } from "@/components/video/video-detail-engagement";
 import { VideoDetailNav } from "@/components/video/video-detail-nav";
-import type { VideoDetail } from "@/lib/videos/serialize-video";
+import type { VideoDetail } from "@/lib/videos/types";
 
 type VideoDetailPageViewProps = {
   video: VideoDetail;

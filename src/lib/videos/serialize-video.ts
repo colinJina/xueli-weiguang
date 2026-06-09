@@ -1,87 +1,17 @@
 import { resolveCosPublicUrl } from "@/lib/storage/cos/public-url";
 import { formatCompactNumber, toMetricNumber } from "@/lib/videos/metrics";
 import { normalizeToneColorHex } from "@/lib/videos/tone-options";
+import type {
+  ArchiveCardSize,
+  ArchiveVideoItem,
+  VideoBaseRow,
+  VideoDetail,
+  VideoDictionaryItem,
+  VideoDictionaryRow,
+  VideoStorageProvider,
+} from "@/lib/videos/types";
 
 export { formatCompactNumber } from "@/lib/videos/metrics";
-
-export type VideoDictionaryItem = {
-  id: string;
-  name: string;
-  colorHex?: string;
-};
-
-export type VideoDictionaryRow = {
-  id: string;
-  name: string;
-  color_hex?: string | null;
-};
-
-export type VideoStorageProvider = "bilibili" | "cos";
-
-export type VideoBaseRow = {
-  id: string;
-  platform: string;
-  storage_provider?: string | null;
-  source_url: string | null;
-  embed_url: string | null;
-  playback_ref?: string | null;
-  title: string;
-  cover_url: string | null;
-  description: string | null;
-  author_name: string | null;
-  author_avatar: string | null;
-  view_count: number | string;
-  like_count: number | string;
-  category_id: string;
-  published_at: string | null;
-  created_at: string;
-};
-
-export type ArchiveCardSize = "short" | "medium" | "tall";
-
-export type ArchiveVideoItem = {
-  id: string;
-  platform: string;
-  storageProvider: VideoStorageProvider;
-  title: string;
-  sourceLabel: string;
-  category: VideoDictionaryItem;
-  tags: VideoDictionaryItem[];
-  tones: VideoDictionaryItem[];
-  metricLabel: string;
-  viewCountLabel: string;
-  likeCountLabel: string;
-  coverUrl: string | null;
-  description: string;
-  authorName: string;
-  publishedAtLabel: string;
-  cardSize: ArchiveCardSize;
-};
-
-export type VideoDetail = {
-  id: string;
-  platform: string;
-  storageProvider: VideoStorageProvider;
-  title: string;
-  sourceLabel: string;
-  visibilityLabel: string;
-  authorName: string;
-  authorAvatar: string | null;
-  publishedAtLabel: string;
-  viewCount: number;
-  likeCount: number;
-  viewCountLabel: string;
-  likeCountLabel: string;
-  description: string;
-  category: VideoDictionaryItem;
-  tags: VideoDictionaryItem[];
-  tones: VideoDictionaryItem[];
-  coverImageUrl: string | null;
-  embedUrl: string;
-  playbackRef: string | null;
-  playbackUrl: string | null;
-  sourceUrl: string | null;
-};
 
 type VideoRelations = {
   category: VideoDictionaryItem | null;

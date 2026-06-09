@@ -6,8 +6,9 @@ import { ArchiveFilterBar, getArchivePageHref } from "@/components/archive/archi
 import { ArchiveGrid } from "@/components/archive/archive-grid";
 import { buttonVariants } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
-import { getArchiveVideos, type ArchiveFilters } from "@/lib/videos/get-videos";
+import { getArchiveVideos } from "@/lib/videos/get-videos";
 import { formatCompactNumber } from "@/lib/videos/serialize-video";
+import type { ArchiveFilters } from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
 
 export const revalidate = 60;

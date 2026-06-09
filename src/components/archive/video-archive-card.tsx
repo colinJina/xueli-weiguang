@@ -4,7 +4,7 @@ import { VideoSourceIcon } from "@/components/ui/video-source-icon";
 import type {
   ArchiveVideoItem,
   VideoDictionaryItem,
-} from "@/lib/videos/serialize-video";
+} from "@/lib/videos/types";
 
 type VideoArchiveCardProps = {
   item: ArchiveVideoItem;

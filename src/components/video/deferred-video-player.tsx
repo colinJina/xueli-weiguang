@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-import type { VideoDetail } from "@/lib/videos/serialize-video";
+import type { VideoDetail } from "@/lib/videos/types";
 import { VideoSourceIcon } from "@/components/ui/video-source-icon";
 
 type DeferredVideoPlayerProps = {

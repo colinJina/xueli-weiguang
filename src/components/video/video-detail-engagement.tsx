@@ -11,8 +11,11 @@ import {
   VideoUserIcon,
   VideoVisibilityIcon,
 } from "@/components/video/video-detail-icons";
-import type { VideoDetail, VideoDictionaryItem } from "@/lib/videos/serialize-video";
-import type { VideoViewResponse } from "@/lib/videos/video-interactions";
+import type {
+  VideoDetail,
+  VideoDictionaryItem,
+  VideoViewResponse,
+} from "@/lib/videos/types";
 
 type VideoDetailEngagementProps = {
   video: VideoDetail;

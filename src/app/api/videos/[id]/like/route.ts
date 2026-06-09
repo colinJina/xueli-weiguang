@@ -2,12 +2,8 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { formatCompactNumber } from "@/lib/videos/metrics";
-import {
-  isVideoId,
-  normalizeMetricCount,
-  type VideoInteractionErrorCode,
-  type VideoLikeResponse,
-} from "@/lib/videos/video-interactions";
+import { isVideoId, normalizeMetricCount } from "@/lib/videos/video-interactions";
+import type { VideoInteractionErrorCode, VideoLikeResponse } from "@/lib/videos/types";
 
 type RouteContext = {
   params: Promise<{

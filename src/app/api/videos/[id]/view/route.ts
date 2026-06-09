@@ -4,12 +4,8 @@ import { cookies } from "next/headers";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCompactNumber } from "@/lib/videos/metrics";
-import {
-  isVideoId,
-  normalizeMetricCount,
-  type VideoInteractionErrorCode,
-  type VideoViewResponse,
-} from "@/lib/videos/video-interactions";
+import { isVideoId, normalizeMetricCount } from "@/lib/videos/video-interactions";
+import type { VideoInteractionErrorCode, VideoViewResponse } from "@/lib/videos/types";
 
 export const runtime = "nodejs";
 

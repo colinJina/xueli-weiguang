@@ -13,11 +13,11 @@ import {
 } from "@/components/video/video-detail-icons";
 import { useAuth } from "@/lib/auth/use-auth";
 import { formatCompactNumber } from "@/lib/videos/metrics";
-import type { VideoStorageProvider } from "@/lib/videos/serialize-video";
 import type {
   VideoInteractionErrorResponse,
   VideoLikeResponse,
-} from "@/lib/videos/video-interactions";
+  VideoStorageProvider,
+} from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
 
 type VideoDetailActionsProps = {
