@@ -119,7 +119,6 @@ export function UserProfileShell() {
         <TopBar />
 
         <main className="px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pt-10">
-          <CollectionHeader />
           <FilterRow />
           <CardGrid />
         </main>
@@ -207,21 +206,6 @@ function TopBar() {
   );
 }
 
-function CollectionHeader() {
-  return (
-    <section className="mb-8 flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="text-[2rem] font-black leading-tight tracking-[-0.04em] text-foreground md:text-[2.35rem]">
-          健身训练
-        </h1>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-muted md:text-lg">
-          A curated collection of high-end motion design and typography references.
-        </p>
-      </div>
-      <p className="font-sans text-sm uppercase tracking-[0.02em] text-subtle">24 ITEMS</p>
-    </section>
-  );
-}
 
 function FilterRow() {
   return (
@@ -272,7 +256,7 @@ function CardGrid() {
     </section>
   );
 }
-
+// 先暂时用这个组件，之后可以用原有的video-card组件进行复用
 function ArchiveCard({ item }: { item: UserArchiveCard }) {
   return (
     <article className="group flex min-h-[352px] flex-col overflow-hidden rounded-xl border border-white/[0.07] bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-white/14">
@@ -285,9 +269,6 @@ function ArchiveCard({ item }: { item: UserArchiveCard }) {
           referrerPolicy="no-referrer"
           src={item.coverUrl}
         />
-        <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 font-sans text-sm font-bold text-foreground">
-          {item.duration}
-        </span>
       </div>
 
       <div className="flex flex-1 flex-col p-5">
