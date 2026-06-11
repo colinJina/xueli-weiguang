@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ArchiveSubmitDialog } from "@/components/archive/archive-submit-dialog";
 import { AuthDialog } from "@/components/auth/auth-dialog";
+import { FixedBackButton } from "@/components/layout/fixed-back-button";
 import {
   FavoriteEditorDialog,
   type FavoriteEditorVideo,
@@ -62,6 +63,33 @@ function ListIcon() {
         stroke="currentColor"
         strokeLinecap="round"
         strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
+      <path
+        d="m5 5 10 10M15 5 5 15"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function SidebarChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
+      <path
+        d={direction === "left" ? "m12 5-5 5 5 5" : "m8 5 5 5-5 5"}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
       />
     </svg>
   );
@@ -281,12 +309,36 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [continueToSubmit, setContinueToSubmit] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const canSubmit = data.isAuthenticated || (isReady && isAuthenticated);
   const allowNativeUpload = data.isAdmin || isAdmin;
 
   useEffect(() => {
     setDraftTagQuery(data.filters.tagQuery);
   }, [data.filters.tagQuery]);
+
+  useEffect(() => {
+    if (!mobileSidebarOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileSidebarOpen(false);
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileSidebarOpen]);
 
   const replaceParams = useCallback(
     (mutator: (params: URLSearchParams) => void) => {
@@ -417,19 +469,60 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     openLogin();
   }
 
+  function handleMobileCollectionSelect(collectionId: string | null) {
+    setCollectionFilter(collectionId);
+    setMobileSidebarOpen(false);
+  }
+
+  function handleMobileUploadClick() {
+    setMobileSidebarOpen(false);
+    handleUploadClick();
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[300px] flex-col border-r border-border bg-panel px-4 py-7 lg:flex">
+      <FixedBackButton
+        className={cn(sidebarCollapsed ? "lg:left-[96px]" : "lg:left-[316px]")}
+        fallbackHref="/archive"
+      />
+
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-border bg-panel transition-[width,padding] duration-200 lg:flex",
+          sidebarCollapsed ? "w-[80px] px-3 py-5" : "w-[300px] px-4 py-7",
+        )}
+      >
         <SidebarContent
+          collapsed={sidebarCollapsed}
           data={data}
+          onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
           onCollectionSelect={setCollectionFilter}
           onUploadClick={handleUploadClick}
           onUserCollectionCreated={refreshAfterMutation}
         />
       </aside>
 
-      <div className="min-h-screen lg:pl-[300px]">
+      <div
+        className={cn(
+          "min-h-screen transition-[padding] duration-200",
+          sidebarCollapsed ? "lg:pl-[80px]" : "lg:pl-[300px]",
+        )}
+      >
         <main className="px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pt-10">
+          <div className="mb-5 flex items-center lg:hidden">
+            <Button
+              aria-controls="user-profile-mobile-sidebar"
+              aria-expanded={mobileSidebarOpen}
+              className="gap-2"
+              onClick={() => setMobileSidebarOpen(true)}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              <ListIcon />
+              收藏夹
+            </Button>
+          </div>
           <FilterRow
             data={data}
             draftTagQuery={draftTagQuery}
@@ -447,6 +540,34 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
           <CardGrid data={data} onEditItem={openEditor} />
         </main>
       </div>
+
+      {mobileSidebarOpen ? (
+        <div
+          aria-label="收藏夹菜单"
+          aria-modal="true"
+          className="fixed inset-0 z-50 lg:hidden"
+          role="dialog"
+        >
+          <button
+            aria-label="关闭收藏夹菜单"
+            className="absolute inset-0 bg-black/65"
+            onClick={() => setMobileSidebarOpen(false)}
+            type="button"
+          />
+          <aside
+            className="relative z-10 flex h-full w-[min(88vw,320px)] flex-col border-r border-border bg-panel px-4 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.28)]"
+            id="user-profile-mobile-sidebar"
+          >
+            <SidebarContent
+              data={data}
+              onCollectionSelect={handleMobileCollectionSelect}
+              onRequestClose={() => setMobileSidebarOpen(false)}
+              onUploadClick={handleMobileUploadClick}
+              onUserCollectionCreated={refreshAfterMutation}
+            />
+          </aside>
+        </div>
+      ) : null}
 
       {editingTarget ? (
         <FavoriteEditorDialog
@@ -498,25 +619,118 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
 }
 
 function SidebarContent({
+  collapsed = false,
   data,
+  onCollapseToggle,
   onCollectionSelect,
+  onRequestClose,
   onUploadClick,
   onUserCollectionCreated,
 }: {
+  collapsed?: boolean;
   data: UserArchivePageData;
+  onCollapseToggle?: () => void;
   onCollectionSelect: (collectionId: string | null) => void;
+  onRequestClose?: () => void;
   onUploadClick: () => void;
   onUserCollectionCreated: () => void;
 }) {
+  if (collapsed) {
+    return (
+      <div className="flex h-full min-h-0 flex-col items-center">
+        <IconButton
+          aria-label="展开侧栏"
+          onClick={onCollapseToggle}
+          size="sm"
+          variant="ghost"
+        >
+          <SidebarChevronIcon direction="right" />
+        </IconButton>
+
+        <CompactProfileSummary data={data} />
+
+        <IconButton
+          aria-label="推荐投稿"
+          className="mt-5"
+          onClick={onUploadClick}
+          size="lg"
+          variant="surface"
+        >
+          <PlusIcon />
+        </IconButton>
+
+        <nav className="mt-5 flex min-h-0 w-full flex-1 flex-col items-center gap-3">
+          <IconButton
+            aria-label={`全部视频，${data.allItemCount} 条`}
+            aria-pressed={data.activeCollection.isAll}
+            className={cn(
+              data.activeCollection.isAll &&
+                "border-white/10 bg-white/[0.08] text-foreground",
+            )}
+            onClick={() => onCollectionSelect(null)}
+            size="lg"
+            variant="ghost"
+          >
+            <GridIcon />
+          </IconButton>
+
+          <div className="min-h-0 w-full flex-1 overflow-y-auto px-1">
+            <div className="space-y-2">
+              {data.collections.map((collection) => (
+                <IconButton
+                  aria-label={`${collection.name}，${collection.itemCount} 条收藏`}
+                  aria-pressed={collection.active}
+                  className={cn(
+                    "w-full",
+                    collection.active &&
+                      "border-white/10 bg-white/[0.08] text-foreground",
+                  )}
+                  key={collection.id}
+                  onClick={() => onCollectionSelect(collection.id)}
+                  size="lg"
+                  variant="ghost"
+                >
+                  <FolderIcon active={collection.active} />
+                </IconButton>
+              ))}
+            </div>
+          </div>
+        </nav>
+      </div>
+    );
+  }
+
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mb-4 flex justify-end gap-2">
+        {onCollapseToggle ? (
+          <IconButton
+            aria-label="折叠侧栏"
+            onClick={onCollapseToggle}
+            size="sm"
+            variant="ghost"
+          >
+            <SidebarChevronIcon direction="left" />
+          </IconButton>
+        ) : null}
+        {onRequestClose ? (
+          <IconButton
+            aria-label="关闭收藏夹菜单"
+            onClick={onRequestClose}
+            size="sm"
+            variant="ghost"
+          >
+            <CloseIcon />
+          </IconButton>
+        ) : null}
+      </div>
       <ProfileSummary data={data} />
       <ArchiveSubmitTrigger
         isAuthenticated={data.isAuthenticated}
         onRequestLogin={onUploadClick}
         onRequestSubmit={onUploadClick}
       />
-      <nav className="mt-10 space-y-7">
+      <nav className="mt-8 flex min-h-0 flex-1 flex-col gap-5">
         <button
           aria-pressed={data.activeCollection.isAll}
           className={cn(
@@ -533,11 +747,11 @@ function SidebarContent({
           <span className="text-xs text-subtle">{data.allItemCount}</span>
         </button>
 
-        <div>
+        <div className="flex min-h-0 flex-1 flex-col">
           <p className="px-3 font-sans text-xs uppercase tracking-[0.18em] text-subtle">
             收藏夹
           </p>
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 min-h-[140px] flex-1 space-y-2 overflow-y-auto pr-1">
             {data.collections.map((collection) => (
               <button
                 aria-pressed={collection.active}
@@ -573,7 +787,29 @@ function SidebarContent({
           <CreateCollectionForm onCreated={onUserCollectionCreated} />
         ) : null}
       </nav>
-    </>
+    </div>
+  );
+}
+
+function CompactProfileSummary({ data }: { data: UserArchivePageData }) {
+  const profile = data.profile;
+
+  return (
+    <div className="mt-5 flex justify-center">
+      {profile?.avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt=""
+          className="h-11 w-11 rounded-full border border-white/10 object-cover"
+          referrerPolicy="no-referrer"
+          src={profile.avatarUrl}
+        />
+      ) : (
+        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-foreground text-base font-black text-background">
+          {profile?.initial ?? "U"}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -791,6 +1027,16 @@ function FilterRow({
     data.filters.collectionId !== null ||
     data.filters.tagIds.length > 0 ||
     data.filters.tagQuery.length > 0;
+  const sortedTags = data.tags
+    .map((tag, index) => ({ index, tag }))
+    .sort((current, next) => {
+      if (current.tag.active !== next.tag.active) {
+        return current.tag.active ? -1 : 1;
+      }
+
+      return current.index - next.index;
+    })
+    .map(({ tag }) => tag);
 
   return (
     <section className={cn("mb-7 space-y-4", isPending && "opacity-70")}>
@@ -836,6 +1082,25 @@ function FilterRow({
               管理标签
             </Button>
           ) : null}
+
+          <div className="relative block w-full min-w-[240px] max-w-[350px] sm:w-[350px]">
+            <input
+              className="h-12 w-full rounded-full border border-border bg-white/[0.1] px-5 pr-14 text-base font-semibold text-foreground outline-none transition placeholder:text-muted focus:border-borderStrong focus:bg-white/[0.13]"
+              onChange={(event) => onSearchChange(event.target.value)}
+              onKeyDown={onSearchKeyDown}
+              type="search"
+              value={draftTagQuery}
+            />
+            <IconButton
+              aria-label="提交标签搜索"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground"
+              onClick={onSearchSubmit}
+              size="sm"
+              variant="ghost"
+            >
+              <SearchIcon />
+            </IconButton>
+          </div>
         </div>
 
         <TopBar
@@ -848,50 +1113,29 @@ function FilterRow({
         />
       </div>
 
-      <div className="flex min-w-0 flex-wrap items-center gap-3">
-        <div className="relative block w-full min-w-[240px] max-w-[350px] sm:w-[350px]">
-          <input
-            className="h-12 w-full rounded-full border border-border bg-white/[0.1] px-5 pr-14 text-base font-semibold text-foreground outline-none transition placeholder:text-muted focus:border-borderStrong focus:bg-white/[0.13]"
-            onChange={(event) => onSearchChange(event.target.value)}
-            onKeyDown={onSearchKeyDown}
-            type="search"
-            value={draftTagQuery}
-          />
-          <IconButton
-            aria-label="提交标签搜索"
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground"
-            onClick={onSearchSubmit}
-            size="sm"
-            variant="ghost"
+      <div className="flex max-h-[104px] min-h-11 min-w-0 flex-wrap items-start gap-2 overflow-y-auto pr-1">
+        {sortedTags.map((tag) => (
+          <button
+            className={chipVariants({
+              size: "sm",
+              variant: tag.active ? "selected" : "default",
+            })}
+            key={tag.id}
+            onClick={() => onTagToggle(tag.id)}
+            type="button"
           >
-            <SearchIcon />
-          </IconButton>
-        </div>
-
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {data.tags.map((tag) => (
-            <button
-              className={chipVariants({
-                size: "sm",
-                variant: tag.active ? "selected" : "default",
-              })}
-              key={tag.id}
-              onClick={() => onTagToggle(tag.id)}
-              type="button"
-            >
-              <span>{tag.name}</span>
-              <span className="font-sans text-[0.68rem] opacity-70">
-                {tag.itemCount}
-              </span>
-            </button>
-          ))}
+            <span>{tag.name}</span>
+            <span className="font-sans text-[0.68rem] opacity-70">
+              {tag.itemCount}
+            </span>
+          </button>
+        ))}
 
           {data.tags.length === 0 ? (
             <span className="rounded-full border border-white/10 px-4 py-2 text-sm text-subtle">
               当前收藏夹暂无可筛选标签
             </span>
           ) : null}
-        </div>
       </div>
     </section>
   );
