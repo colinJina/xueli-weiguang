@@ -120,7 +120,7 @@ function serializeProfile(
   const headlineValue = row?.headline?.trim() ?? "";
   const fallbackName = username ?? email ?? `用户 ${userId.slice(0, 8)}`;
   const displayName = displayNameValue || fallbackName;
-  const headline = headlineValue || "Private Archive";
+  const headline = headlineValue || "";
 
   return {
     id: userId,

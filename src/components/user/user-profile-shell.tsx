@@ -25,6 +25,7 @@ import type {
   UserArchiveView,
 } from "@/lib/user-archive/types";
 import { cn } from "@/lib/utils";
+import { ArchiveSubmitTrigger } from "../archive/archive-submit-trigger";
 
 type UserProfileShellProps = {
   data: UserArchivePageData;
@@ -239,6 +240,26 @@ function createVideoSummary(item: UserArchiveItem): FavoriteEditorVideo {
   };
 }
 
+function writeTagIdsParam(params: URLSearchParams, tagIds: readonly string[]) {
+  if (tagIds.length > 0) {
+    params.set("tagIds", tagIds.join(","));
+    return;
+  }
+
+  params.delete("tagIds");
+}
+
+function writeTagQueryParam(params: URLSearchParams, tagQuery: string) {
+  const normalizedQuery = tagQuery.trim();
+
+  if (normalizedQuery) {
+    params.set("tagQuery", normalizedQuery);
+    return;
+  }
+
+  params.delete("tagQuery");
+}
+
 export function UserProfileShell({ data }: UserProfileShellProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -280,24 +301,6 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     [pathname, router, searchParams, startTransition],
   );
 
-  useEffect(() => {
-    if (draftTagQuery === data.filters.tagQuery) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      replaceParams((params) => {
-        if (draftTagQuery.trim()) {
-          params.set("tagQuery", draftTagQuery.trim());
-        } else {
-          params.delete("tagQuery");
-        }
-      });
-    }, 220);
-
-    return () => window.clearTimeout(timer);
-  }, [data.filters.tagQuery, draftTagQuery, replaceParams]);
-
   function setCollectionFilter(collectionId: string | null) {
     replaceParams((params) => {
       if (collectionId) {
@@ -313,11 +316,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
 
   function setTagIds(tagIds: string[]) {
     replaceParams((params) => {
-      if (tagIds.length > 0) {
-        params.set("tagIds", tagIds.join(","));
-      } else {
-        params.delete("tagIds");
-      }
+      writeTagIdsParam(params, tagIds);
     });
   }
 
@@ -348,14 +347,13 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     setDraftTagQuery("");
   }
 
-  function selectTagFromInput(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key !== "Enter") {
-      return;
-    }
-
+  function submitTagSearch() {
     const query = draftTagQuery.trim().toLocaleLowerCase();
 
     if (!query) {
+      replaceParams((params) => {
+        params.delete("tagQuery");
+      });
       return;
     }
 
@@ -369,17 +367,30 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
       );
 
     if (!looseMatch) {
+      replaceParams((params) => {
+        writeTagQueryParam(params, draftTagQuery);
+      });
+      return;
+    }
+
+    setDraftTagQuery("");
+    replaceParams((params) => {
+      const nextTagIds = data.filters.tagIds.includes(looseMatch.id)
+        ? data.filters.tagIds
+        : [...data.filters.tagIds, looseMatch.id];
+
+      writeTagIdsParam(params, nextTagIds);
+      params.delete("tagQuery");
+    });
+  }
+
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") {
       return;
     }
 
     event.preventDefault();
-    setDraftTagQuery("");
-    setTagIds(
-      data.filters.tagIds.includes(looseMatch.id)
-        ? data.filters.tagIds
-        : [...data.filters.tagIds, looseMatch.id],
-    );
-    replaceParams((params) => params.delete("tagQuery"));
+    submitTagSearch();
   }
 
   function openEditor(item: UserArchiveItem) {
@@ -416,24 +427,20 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
       </aside>
 
       <div className="min-h-screen lg:pl-[300px]">
-        <TopBar
-          data={data}
-          isPending={isPending}
-          onLoginClick={openLogin}
-          onRegisterClick={openRegister}
-          onViewChange={setView}
-        />
-
         <main className="px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pt-10">
           <FilterRow
             data={data}
             draftTagQuery={draftTagQuery}
             isPending={isPending}
             onClear={clearFilters}
+            onLoginClick={openLogin}
             onManageTags={() => setTagManagerOpen(true)}
+            onRegisterClick={openRegister}
             onSearchChange={setDraftTagQuery}
-            onSearchKeyDown={selectTagFromInput}
+            onSearchKeyDown={handleSearchKeyDown}
+            onSearchSubmit={submitTagSearch}
             onTagToggle={toggleTag}
+            onViewChange={setView}
           />
           <CardGrid data={data} onEditItem={openEditor} />
         </main>
@@ -501,21 +508,16 @@ function SidebarContent({
   return (
     <>
       <ProfileSummary data={data} />
-
-      <Button
-        className="mt-10 min-h-[52px] w-full gap-3 rounded-lg text-base"
-        onClick={onUploadClick}
-        type="button"
-      >
-        <PlusIcon />
-        <span>推荐视频</span>
-      </Button>
-
+      <ArchiveSubmitTrigger
+        isAuthenticated={data.isAuthenticated}
+        onRequestLogin={onUploadClick}
+        onRequestSubmit={onUploadClick}
+      />
       <nav className="mt-10 space-y-7">
         <button
           aria-pressed={data.activeCollection.isAll}
           className={cn(
-            "flex w-full items-center gap-4 rounded-lg border px-5 py-3 text-left text-base font-medium transition",
+            "flex w-full items-center gap-4 rounded-lg border px-5 py-3 text-left text-base font-medium",
             data.activeCollection.isAll
               ? "border-white/10 bg-white/[0.07] text-foreground"
               : "border-transparent text-muted hover:bg-white/[0.035] hover:text-foreground",
@@ -576,7 +578,7 @@ function ProfileSummary({ data }: { data: UserArchivePageData }) {
   const profile = data.profile;
 
   return (
-    <div className="flex items-center gap-4 px-3">
+    <div className="flex items-center gap-4 px-3 mb-4">
       {profile?.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -677,12 +679,14 @@ function CreateCollectionForm({ onCreated }: { onCreated: () => void }) {
 }
 
 function TopBar({
+  className,
   data,
   isPending,
   onLoginClick,
   onRegisterClick,
   onViewChange,
 }: {
+  className?: string;
   data: UserArchivePageData;
   isPending: boolean;
   onLoginClick: () => void;
@@ -690,22 +694,17 @@ function TopBar({
   onViewChange: (view: UserArchiveView) => void;
 }) {
   return (
-    <header className="sticky top-0 z-20 flex min-h-[76px] items-center justify-between border-b border-border bg-background/92 px-5 backdrop-blur-sm sm:px-8 lg:px-10">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="lg:hidden">
-          <ProfileSummary data={data} />
-        </div>
-        <div className="hidden min-w-0 lg:block">
-          <p className="truncate text-sm font-sans uppercase tracking-[0.18em] text-subtle">
-            {data.activeCollection.isAll ? "我的档案" : "收藏夹"}
-          </p>
-          <h1 className="mt-1 truncate text-xl font-black tracking-[-0.04em] text-foreground">
-            {data.activeCollection.name}
-          </h1>
-        </div>
+    <div
+      className={cn(
+        "flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+        className,
+      )}
+    >
+      <div className="min-w-0 lg:hidden">
+        <ProfileSummary data={data} />
       </div>
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 sm:ml-auto">
         {!data.isAuthenticated ? (
           <div className="hidden items-center gap-2 sm:flex">
             <Button
@@ -754,7 +753,7 @@ function TopBar({
           </IconButton>
         </div>
       </div>
-    </header>
+    </div>
   );
 }
 
@@ -763,19 +762,27 @@ function FilterRow({
   draftTagQuery,
   isPending,
   onClear,
+  onLoginClick,
   onManageTags,
+  onRegisterClick,
   onSearchChange,
   onSearchKeyDown,
+  onSearchSubmit,
   onTagToggle,
+  onViewChange,
 }: {
   data: UserArchivePageData;
   draftTagQuery: string;
   isPending: boolean;
   onClear: () => void;
+  onLoginClick: () => void;
   onManageTags: () => void;
+  onRegisterClick: () => void;
   onSearchChange: (value: string) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  onSearchSubmit: () => void;
   onTagToggle: (tagId: string) => void;
+  onViewChange: (view: UserArchiveView) => void;
 }) {
   const hasFilters =
     data.filters.collectionId !== null ||
@@ -784,8 +791,8 @@ function FilterRow({
 
   return (
     <section className={cn("mb-7 space-y-4", isPending && "opacity-70")}>
-      <div className="flex gap-3 flex-row justify-end">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="order-2 flex flex-wrap items-center gap-3 lg:order-1">
           <button
             className="flex items-center gap-2 text-sm text-subtle transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-80"
             disabled={!hasFilters}
@@ -827,22 +834,36 @@ function FilterRow({
             </Button>
           ) : null}
         </div>
+
+        <TopBar
+          className="order-1 lg:order-2 lg:ml-auto lg:w-auto"
+          data={data}
+          isPending={isPending}
+          onLoginClick={onLoginClick}
+          onRegisterClick={onRegisterClick}
+          onViewChange={onViewChange}
+        />
       </div>
 
       <div className="flex min-w-0 flex-wrap items-center gap-3">
-        <label className="relative block w-full min-w-[240px] max-w-[350px] sm:w-[350px]">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-subtle">
-            <SearchIcon />
-          </span>
+        <div className="relative block w-full min-w-[240px] max-w-[350px] sm:w-[350px]">
           <input
-            className="h-12 w-full rounded-full border border-border bg-white/[0.1] px-5 pl-12 text-base font-semibold text-foreground outline-none transition placeholder:text-muted focus:border-borderStrong focus:bg-white/[0.13]"
+            className="h-12 w-full rounded-full border border-border bg-white/[0.1] px-5 pr-14 text-base font-semibold text-foreground outline-none transition placeholder:text-muted focus:border-borderStrong focus:bg-white/[0.13]"
             onChange={(event) => onSearchChange(event.target.value)}
             onKeyDown={onSearchKeyDown}
-            placeholder="搜索标签，回车选中"
             type="search"
             value={draftTagQuery}
           />
-        </label>
+          <IconButton
+            aria-label="提交标签搜索"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground"
+            onClick={onSearchSubmit}
+            size="sm"
+            variant="ghost"
+          >
+            <SearchIcon />
+          </IconButton>
+        </div>
 
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {data.tags.map((tag) => (
@@ -932,9 +953,8 @@ function ArchiveCard({
         className={cn(
           "relative block overflow-hidden bg-surface",
           listView ? "h-full min-h-[144px]" : "aspect-video",
-          
         )}
-         style={{
+        style={{
           WebkitBackfaceVisibility: "hidden",
           WebkitTransform: "translate3d(0, 0, 0)",
         }}
