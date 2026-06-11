@@ -11,6 +11,8 @@ import {
   VideoUserIcon,
   VideoVisibilityIcon,
 } from "@/components/video/video-detail-icons";
+import type { FavoriteEditorVideo } from "@/components/user/favorite-editor-dialog";
+import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import type {
   VideoDetail,
   VideoDictionaryItem,
@@ -19,6 +21,7 @@ import type {
 
 type VideoDetailEngagementProps = {
   video: VideoDetail;
+  favoriteState: UserArchiveVideoFavoriteState | null;
 };
 
 function isVideoViewResponse(value: unknown): value is VideoViewResponse {
@@ -30,7 +33,7 @@ function isVideoViewResponse(value: unknown): value is VideoViewResponse {
   );
 }
 
-export function VideoDetailEngagement({ video }: VideoDetailEngagementProps) {
+export function VideoDetailEngagement({ favoriteState, video }: VideoDetailEngagementProps) {
   const hasRequestedViewRef = useRef(false);
   const [viewCountLabel, setViewCountLabel] = useState(video.viewCountLabel);
   const [likeCount, setLikeCount] = useState(video.likeCount);
@@ -128,6 +131,14 @@ export function VideoDetailEngagement({ video }: VideoDetailEngagementProps) {
               <VideoDetailActions
                 likeCount={likeCount}
                 likeCountLabel={likeCountLabel}
+                favoriteState={favoriteState}
+                favoriteVideo={{
+                  id: video.id,
+                  title: video.title,
+                  coverUrl: video.coverImageUrl,
+                  sourceLabel: video.sourceLabel,
+                  storageProvider: video.storageProvider,
+                } satisfies FavoriteEditorVideo}
                 onLikeCountChange={handleLikeCountChange}
                 storageProvider={video.storageProvider}
                 videoId={video.id}
