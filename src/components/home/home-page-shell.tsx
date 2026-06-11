@@ -34,7 +34,6 @@ type HomePageShellProps = {
 
 export function HomePageShell({
   navigation,
-  heroContent,
   metaItems,
   featuredItems,
 }: HomePageShellProps) {
@@ -79,9 +78,8 @@ export function HomePageShell({
       />
 
       <main>
-        <HomeHero content={heroContent} motionReady={motionReady} />
+        <HomeHero />
         <HomeMetaStrip items={metaItems} motionReady={motionReady} />
-
         <div className="mx-auto w-full max-w-[1520px] px-4 pt-12 sm:px-6 sm:pt-10 lg:px-6 xl:px-8">
           <HomeFeaturedGrid items={featuredItems} motionReady={motionReady} />
         </div>

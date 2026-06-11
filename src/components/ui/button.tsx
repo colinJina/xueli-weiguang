@@ -9,13 +9,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "rounded-md border-transparent bg-reverse text-black-soft hover:-translate-y-px hover:bg-white",
+          "rounded-md border-transparent bg-reverse text-black-soft  hover:bg-white",
         secondary:
           "rounded-md border-border bg-surface text-foreground hover:border-borderStrong hover:bg-panelHover",
         ghost:
           "rounded-md border-transparent bg-transparent text-muted hover:text-foreground",
-        pill:
-          "rounded-full border-border bg-surface text-muted hover:border-borderStrong hover:bg-panelHover hover:text-foreground",
+        pill: "rounded-full border-border bg-surface text-muted hover:border-borderStrong hover:bg-panelHover hover:text-foreground",
         pillActive:
           "rounded-full border-white/15 bg-reverse text-black-soft hover:bg-white",
       },
@@ -35,7 +34,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -1,24 +1,27 @@
 import type { Transition, Variants } from "motion/react";
-
-export const homeEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-export const homeIntroDurationMs = 1080;
+export const homeEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
+export const homeIntroDurationMs = 3800;
 export const homeIntroSessionKey = "xueli-weiguang:home-intro-seen";
-
 export const hoverTransition: Transition = {
-  duration: 0.18,
+  duration: 0.5,
   ease: homeEase,
 };
 
-export function createFadeUp(distance = 12, delay = 0, duration = 0.32): Variants {
+export function createFadeUp(
+  distance = 16,
+  delay = 0,
+  duration = 0.4,
+): Variants {
   return {
     hidden: {
       opacity: 0,
       y: distance,
+      filter: "blur(8px)",
     },
     visible: {
       opacity: 1,
       y: 0,
+      filter: "blur(0px)",
       transition: {
         delay,
         duration,
@@ -28,7 +31,10 @@ export function createFadeUp(distance = 12, delay = 0, duration = 0.32): Variant
   };
 }
 
-export function createStagger(delayChildren = 0, staggerChildren = 0.08): Variants {
+export function createStagger(
+  delayChildren = 0,
+  staggerChildren = 0.08,
+): Variants {
   return {
     hidden: {},
     visible: {
@@ -47,14 +53,14 @@ export const introOverlayVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      duration: 0.22,
+      duration: 0.3,
       ease: homeEase,
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      duration: 0.26,
+      duration: 1.0,
       ease: homeEase,
     },
   },
@@ -63,16 +69,18 @@ export const introOverlayVariants: Variants = {
 export const introLogoVariants: Variants = {
   hidden: {
     opacity: 0,
-    y: 8,
+    y: 12,
+    scale: 1.05,
     clipPath: "inset(100% 0 0 0 round 28px)",
   },
   visible: {
     opacity: 1,
     y: 0,
+    scale: 1,
     clipPath: "inset(0% 0 0 0 round 28px)",
     transition: {
-      delay: 0.16,
-      duration: 0.26,
+      delay: 0.1,
+      duration: 0.4,
       ease: homeEase,
     },
   },
@@ -83,30 +91,33 @@ export const introWordmarkVariants: Variants = {
     opacity: 0,
     y: 10,
     letterSpacing: "-0.08em",
+    filter: "blur(6px)",
   },
   visible: {
     opacity: 1,
     y: 0,
-    letterSpacing: "-0.04em",
+    letterSpacing: "-0.02em",
+    filter: "blur(0px)",
     transition: {
-      delay: 0.32,
-      duration: 0.3,
+      delay: 0.25,
+      duration: 0.5,
       ease: homeEase,
     },
   },
 };
-
 export const introDetailVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 8,
+    filter: "blur(4px)",
   },
   visible: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
     transition: {
-      delay: 0.52,
-      duration: 0.24,
+      delay: 0.4,
+      duration: 0.4,
       ease: homeEase,
     },
   },

@@ -48,14 +48,15 @@ export function HomeHeader({
     <motion.header
       className="fixed inset-x-0 top-0 z-50 border-b border-white/6 bg-[rgba(3,3,4,0.94)] backdrop-blur-[14px]"
       initial={prefersReducedMotion ? false : "hidden"}
-      animate={prefersReducedMotion ? undefined : motionReady ? "visible" : "hidden"}
+      animate={
+        prefersReducedMotion ? undefined : motionReady ? "visible" : "hidden"
+      }
       variants={headerVariants}
     >
       <div className="page-container flex h-[72px] items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-8">
           <SiteBrand
             className="shrink-0"
-            markClassName="hidden"
             subtitle="VIDEO ARCHIVE"
             subtitleClassName="hidden"
             titleClassName="text-[1.85rem] tracking-[-0.04em]"
@@ -64,7 +65,6 @@ export function HomeHeader({
           <nav className="flex min-w-0 items-center gap-7" aria-label="主导航">
             {navigation.map((item) => {
               const isActive = item.href === "/";
-
               return (
                 <Link
                   key={item.href}
