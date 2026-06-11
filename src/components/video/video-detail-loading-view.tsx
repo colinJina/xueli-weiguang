@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import { FixedBackButton } from "@/components/layout/fixed-back-button";
 import { VideoDetailNav } from "@/components/video/video-detail-nav";
 
 const archiveDots = Array.from({ length: 5 }, (_, index) => index);
@@ -19,6 +20,7 @@ export function VideoDetailLoadingView() {
   return (
     <div className="min-h-screen bg-background">
       <VideoDetailNav />
+      <FixedBackButton fallbackHref="/archive" />
 
       <main className="page-container py-6 sm:py-8 lg:py-10">
         <section

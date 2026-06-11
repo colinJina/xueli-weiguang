@@ -482,7 +482,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <FixedBackButton
-        className={cn(sidebarCollapsed ? "lg:left-[96px]" : "lg:left-[316px]")}
+        className={cn(sidebarCollapsed ? "lg:left-[96px] top-[50px]" : "lg:left-[316px] top-[50px]")}
         fallbackHref="/archive"
       />
 
