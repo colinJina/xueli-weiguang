@@ -43,7 +43,12 @@ type MutationResult = {
 function GridIcon() {
   return (
     <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path d="M4 4h5v5H4V4Zm7 0h5v5h-5V4ZM4 11h5v5H4v-5Zm7 0h5v5h-5v-5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.4" />
+      <path
+        d="M4 4h5v5H4V4Zm7 0h5v5h-5V4ZM4 11h5v5H4v-5Zm7 0h5v5h-5v-5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.4"
+      />
     </svg>
   );
 }
@@ -51,7 +56,12 @@ function GridIcon() {
 function ListIcon() {
   return (
     <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path d="M4 5.5h12M4 10h12M4 14.5h12" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+      <path
+        d="M4 5.5h12M4 10h12M4 14.5h12"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
@@ -59,7 +69,12 @@ function ListIcon() {
 function PlusIcon() {
   return (
     <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+      <path
+        d="M10 4.5v11M4.5 10h11"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.7"
+      />
     </svg>
   );
 }
@@ -67,8 +82,19 @@ function PlusIcon() {
 function SearchIcon() {
   return (
     <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <circle cx="8.5" cy="8.5" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="m12 12 4 4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+      <circle
+        cx="8.5"
+        cy="8.5"
+        r="4.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="m12 12 4 4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
@@ -82,7 +108,14 @@ function FolderIcon({ active = false }: { active?: boolean }) {
         strokeLinejoin="round"
         strokeWidth="1.45"
       />
-      {active ? <path d="M7.2 10.2h5.6" stroke="currentColor" strokeLinecap="round" strokeWidth="1.45" /> : null}
+      {active ? (
+        <path
+          d="M7.2 10.2h5.6"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="1.45"
+        />
+      ) : null}
     </svg>
   );
 }
@@ -90,7 +123,11 @@ function FolderIcon({ active = false }: { active?: boolean }) {
 function EyeIcon() {
   return (
     <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="M2 8s2-3.5 6-3.5S14 8 14 8s-2 3.5-6 3.5S2 8 2 8Z" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M2 8s2-3.5 6-3.5S14 8 14 8s-2 3.5-6 3.5S2 8 2 8Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
       <circle cx="8" cy="8" r="1.6" stroke="currentColor" strokeWidth="1.3" />
     </svg>
   );
@@ -112,32 +149,73 @@ function HeartIcon() {
 function EditIcon() {
   return (
     <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="m4.2 11.8 1.8-.35 5.9-5.9-1.45-1.45-5.9 5.9-.35 1.8Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.3" />
-      <path d="M9.8 4.8 11.2 6.2" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
+      <path
+        d="m4.2 11.8 1.8-.35 5.9-5.9-1.45-1.45-5.9 5.9-.35 1.8Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.3"
+      />
+      <path
+        d="M9.8 4.8 11.2 6.2"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.3"
+      />
     </svg>
   );
 }
 
 function ArchiveIcon() {
   return (
-    <svg aria-hidden="true" className="h-12 w-12 text-subtle" fill="none" viewBox="0 0 48 48">
-      <rect height="24" rx="5" stroke="currentColor" strokeWidth="1.5" width="32" x="8" y="12" />
-      <path d="M15 20h18M15 26h10" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
+    <svg
+      aria-hidden="true"
+      className="h-12 w-12 text-subtle"
+      fill="none"
+      viewBox="0 0 48 48"
+    >
+      <rect
+        height="24"
+        rx="5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        width="32"
+        x="8"
+        y="12"
+      />
+      <path
+        d="M15 20h18M15 26h10"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
 
 function AlertIcon() {
   return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 flex-none"
+      fill="none"
+      viewBox="0 0 16 16"
+    >
       <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
+      <path
+        d="M8 4.5v4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.4"
+      />
       <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
     </svg>
   );
 }
 
-function createMembershipsForVideo(items: readonly UserArchiveItem[], videoId: string) {
+function createMembershipsForVideo(
+  items: readonly UserArchiveItem[],
+  videoId: string,
+) {
   return items
     .filter((item) => item.videoId === videoId)
     .map((item) => ({
@@ -194,7 +272,9 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
       const query = params.toString();
 
       startTransition(() => {
-        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+        router.replace(query ? `${pathname}?${query}` : pathname, {
+          scroll: false,
+        });
       });
     },
     [pathname, router, searchParams, startTransition],
@@ -279,10 +359,14 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
       return;
     }
 
-    const exactMatch = data.tagLibrary.find((tag) => tag.name.toLocaleLowerCase() === query);
-    const looseMatch = exactMatch ?? data.tagLibrary.find((tag) =>
-      tag.name.toLocaleLowerCase().includes(query),
+    const exactMatch = data.tagLibrary.find(
+      (tag) => tag.name.toLocaleLowerCase() === query,
     );
+    const looseMatch =
+      exactMatch ??
+      data.tagLibrary.find((tag) =>
+        tag.name.toLocaleLowerCase().includes(query),
+      );
 
     if (!looseMatch) {
       return;
@@ -418,7 +502,11 @@ function SidebarContent({
     <>
       <ProfileSummary data={data} />
 
-      <Button className="mt-10 min-h-[52px] w-full gap-3 rounded-lg text-base" onClick={onUploadClick} type="button">
+      <Button
+        className="mt-10 min-h-[52px] w-full gap-3 rounded-lg text-base"
+        onClick={onUploadClick}
+        type="button"
+      >
         <PlusIcon />
         <span>推荐视频</span>
       </Button>
@@ -459,13 +547,19 @@ function SidebarContent({
                 type="button"
               >
                 <FolderIcon active={collection.active} />
-                <span className="min-w-0 flex-1 truncate">{collection.name}</span>
-                <span className="text-xs text-subtle">{collection.itemCount}</span>
+                <span className="min-w-0 flex-1 truncate">
+                  {collection.name}
+                </span>
+                <span className="text-xs text-subtle">
+                  {collection.itemCount}
+                </span>
               </button>
             ))}
 
             {data.collections.length === 0 ? (
-              <p className="px-3 py-3 text-sm leading-6 text-muted">还没有收藏夹。</p>
+              <p className="px-3 py-3 text-sm leading-6 text-muted">
+                还没有收藏夹。
+              </p>
             ) : null}
           </div>
         </div>
@@ -537,14 +631,19 @@ function CreateCollectionForm({ onCreated }: { onCreated: () => void }) {
       setName("");
       onCreated();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "收藏夹创建失败，请稍后重试。");
+      setMessage(
+        error instanceof Error ? error.message : "收藏夹创建失败，请稍后重试。",
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <form className="space-y-3 rounded-lg border border-white/8 bg-white/[0.025] p-3" onSubmit={handleSubmit}>
+    <form
+      className="space-y-3 rounded-lg border border-white/8 bg-white/[0.025] p-3"
+      onSubmit={handleSubmit}
+    >
       <label className="block space-y-2">
         <span className="font-sans text-[11px] uppercase tracking-[0.18em] text-subtle">
           新建收藏夹
@@ -563,7 +662,13 @@ function CreateCollectionForm({ onCreated }: { onCreated: () => void }) {
           {message}
         </FormMessage>
       ) : null}
-      <Button className="w-full gap-2" disabled={submitting} size="sm" type="submit" variant="secondary">
+      <Button
+        className="w-full gap-2"
+        disabled={submitting}
+        size="sm"
+        type="submit"
+        variant="secondary"
+      >
         <PlusIcon />
         新建收藏夹
       </Button>
@@ -603,7 +708,12 @@ function TopBar({
       <div className="ml-auto flex items-center gap-3">
         {!data.isAuthenticated ? (
           <div className="hidden items-center gap-2 sm:flex">
-            <Button onClick={onLoginClick} size="sm" type="button" variant="secondary">
+            <Button
+              onClick={onLoginClick}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
               登录
             </Button>
             <Button onClick={onRegisterClick} size="sm" type="button">
@@ -612,10 +722,18 @@ function TopBar({
           </div>
         ) : null}
 
-        <div className={cn("flex rounded-lg border border-border bg-panel p-1", isPending && "opacity-60")}>
+        <div
+          className={cn(
+            "flex rounded-lg border border-border bg-panel p-1",
+            isPending && "opacity-60",
+          )}
+        >
           <IconButton
             aria-label="网格视图"
-            className={cn("rounded-md", data.filters.view === "grid" && "bg-white/[0.08] text-foreground")}
+            className={cn(
+              "rounded-md",
+              data.filters.view === "grid" && "bg-white/[0.08] text-foreground",
+            )}
             onClick={() => onViewChange("grid")}
             size="sm"
             variant="ghost"
@@ -624,7 +742,10 @@ function TopBar({
           </IconButton>
           <IconButton
             aria-label="列表视图"
-            className={cn("rounded-md", data.filters.view === "list" && "bg-white/[0.08] text-foreground")}
+            className={cn(
+              "rounded-md",
+              data.filters.view === "list" && "bg-white/[0.08] text-foreground",
+            )}
             onClick={() => onViewChange("list")}
             size="sm"
             variant="ghost"
@@ -663,35 +784,44 @@ function FilterRow({
 
   return (
     <section className={cn("mb-7 space-y-4", isPending && "opacity-70")}>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0">
-          <p className="font-sans text-[11px] uppercase tracking-[0.22em] text-subtle">
-            {data.totalCount} / {data.activeCollection.itemCount} 条
-          </p>
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-foreground">
-            {data.activeCollection.name}
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-            {data.activeCollection.description}
-          </p>
-        </div>
-
+      <div className="flex gap-3 flex-row justify-end">
         <div className="flex flex-wrap items-center gap-3">
           <button
-            className="flex items-center gap-2 text-sm text-subtle transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-2 text-sm text-subtle transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-80"
             disabled={!hasFilters}
             onClick={onClear}
             type="button"
           >
-            <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-              <path d="M3 4h10l-4 4v3l-2 1V8L3 4Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.3" />
-              <path d="m3 13 10-10" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
+            <svg
+              aria-hidden="true"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M3 4h10l-4 4v3l-2 1V8L3 4Z"
+                stroke="currentColor"
+                strokeLinejoin="round"
+                strokeWidth="1.3"
+              />
+              <path
+                d="m3 13 10-10"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="1.3"
+              />
             </svg>
             <span>清空筛选</span>
           </button>
 
           {data.isAuthenticated ? (
-            <Button className="gap-2" onClick={onManageTags} size="sm" type="button" variant="secondary">
+            <Button
+              className="gap-2"
+              onClick={onManageTags}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
               <EditIcon />
               管理标签
             </Button>
@@ -726,7 +856,9 @@ function FilterRow({
               type="button"
             >
               <span>{tag.name}</span>
-              <span className="font-sans text-[0.68rem] opacity-70">{tag.itemCount}</span>
+              <span className="font-sans text-[0.68rem] opacity-70">
+                {tag.itemCount}
+              </span>
             </button>
           ))}
 
@@ -791,11 +923,21 @@ function ArchiveCard({
     <article
       className={cn(
         "group overflow-hidden rounded-xl border border-white/[0.07] bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-white/14",
-        listView ? "grid grid-cols-[112px,1fr] sm:grid-cols-[180px,1fr]" : "flex min-h-[352px] flex-col",
+        listView
+          ? "grid grid-cols-[112px,1fr] sm:grid-cols-[180px,1fr]"
+          : "flex min-h-[352px] flex-col",
       )}
     >
       <Link
-        className={cn("relative block overflow-hidden bg-surface", listView ? "h-full min-h-[144px]" : "aspect-video")}
+        className={cn(
+          "relative block overflow-hidden bg-surface",
+          listView ? "h-full min-h-[144px]" : "aspect-video",
+          
+        )}
+         style={{
+          WebkitBackfaceVisibility: "hidden",
+          WebkitTransform: "translate3d(0, 0, 0)",
+        }}
         href={item.href}
       >
         {item.coverUrl ? (
@@ -812,23 +954,48 @@ function ArchiveCard({
             <ArchiveIcon />
           </div>
         )}
+
+        <div className="absolute bottom-2 right-2 flex min-w-0 items-end justify-end sm:bottom-3 sm:right-3">
+          <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
+            <VideoSourceIcon
+              className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
+              platform={item.storageProvider}
+            />
+            <span className="min-w-0 truncate">{item.sourceLabel}</span>
+          </span>
+        </div>
+        {/* --------------------------------------------- */}
       </Link>
 
-      <div className={cn("flex flex-1 flex-col", listView ? "p-4 sm:p-5" : "p-5")}>
+      <div
+        className={cn("flex flex-1 flex-col", listView ? "p-4 sm:p-5" : "p-5")}
+      >
         <div className="flex items-start justify-between gap-3">
           <Link className="min-w-0 flex-1" href={item.href}>
-            <h2 className={cn("line-clamp-2 font-bold leading-snug tracking-[-0.03em] text-foreground", listView ? "text-lg" : "min-h-[3.35rem] text-xl")}>
+            <h2
+              className={cn(
+                "line-clamp-2 font-bold leading-snug tracking-[-0.03em] text-foreground",
+                listView ? "text-lg" : "min-h-[3.35rem] text-xl",
+              )}
+            >
               {item.title}
             </h2>
           </Link>
 
-          <IconButton aria-label="编辑收藏记录" onClick={onEdit} size="sm" variant="surface">
+          <IconButton
+            aria-label="编辑收藏记录"
+            onClick={onEdit}
+            size="sm"
+            variant="surface"
+          >
             <EditIcon />
           </IconButton>
         </div>
 
         {item.note ? (
-          <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted">{item.note}</p>
+          <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted">
+            {item.note}
+          </p>
         ) : null}
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6 text-sm text-muted">
@@ -845,13 +1012,12 @@ function ArchiveCard({
 
           <span className="inline-flex min-w-0 items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs text-subtle">
             <FolderIcon />
-            <span className="max-w-[120px] truncate">{item.collectionName}</span>
+            <span className="max-w-[120px] truncate">
+              {item.collectionName}
+            </span>
           </span>
 
-          <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted">
-            <VideoSourceIcon className="h-[18px] w-[18px]" platform={item.storageProvider} />
-            {item.sourceLabel}
-          </span>
+          {/* 注：这里移除了原本在底部的 sourceLabel 渲染 */}
         </div>
       </div>
     </article>
@@ -865,7 +1031,9 @@ function GuestEmptyState() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
           <ArchiveIcon />
         </div>
-        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">登录后打开你的档案</h2>
+        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
+          登录后打开你的档案
+        </h2>
         <p className="text-sm leading-6 text-muted">
           收藏夹、私有标签和收藏记录只对当前账号可见。
         </p>
@@ -881,7 +1049,9 @@ function ArchiveEmptyState() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
           <ArchiveIcon />
         </div>
-        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">当前范围暂无收藏</h2>
+        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
+          当前范围暂无收藏
+        </h2>
         <p className="text-sm leading-6 text-muted">
           可以从视频详情页收藏公开视频，或清空当前标签筛选。
         </p>

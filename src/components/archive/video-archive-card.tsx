@@ -1,10 +1,7 @@
 import Link from "next/link";
 
 import { VideoSourceIcon } from "@/components/ui/video-source-icon";
-import type {
-  ArchiveVideoItem,
-  VideoDictionaryItem,
-} from "@/lib/videos/types";
+import type { ArchiveVideoItem, VideoDictionaryItem } from "@/lib/videos/types";
 
 type VideoArchiveCardProps = {
   item: ArchiveVideoItem;
@@ -50,7 +47,6 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
       className="group isolate flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:-translate-y-0.5"
       href={`/video/${item.id}`}
     >
-      {/* 1. 移除这里的 border-b border-white/[0.04] */}
       <div
         className="relative overflow-hidden rounded-t-[22px] bg-[#080808] [transform:translateZ(0)]"
         style={{
@@ -75,12 +71,11 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
           className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-px bg-[#080808]"
         />
 
-
-       <div
+        <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[6px]——#141415 bg-[#141415]"
         />
-        
+
         <div className="absolute inset-x-5 bottom-5 flex min-w-0 items-end justify-end gap-4">
           <span className="inline-flex h-[34px] max-w-full items-center gap-2 rounded-full border border-white/20 bg-black/55 px-3 text-[0.72rem] font-medium tracking-[0.04em] text-foreground backdrop-blur-sm">
             <VideoSourceIcon
