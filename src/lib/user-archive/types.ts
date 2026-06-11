@@ -88,6 +88,7 @@ export type UserArchiveVideoFavoriteState = {
 
 export type UserArchivePageData = {
   isAuthenticated: boolean;
+  isAdmin: boolean;
   profile: UserArchiveProfile | null;
   collections: UserArchiveCollectionSummary[];
   tags: UserArchiveTagSummary[];

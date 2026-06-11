@@ -8,6 +8,7 @@ import { Chip } from "@/components/ui/chip";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
 import { TextField } from "@/components/ui/text-field";
+import { ADMIN_REQUIRED_MESSAGE } from "@/lib/auth/admin";
 import { cn } from "@/lib/utils";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
 import type {
@@ -18,6 +19,7 @@ import type {
 type ArchiveSubmitDialogProps = {
   open: boolean;
   onClose: () => void;
+  allowNativeUpload?: boolean;
 };
 
 type SubmitMode = "link" | "upload";
@@ -245,6 +247,8 @@ function parseNativeError(payload: NativeSubmissionApiErrorPayload | null) {
   switch (payload.code) {
     case "UNAUTHENTICATED":
       return "请先登录后再投稿。";
+    case "ADMIN_REQUIRED":
+      return ADMIN_REQUIRED_MESSAGE;
     case "FILE_TOO_LARGE":
       return `视频文件不能超过 ${formatFileSize(payload.max ?? DEFAULT_VIDEO_MAX_BYTES)}。`;
     case "UNSUPPORTED_MIME":
@@ -358,7 +362,11 @@ function FileDropZone({
   );
 }
 
-export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps) {
+export function ArchiveSubmitDialog({
+  open,
+  onClose,
+  allowNativeUpload = false,
+}: ArchiveSubmitDialogProps) {
   const [mode, setMode] = useState<SubmitMode>("link");
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -387,7 +395,24 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open || allowNativeUpload) {
+      return;
+    }
+    setMode("link");
+    setVideoFile(null);
+    setCoverFile(null);
+    setVideoProgress(0);
+    setCoverProgress(0);
+    setStatus("idle");
+    setMessage("");
+  }, [allowNativeUpload, open]);
+
   const nativeDisabledReason = useMemo(() => {
+    if (!allowNativeUpload) {
+      return ADMIN_REQUIRED_MESSAGE;
+    }
+
     const trimmedTitle = title.trim();
 
     if (status === "submitting") {
@@ -431,7 +456,7 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
     }
 
     return "";
-  }, [coverFile, description, status, title, videoFile]);
+  }, [allowNativeUpload, coverFile, description, status, title, videoFile]);
 
   if (!open) {
     return null;
@@ -446,6 +471,9 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
 
   function switchMode(nextMode: SubmitMode) {
     if (status === "submitting") {
+      return;
+    }
+    if (!allowNativeUpload && nextMode === "upload") {
       return;
     }
     setMode(nextMode);
@@ -571,7 +599,7 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
   async function handleNativeSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (nativeDisabledReason || !videoFile || !coverFile) {
+    if (!allowNativeUpload || nativeDisabledReason || !videoFile || !coverFile) {
       setStatus("error");
       setMessage(nativeDisabledReason || "请检查投稿信息后重试。");
       return;
@@ -650,9 +678,9 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
   const isSubmitting = status === "submitting";
   const isNativeSubmitDisabled = Boolean(nativeDisabledReason);
   const dialogDescription =
-    mode === "link"
-      ? "粘贴一条 Bilibili 视频链接。我们会先记录投稿，再进入人工审核。"
-      : "上传本地视频与封面。文件会直传至 COS，审核通过前不会进入公开视频库。";
+    allowNativeUpload && mode === "upload"
+      ? "上传本地视频与封面。文件会直传至 COS，审核通过前不会进入公开视频库。"
+      : "粘贴一条 Bilibili 视频链接。我们会先记录投稿，再进入人工审核。";
 
   return (
     <DialogShell
@@ -664,35 +692,46 @@ export function ArchiveSubmitDialog({ open, onClose }: ArchiveSubmitDialogProps)
       title="推荐你喜欢的视频"
     >
       <div className="mt-5 flex items-center gap-3 border-b border-border pb-4">
-        <button
-          aria-current={mode === "link" ? "page" : undefined}
-          disabled={isSubmitting}
-          onClick={() => switchMode("link")}
-          type="button"
-        >
-          <Chip size="md" variant={mode === "link" ? "selected" : "default"}>
+        {allowNativeUpload ? (
+          <>
+            <button
+              aria-current={mode === "link" ? "page" : undefined}
+              disabled={isSubmitting}
+              onClick={() => switchMode("link")}
+              type="button"
+            >
+              <Chip size="md" variant={mode === "link" ? "selected" : "default"}>
+                <span className="inline-flex items-center gap-1.5">
+                  <LinkIcon />
+                  视频链接
+                </span>
+              </Chip>
+            </button>
+            <button
+              aria-current={mode === "upload" ? "page" : undefined}
+              disabled={isSubmitting}
+              onClick={() => switchMode("upload")}
+              type="button"
+            >
+              <Chip size="md" variant={mode === "upload" ? "selected" : "default"}>
+                <span className="inline-flex items-center gap-1.5">
+                  <UploadIcon />
+                  上传视频
+                </span>
+              </Chip>
+            </button>
+          </>
+        ) : (
+          <Chip size="md" variant="selected">
             <span className="inline-flex items-center gap-1.5">
               <LinkIcon />
               视频链接
             </span>
           </Chip>
-        </button>
-        <button
-          aria-current={mode === "upload" ? "page" : undefined}
-          disabled={isSubmitting}
-          onClick={() => switchMode("upload")}
-          type="button"
-        >
-          <Chip size="md" variant={mode === "upload" ? "selected" : "default"}>
-            <span className="inline-flex items-center gap-1.5">
-              <UploadIcon />
-              上传视频
-            </span>
-          </Chip>
-        </button>
+        )}
       </div>
 
-      {mode === "link" ? (
+      {!allowNativeUpload || mode === "link" ? (
         <form className="mt-6 space-y-5" onSubmit={handleLinkSubmit}>
           <div className="space-y-4 rounded-lg border border-border bg-surface px-5 py-5">
             <TextField

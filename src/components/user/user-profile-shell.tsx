@@ -269,6 +269,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     user,
     isReady,
     isAuthenticated,
+    isAdmin,
     dialogMode,
     openLogin,
     openRegister,
@@ -281,6 +282,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [continueToSubmit, setContinueToSubmit] = useState(false);
   const canSubmit = data.isAuthenticated || (isReady && isAuthenticated);
+  const allowNativeUpload = data.isAdmin || isAdmin;
 
   useEffect(() => {
     setDraftTagQuery(data.filters.tagQuery);
@@ -488,6 +490,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
 
       <ArchiveSubmitDialog
         onClose={() => setSubmitDialogOpen(false)}
+        allowNativeUpload={allowNativeUpload}
         open={submitDialogOpen && (canSubmit || Boolean(user))}
       />
     </div>

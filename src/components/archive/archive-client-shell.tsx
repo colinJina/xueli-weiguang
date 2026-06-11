@@ -25,6 +25,7 @@ export function ArchiveClientShell({
     user,
     isReady,
     isAuthenticated,
+    isAdmin,
     logout,
     dialogMode,
     openLogin,
@@ -78,6 +79,7 @@ export function ArchiveClientShell({
 
       <ArchiveSubmitDialog
         onClose={() => setIsSubmitDialogOpen(false)}
+        allowNativeUpload={isAdmin}
         open={isSubmitDialogOpen && isReady && isAuthenticated}
       />
     </div>

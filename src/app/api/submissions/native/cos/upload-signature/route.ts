@@ -4,6 +4,7 @@ import {
   createNativeCosUploadSignature,
   NativeSubmissionApiError,
 } from "@/lib/submissions/native-submission";
+import { ADMIN_REQUIRED_MESSAGE, isAdminUser } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -35,6 +36,15 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { code: "UNAUTHENTICATED", message: "请先登录后再投稿。" },
       { status: 401 },
+    );
+  }
+
+  const isAdmin = await isAdminUser(supabase, user.id);
+
+  if (!isAdmin) {
+    return NextResponse.json(
+      { code: "ADMIN_REQUIRED", message: ADMIN_REQUIRED_MESSAGE },
+      { status: 403 },
     );
   }
 

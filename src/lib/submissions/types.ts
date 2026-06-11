@@ -8,6 +8,7 @@ export const NATIVE_PENDING_SUBMISSION_LIMIT = 3;
 
 export type NativeSubmissionErrorCode =
   | "UNAUTHENTICATED"
+  | "ADMIN_REQUIRED"
   | "FILE_TOO_LARGE"
   | "UNSUPPORTED_MIME"
   | "PENDING_QUOTA_EXCEEDED"
