@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth/translate-error";
 
 type AuthMode = "login" | "register";
+type RegisterStep = "credentials" | "code";
 
 type AuthDialogProps = {
   mode: AuthMode;
@@ -20,11 +21,19 @@ type AuthDialogProps = {
 };
 
 const AUTH_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const REGISTER_CODE_LENGTH = 6;
+const RESEND_COOLDOWN_SECONDS = 60;
 const REGISTERED_EMAIL_MESSAGE = "该邮箱已注册，请改用登录方式进入。";
 
-const registerCopy = {
-  title: "创建你的档案",
-  description: "使用邮箱和密码创建账号。如需邮箱确认，注册后请先查收确认邮件。",
+const registerCopy: Record<RegisterStep, { title: string; description: string }> = {
+  credentials: {
+    title: "创建你的档案",
+    description: "使用邮箱和密码创建账号，随后输入邮箱中的验证码完成确认。",
+  },
+  code: {
+    title: "验证邮箱",
+    description: "请输入邮箱里收到的 6 位验证码，验证通过后即可完成注册。",
+  },
 };
 
 function AlertIcon() {
@@ -126,25 +135,45 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
   const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [token, setToken] = useState("");
+  const [registerStep, setRegisterStep] = useState<RegisterStep>("credentials");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
     if (!open) {
       setPassword("");
+      setToken("");
+      setRegisterStep("credentials");
       setErrorMessage(null);
       setSuccessMessage(null);
       setIsSubmitting(false);
+      setCooldownUntil(null);
     }
   }, [open]);
 
   useEffect(() => {
     setPassword("");
+    setToken("");
+    setRegisterStep("credentials");
     setErrorMessage(null);
     setSuccessMessage(null);
     setIsSubmitting(false);
+    setCooldownUntil(null);
   }, [mode]);
+
+  useEffect(() => {
+    if (!cooldownUntil) {
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setNowTick(Date.now());
+    }, 500);
+    return () => window.clearInterval(interval);
+  }, [cooldownUntil]);
 
   if (!open) {
     return null;
@@ -152,11 +181,15 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
 
   const isRegister = mode === "register";
   const currentCopy = isRegister
-    ? registerCopy
+    ? registerCopy[registerStep]
     : {
         title: "登录你的档案",
         description: "使用注册时填写的邮箱与密码登录，登录后即可访问推荐投稿入口。",
       };
+  const cooldownSeconds = cooldownUntil
+    ? Math.max(0, Math.ceil((cooldownUntil - nowTick) / 1000))
+    : 0;
+  const isOnCooldown = cooldownSeconds > 0;
 
   async function handleLoginSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -202,6 +235,33 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
       setIsSubmitting(false);
       return;
     }
+    setEmail(normalizedEmail);
+
+    if (registerStep === "code") {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token,
+        type: "email",
+      });
+
+      if (error) {
+        setErrorMessage(translateAuthError(error.message));
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!data.session) {
+        setSuccessMessage("邮箱已验证，请使用邮箱与密码登录。");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setSuccessMessage("注册完成，正在返回。");
+      setIsSubmitting(false);
+      onSuccess?.();
+      onClose();
+      return;
+    }
 
     if (password.length < 8) {
       setErrorMessage("密码长度过短，请使用至少 8 位密码。");
@@ -230,7 +290,10 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
     }
 
     if (!data.session) {
-      setSuccessMessage("注册申请已提交，请查收邮箱并完成确认后再登录。");
+      setRegisterStep("code");
+      setToken("");
+      setCooldownUntil(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
+      setSuccessMessage("验证码已发送，请查收邮箱（含垃圾邮件目录）。");
       setIsSubmitting(false);
       return;
     }
@@ -241,15 +304,50 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
     onClose();
   }
 
+  async function handleResendSignupCode() {
+    if (isOnCooldown || isSubmitting) {
+      return;
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage("邮箱格式不合法，请检查后重试。");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+    });
+
+    if (error) {
+      setErrorMessage(translateAuthError(error.message));
+      setIsSubmitting(false);
+      return;
+    }
+
+    setCooldownUntil(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
+    setSuccessMessage("验证码已重新发送，请稍候查收邮箱。");
+    setIsSubmitting(false);
+  }
+
   const submitDisabled =
     isSubmitting ||
     email.length === 0 ||
-    password.length === 0;
+    (isRegister && registerStep === "code"
+      ? token.length !== REGISTER_CODE_LENGTH
+      : password.length === 0);
 
   const submitLabel = isSubmitting
     ? "处理中…"
     : isRegister
-      ? "完成注册"
+      ? registerStep === "credentials"
+        ? "发送验证码"
+        : "验证验证码"
       : "登录";
 
   return (
@@ -279,21 +377,54 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
           autoComplete="email"
           icon={<MailIcon />}
           label="邮箱"
+          disabled={isRegister && registerStep === "code"}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="name@example.com"
           type="email"
           value={email}
         />
 
-        <TextField
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-          icon={<LockIcon />}
-          label="密码"
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder={mode === "login" ? "输入密码" : "设置至少 8 位密码"}
-          type="password"
-          value={password}
-        />
+        {!isRegister || registerStep === "credentials" ? (
+          <TextField
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            icon={<LockIcon />}
+            label="密码"
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder={mode === "login" ? "输入密码" : "设置至少 8 位密码"}
+            type="password"
+            value={password}
+          />
+        ) : null}
+
+        {isRegister && registerStep === "code" ? (
+          <div className="space-y-2">
+            <TextField
+              autoComplete="one-time-code"
+              className="text-center text-lg tracking-[0.6em] placeholder:tracking-[0.3em]"
+              inputMode="numeric"
+              label="6 位验证码"
+              maxLength={REGISTER_CODE_LENGTH}
+              onChange={(event) =>
+                setToken(
+                  event.target.value.replace(/\D/g, "").slice(0, REGISTER_CODE_LENGTH),
+                )
+              }
+              placeholder="000000"
+              value={token}
+            />
+            <div className="flex items-center justify-between text-xs text-subtle">
+              <span>未收到验证码？</span>
+              <button
+                className="inline-flex items-center gap-1 underline-offset-2 text-foreground hover:underline disabled:cursor-not-allowed disabled:text-subtle disabled:no-underline"
+                disabled={isOnCooldown || isSubmitting}
+                onClick={handleResendSignupCode}
+                type="button"
+              >
+                {isOnCooldown ? `${cooldownSeconds} 秒后可重发` : "重新发送"}
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {errorMessage ? (
           <FormMessage icon={<AlertIcon />} variant="error">
