@@ -1,8 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
+import {
+  FavoriteEditorDialog,
+  type FavoriteEditorVideo,
+} from "@/components/user/favorite-editor-dialog";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
@@ -12,6 +17,7 @@ import {
   VideoShareIcon,
 } from "@/components/video/video-detail-icons";
 import { useAuth } from "@/lib/auth/use-auth";
+import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import { formatCompactNumber } from "@/lib/videos/metrics";
 import type {
   VideoInteractionErrorResponse,
@@ -23,6 +29,8 @@ import { cn } from "@/lib/utils";
 type VideoDetailActionsProps = {
   likeCount: number;
   likeCountLabel: string;
+  favoriteState: UserArchiveVideoFavoriteState | null;
+  favoriteVideo: FavoriteEditorVideo;
   onLikeCountChange: (nextCount: number, nextLabel: string) => void;
   storageProvider: VideoStorageProvider;
   videoId: string;
@@ -73,10 +81,13 @@ async function readLikeResponse(response: Response) {
 export function VideoDetailActions({
   likeCount,
   likeCountLabel,
+  favoriteState,
+  favoriteVideo,
   onLikeCountChange,
   storageProvider,
   videoId,
 }: VideoDetailActionsProps) {
+  const router = useRouter();
   const {
     isReady,
     isAuthenticated,
@@ -87,8 +98,12 @@ export function VideoDetailActions({
   } = useAuth();
   const [liked, setLiked] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
+  const [continueToFavorite, setContinueToFavorite] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const canUseLocalLikes = storageProvider === "cos";
+  const collectionState: UserArchiveVideoFavoriteState =
+    favoriteState ?? { collections: [], tags: [], memberships: [] };
 
   const refreshLikeState = useCallback(async () => {
     if (!canUseLocalLikes) {
@@ -164,6 +179,22 @@ export function VideoDetailActions({
     }
   }
 
+  function handleFavoriteClick() {
+    setErrorMessage(null);
+
+    if (!isReady) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setContinueToFavorite(true);
+      openLogin();
+      return;
+    }
+
+    setFavoriteDialogOpen(true);
+  }
+
   const likeButton = canUseLocalLikes ? (
     <Button
       aria-pressed={liked}
@@ -200,7 +231,7 @@ export function VideoDetailActions({
       <div className="flex flex-wrap gap-3 lg:justify-end">
         {likeButton}
 
-        <Button className="gap-2 font-medium" size="md" type="button" variant="pill">
+        <Button className="gap-2 font-medium" onClick={handleFavoriteClick} size="md" type="button" variant="pill">
           <VideoBookmarkIcon className="h-[1.05rem] w-[1.05rem]" />
           <span>收藏与标签</span>
         </Button>
@@ -219,9 +250,17 @@ export function VideoDetailActions({
       {dialogMode ? (
         <AuthDialog
           mode={dialogMode}
-          onClose={closeDialog}
+          onClose={() => {
+            setContinueToFavorite(false);
+            closeDialog();
+          }}
           onSuccess={() => {
             closeDialog();
+            router.refresh();
+            if (continueToFavorite) {
+              setContinueToFavorite(false);
+              setFavoriteDialogOpen(true);
+            }
             void refreshLikeState().catch((error: unknown) => {
               console.error("Failed to refresh like state after login", error);
             });
@@ -230,6 +269,19 @@ export function VideoDetailActions({
           open
         />
       ) : null}
+
+      <FavoriteEditorDialog
+        collections={collectionState.collections}
+        initialCollectionId={collectionState.memberships[0]?.collectionId ?? null}
+        memberships={collectionState.memberships}
+        onChanged={() => {
+          router.refresh();
+        }}
+        onClose={() => setFavoriteDialogOpen(false)}
+        open={favoriteDialogOpen}
+        tags={collectionState.tags}
+        video={favoriteVideo}
+      />
     </div>
   );
 }
