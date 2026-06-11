@@ -8,10 +8,8 @@ import { FormMessage } from "@/components/ui/form-message";
 import { TextField } from "@/components/ui/text-field";
 import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth/translate-error";
-import { cn } from "@/lib/utils";
 
 type AuthMode = "login" | "register";
-type RegisterStep = "email" | "code" | "password";
 
 type AuthDialogProps = {
   mode: AuthMode;
@@ -21,22 +19,12 @@ type AuthDialogProps = {
   onSuccess?: () => void;
 };
 
-const REGISTER_STEPS: RegisterStep[] = ["email", "code", "password"];
-const RESEND_COOLDOWN_SECONDS = 60;
+const AUTH_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const REGISTERED_EMAIL_MESSAGE = "该邮箱已注册，请改用登录方式进入。";
 
-const registerCopy: Record<RegisterStep, { title: string; description: string }> = {
-  email: {
-    title: "创建你的档案",
-    description: "输入邮箱以获取一次性验证码，完成初次身份确认。",
-  },
-  code: {
-    title: "验证邮箱",
-    description: "请输入邮箱里收到的 6 位验证码，验证通过后继续设置密码。",
-  },
-  password: {
-    title: "设置登录密码",
-    description: "为后续登录创建密码。建议使用至少 8 位的强密码。",
-  },
+const registerCopy = {
+  title: "创建你的档案",
+  description: "使用邮箱和密码创建账号。如需邮箱确认，注册后请先查收确认邮件。",
 };
 
 function AlertIcon() {
@@ -96,29 +84,6 @@ function ArrowRightIcon() {
   );
 }
 
-function StepIndicator({ current }: { current: RegisterStep }) {
-  const currentIndex = REGISTER_STEPS.indexOf(current);
-
-  return (
-    <div className="flex items-center gap-2" aria-label={`注册进度：第 ${currentIndex + 1} 步，共 3 步`}>
-      {REGISTER_STEPS.map((step, index) => {
-        const reached = index <= currentIndex;
-        const isCurrent = index === currentIndex;
-        return (
-          <span
-            key={step}
-            className={cn(
-              "h-1 rounded-full transition-all duration-300",
-              reached ? "bg-foreground" : "bg-border",
-              isCurrent ? "w-8" : "w-4",
-            )}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 function ModeTab({
   active,
   children,
@@ -143,49 +108,43 @@ function ModeTab({
   );
 }
 
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function isValidEmail(value: string) {
+  return AUTH_EMAIL_PATTERN.test(value);
+}
+
+function isSupabaseObfuscatedExistingUser(
+  user: { identities?: unknown[] | null } | null | undefined,
+) {
+  return Array.isArray(user?.identities) && user.identities.length === 0;
+}
+
 export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: AuthDialogProps) {
   const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
-  const [registerStep, setRegisterStep] = useState<RegisterStep>("email");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
-  const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
     if (!open) {
       setPassword("");
-      setToken("");
-      setRegisterStep("email");
       setErrorMessage(null);
       setSuccessMessage(null);
       setIsSubmitting(false);
-      setCooldownUntil(null);
     }
   }, [open]);
 
   useEffect(() => {
     setPassword("");
-    setToken("");
-    setRegisterStep("email");
     setErrorMessage(null);
     setSuccessMessage(null);
     setIsSubmitting(false);
-    setCooldownUntil(null);
   }, [mode]);
-
-  useEffect(() => {
-    if (!cooldownUntil) {
-      return;
-    }
-    const interval = window.setInterval(() => {
-      setNowTick(Date.now());
-    }, 500);
-    return () => window.clearInterval(interval);
-  }, [cooldownUntil]);
 
   if (!open) {
     return null;
@@ -193,31 +152,11 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
 
   const isRegister = mode === "register";
   const currentCopy = isRegister
-    ? registerCopy[registerStep]
+    ? registerCopy
     : {
         title: "登录你的档案",
         description: "使用注册时填写的邮箱与密码登录，登录后即可访问推荐投稿入口。",
       };
-
-  const cooldownSeconds = cooldownUntil
-    ? Math.max(0, Math.ceil((cooldownUntil - nowTick) / 1000))
-    : 0;
-  const isOnCooldown = cooldownSeconds > 0;
-
-  async function sendOtp(): Promise<boolean> {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
-    });
-
-    if (error) {
-      setErrorMessage(translateAuthError(error.message));
-      return false;
-    }
-
-    setCooldownUntil(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
-    return true;
-  }
 
   async function handleLoginSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -226,8 +165,15 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
     setErrorMessage(null);
     setSuccessMessage(null);
 
+    const normalizedEmail = normalizeEmail(email);
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage("邮箱格式不合法，请检查后重试。");
+      setIsSubmitting(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
 
@@ -250,36 +196,21 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (registerStep === "email") {
-      const ok = await sendOtp();
-      if (ok) {
-        setRegisterStep("code");
-        setSuccessMessage("验证码已发送，请查收邮箱（含垃圾邮件目录）。");
-      }
+    const normalizedEmail = normalizeEmail(email);
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage("邮箱格式不合法，请检查后重试。");
       setIsSubmitting(false);
       return;
     }
 
-    if (registerStep === "code") {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      });
-
-      if (error) {
-        setErrorMessage(translateAuthError(error.message));
-        setIsSubmitting(false);
-        return;
-      }
-
-      setRegisterStep("password");
-      setSuccessMessage("验证通过，请设置登录密码。");
+    if (password.length < 8) {
+      setErrorMessage("密码长度过短，请使用至少 8 位密码。");
       setIsSubmitting(false);
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizedEmail,
       password,
     });
 
@@ -289,40 +220,36 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
       return;
     }
 
-    setSuccessMessage("注册完成，后续可直接用邮箱与密码登录。");
+    if (isSupabaseObfuscatedExistingUser(data.user)) {
+      // Supabase may return an obfuscated user for existing confirmed emails to reduce
+      // account enumeration. This UI maps that documented shape to a stable business
+      // hint; it is not a replacement for Supabase Auth's database-level uniqueness.
+      setErrorMessage(REGISTERED_EMAIL_MESSAGE);
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!data.session) {
+      setSuccessMessage("注册申请已提交，请查收邮箱并完成确认后再登录。");
+      setIsSubmitting(false);
+      return;
+    }
+
+    setSuccessMessage("注册完成，正在返回。");
     setIsSubmitting(false);
     onSuccess?.();
     onClose();
   }
 
-  async function handleResend() {
-    if (isOnCooldown || isSubmitting) {
-      return;
-    }
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    const ok = await sendOtp();
-    if (ok) {
-      setSuccessMessage("验证码已重新发送，请稍候查收邮箱。");
-    }
-    setIsSubmitting(false);
-  }
-
   const submitDisabled =
     isSubmitting ||
     email.length === 0 ||
-    (isRegister && registerStep === "code" && token.length !== 6) ||
-    ((!isRegister || registerStep === "password") && password.length === 0);
+    password.length === 0;
 
   const submitLabel = isSubmitting
     ? "处理中…"
     : isRegister
-      ? registerStep === "email"
-        ? "发送验证码"
-        : registerStep === "code"
-          ? "验证验证码"
-          : "完成注册"
+      ? "完成注册"
       : "登录";
 
   return (
@@ -342,7 +269,6 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
             注册
           </ModeTab>
         </div>
-        {isRegister ? <StepIndicator current={registerStep} /> : null}
       </div>
 
       <form
@@ -359,50 +285,15 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
           value={email}
         />
 
-        {isRegister && registerStep === "code" ? (
-          <div className="space-y-2">
-            <TextField
-              autoComplete="one-time-code"
-              className="text-center text-lg tracking-[0.6em] placeholder:tracking-[0.3em]"
-              inputMode="numeric"
-              label="6 位验证码"
-              maxLength={6}
-              onChange={(event) =>
-                setToken(event.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              placeholder="000000"
-              value={token}
-            />
-            <div className="flex items-center justify-between text-xs text-subtle">
-              <span>未收到验证码？</span>
-              <button
-                className={cn(
-                  "inline-flex items-center gap-1 underline-offset-2",
-                  isOnCooldown
-                    ? "cursor-not-allowed text-subtle"
-                    : "text-foreground hover:underline",
-                )}
-                disabled={isOnCooldown || isSubmitting}
-                onClick={handleResend}
-                type="button"
-              >
-                {isOnCooldown ? `${cooldownSeconds} 秒后可重发` : "重新发送"}
-              </button>
-            </div>
-          </div>
-        ) : null}
-
-        {!isRegister || registerStep === "password" ? (
-          <TextField
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            icon={<LockIcon />}
-            label="密码"
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder={mode === "login" ? "输入密码" : "设置至少 8 位密码"}
-            type="password"
-            value={password}
-          />
-        ) : null}
+        <TextField
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+          icon={<LockIcon />}
+          label="密码"
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder={mode === "login" ? "输入密码" : "设置至少 8 位密码"}
+          type="password"
+          value={password}
+        />
 
         {errorMessage ? (
           <FormMessage icon={<AlertIcon />} variant="error">
@@ -424,9 +315,9 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
             </span>
           </Button>
 
-          {isRegister && registerStep === "email" ? (
+          {isRegister ? (
             <p className="text-xs leading-6 text-subtle">
-              已经注册过？
+              已有账号？
               <button
                 className="ml-1 underline-offset-2 hover:text-foreground hover:underline"
                 onClick={() => onSwitchMode("login")}
@@ -435,7 +326,7 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
                 改用登录
               </button>
             </p>
-          ) : !isRegister ? (
+          ) : (
             <p className="text-xs leading-6 text-subtle">
               尚无账号？
               <button
@@ -446,7 +337,7 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
                 去注册
               </button>
             </p>
-          ) : null}
+          )}
         </div>
       </form>
     </DialogShell>
