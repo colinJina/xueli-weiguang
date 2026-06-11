@@ -2,7 +2,7 @@ const ERROR_MAP: ReadonlyArray<{ match: RegExp; message: string }> = [
   { match: /invalid login credentials/i, message: "邮箱或密码不正确，请重试。" },
   { match: /email not confirmed/i, message: "邮箱尚未验证，请先完成邮箱验证再登录。" },
   {
-    match: /user already registered/i,
+    match: /user already registered|already.*registered|already.*exists/i,
     message: "该邮箱已注册，请改用登录方式进入。",
   },
   {
@@ -36,7 +36,7 @@ const ERROR_MAP: ReadonlyArray<{ match: RegExp; message: string }> = [
   { match: /unable to validate email address/i, message: "邮箱格式不合法，请检查后重试。" },
   { match: /network error|failed to fetch/i, message: "网络异常，请检查网络后重试。" },
   { match: /signup is disabled/i, message: "当前暂不开放注册，请稍后再试。" },
-  { match: /user not found/i, message: "未找到该用户，请确认邮箱后重试。" },
+  { match: /user not found/i, message: "邮箱或密码不正确，请重试。" },
 ];
 
 export function translateAuthError(raw: string | null | undefined): string {
@@ -50,5 +50,5 @@ export function translateAuthError(raw: string | null | undefined): string {
     }
   }
 
-  return raw;
+  return "认证请求失败，请稍后再试。";
 }
