@@ -1,50 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
-
+import { useReducedMotion, motion } from "motion/react";
+import Marquee from "react-fast-marquee"; // 引入成熟的滚动库
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
 import { createFadeUp, createStagger } from "@/components/home/home-motion";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
-
 type HomeFeaturedGridProps = {
   items: ArchiveVideoItem[];
   motionReady?: boolean;
 };
-
 const gridVariants = createStagger(0.06, 0.1);
 const gridItemVariants = createFadeUp(18, 0, 0.34);
 
 export function HomeFeaturedGrid({ items, motionReady = true }: HomeFeaturedGridProps) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
-  const [isPaused, setIsPaused] = useState(false);
   const shouldAnimateInView = motionReady && !prefersReducedMotion;
-
-  useEffect(() => {
-    if (prefersReducedMotion || isPaused || items.length === 0) {
-      return;
-    }
-
-    let frameId = 0;
-
-    function tick() {
-      const scroller = scrollRef.current;
-
-      if (scroller) {
-        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
-        scroller.scrollLeft =
-          scroller.scrollLeft >= maxScrollLeft - 1 ? 0 : scroller.scrollLeft + 0.35;
-      }
-
-      frameId = window.requestAnimationFrame(tick);
-    }
-
-    frameId = window.requestAnimationFrame(tick);
-
-    return () => window.cancelAnimationFrame(frameId);
-  }, [isPaused, items.length, prefersReducedMotion]);
-
   if (items.length === 0) {
     return (
       <div
@@ -67,25 +37,29 @@ export function HomeFeaturedGrid({ items, motionReady = true }: HomeFeaturedGrid
       className="space-y-5"
       id="featured-grid"
       initial={prefersReducedMotion ? false : "hidden"}
-      onFocusCapture={() => setIsPaused(true)}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={() => setIsPaused(true)}
       variants={gridVariants}
       viewport={{ once: true, amount: 0.18 }}
       whileInView={shouldAnimateInView ? "visible" : prefersReducedMotion ? undefined : "hidden"}
     >
-      <div
-        className="-mx-4 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-6 lg:px-6 [&::-webkit-scrollbar]:hidden"
-        ref={scrollRef}
-      >
-        <div className="grid auto-cols-[minmax(17rem,21rem)] grid-flow-col grid-rows-1 gap-4 md:grid-rows-2 xl:auto-cols-[minmax(19rem,23rem)] xl:gap-5">
-          {items.map((item) => (
-            <motion.div className="h-full min-w-0" key={item.id} variants={gridItemVariants}>
-              <VideoArchiveCard item={item} />
-            </motion.div>
-          ))}
-        </div>
+      <div className="-mx-4 sm:-mx-6 lg:-mx-6">
+        <Marquee 
+          pauseOnHover={true} 
+          speed={40} 
+          gradient={false} 
+          className="overflow-y-hidden py-2"
+        >
+          <div className="flex flex-row items-stretch gap-4 pr-4 sm:gap-5 sm:pr-5">
+            {items.map((item) => (
+              <motion.div 
+                className="h-full w-[17rem] min-w-[17rem] xl:w-[19rem] xl:min-w-[19rem]" 
+                key={item.id} 
+                variants={gridItemVariants}
+              >
+                <VideoArchiveCard item={item} />
+              </motion.div>
+            ))}
+          </div>
+        </Marquee>
       </div>
     </motion.section>
   );
