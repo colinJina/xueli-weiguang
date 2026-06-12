@@ -11,6 +11,8 @@ const siteConfig = {
   ],
 };
 
+export const revalidate = 60;
+
 const fallbackHomeData: HomePageData = {
   featuredItems: [],
   hero: null,
