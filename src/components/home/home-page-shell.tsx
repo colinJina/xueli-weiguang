@@ -4,11 +4,6 @@ import { useLayoutEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
-import type {
-  HomeCardItem,
-  HomeHeroContent,
-  HomeMetaStripItem,
-} from "@/components/home/home-content";
 import { HomeFeaturedGrid } from "@/components/home/home-featured-grid";
 import { HomeHeader } from "@/components/home/home-header";
 import { HomeHero } from "@/components/home/home-hero";
@@ -19,6 +14,8 @@ import {
   homeIntroSessionKey,
 } from "@/components/home/home-motion";
 import { useAuth } from "@/lib/auth/use-auth";
+import type { HomeHeroFeature, HomeSiteStatItem } from "@/lib/home/types";
+import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type HomeNavigationItem = {
   href: string;
@@ -26,17 +23,17 @@ type HomeNavigationItem = {
 };
 
 type HomePageShellProps = {
+  featuredItems: ArchiveVideoItem[];
+  hero: HomeHeroFeature | null;
+  metaItems: readonly HomeSiteStatItem[];
   navigation: readonly HomeNavigationItem[];
-  heroContent: HomeHeroContent;
-  metaItems: readonly HomeMetaStripItem[];
-  featuredItems: readonly HomeCardItem[];
 };
 
 export function HomePageShell({
-  navigation,
-  heroContent,
-  metaItems,
   featuredItems,
+  hero,
+  navigation,
+  metaItems,
 }: HomePageShellProps) {
   const prefersReducedMotion = useReducedMotion();
   const [showIntro, setShowIntro] = useState(false);
@@ -79,9 +76,8 @@ export function HomePageShell({
       />
 
       <main>
-        <HomeHero content={heroContent} motionReady={motionReady} />
+        <HomeHero hero={hero} />
         <HomeMetaStrip items={metaItems} motionReady={motionReady} />
-
         <div className="mx-auto w-full max-w-[1520px] px-4 pt-12 sm:px-6 sm:pt-10 lg:px-6 xl:px-8">
           <HomeFeaturedGrid items={featuredItems} motionReady={motionReady} />
         </div>

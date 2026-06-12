@@ -227,6 +227,10 @@ function parseDescription(value: unknown) {
   return description || null;
 }
 
+function parseFeatureOnHome(value: unknown) {
+  return value === true;
+}
+
 function assertStringEquals(input: {
   field: string;
   actual: unknown;
@@ -274,6 +278,14 @@ async function cleanupNativeObjects(keys: string[]) {
     if (result.status === "rejected") {
       console.error("Failed to delete invalid native upload object", result.reason);
     }
+  }
+}
+
+async function cleanupNativeSubmissionRow(client: SupabaseClient, submissionId: string) {
+  const { error } = await client.from("submissions").delete().eq("id", submissionId);
+
+  if (error) {
+    console.error("Failed to delete native submission row after feature request failure", error);
   }
 }
 
@@ -363,6 +375,7 @@ export async function completeNativeSubmission(
   const videoSize = validateVideoSize(input.videoSize, config.maxBytes);
   const title = parseTitle(input.title);
   const description = parseDescription(input.description);
+  const featureOnHome = parseFeatureOnHome(input.featureOnHome);
 
   const expectedKeys = getNativeCosObjectKeys({
     userId: input.userId,
@@ -495,5 +508,22 @@ export async function completeNativeSubmission(
     throw error;
   }
 
-  return data;
+  if (featureOnHome) {
+    const { error: featureError } = await client.from("home_hero_feature_requests").insert({
+      submission_id: data.id,
+      created_by: input.userId,
+      status: "pending",
+    });
+
+    if (featureError) {
+      await cleanupNativeSubmissionRow(client, data.id);
+      await cleanupNativeObjects(objectKeys);
+      throw featureError;
+    }
+  }
+
+  return {
+    ...data,
+    feature_requested: featureOnHome,
+  };
 }

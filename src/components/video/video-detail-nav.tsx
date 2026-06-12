@@ -9,7 +9,6 @@ export function VideoDetailNav() {
       <div className="page-container flex h-[60px] items-center justify-between gap-4">
         <SiteBrand
           className="shrink-0"
-          markClassName="hidden"
           subtitleClassName="hidden"
           titleClassName="text-[1.75rem] font-black tracking-[-0.05em]"
         />

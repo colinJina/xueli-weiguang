@@ -4,6 +4,7 @@ import {
   createNativeCosUploadSignature,
   NativeSubmissionApiError,
 } from "@/lib/submissions/native-submission";
+import { ADMIN_REQUIRED_MESSAGE, isAdminUser } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -12,6 +13,7 @@ type UploadSignatureRequestBody = {
   videoMimeType?: unknown;
   videoSize?: unknown;
   coverMimeType?: unknown;
+  featureOnHome?: unknown;
 };
 
 function errorResponse(error: NativeSubmissionApiError) {
@@ -38,6 +40,15 @@ export async function POST(request: Request) {
     );
   }
 
+  const isAdmin = await isAdminUser(supabase, user.id);
+
+  if (!isAdmin) {
+    return NextResponse.json(
+      { code: "ADMIN_REQUIRED", message: ADMIN_REQUIRED_MESSAGE },
+      { status: 403 },
+    );
+  }
+
   let body: UploadSignatureRequestBody;
 
   try {
@@ -55,6 +66,7 @@ export async function POST(request: Request) {
       videoMimeType: body.videoMimeType,
       videoSize: body.videoSize,
       coverMimeType: body.coverMimeType,
+      featureOnHome: body.featureOnHome,
     });
 
     return NextResponse.json(credential);

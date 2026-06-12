@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { GeistSans } from "geist/font/sans";
 
 import "./globals.css";
+import "react-image-crop/dist/ReactCrop.css";
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session, User, UserResponse } from "@supabase/supabase-js";
 
+import { isAdminUser } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/client";
 
 export type AuthDialogMode = "login" | "register";
@@ -42,29 +43,66 @@ function writeCachedUser(user: User | null) {
 export function useAuth() {
   const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [dialogMode, setDialogMode] = useState<AuthDialogMode | null>(null);
 
   useEffect(() => {
     let mounted = true;
+    let syncVersion = 0;
+
+    const syncAuthState = async (nextUser: User | null) => {
+      const currentVersion = ++syncVersion;
+
+      setUser(nextUser);
+      setIsReady(true);
+      writeCachedUser(nextUser);
+
+      if (!nextUser) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const nextIsAdmin = await isAdminUser(supabase, nextUser.id);
+
+        if (!mounted || currentVersion !== syncVersion) {
+          return;
+        }
+
+        setIsAdmin(nextIsAdmin);
+      } catch {
+        if (!mounted || currentVersion !== syncVersion) {
+          return;
+        }
+
+        setIsAdmin(false);
+      }
+    };
 
     // 乐观渲染：首次挂载先用 localStorage 缓存的用户填充 UI，避免"未登录闪一下"
     const cached = readCachedUser();
     if (cached) {
-      setUser(cached);
-      setIsReady(true);
+      void syncAuthState(cached);
     }
 
     // 真实校验：用 Supabase 验证当前 session，覆盖乐观值
-    void supabase.auth.getUser().then(({ data }: UserResponse) => {
-      if (!mounted) {
-        return;
-      }
-      const next = data.user ?? null;
-      setUser(next);
-      setIsReady(true);
-      writeCachedUser(next);
-    });
+    void supabase.auth
+      .getUser()
+      .then(({ data }: UserResponse) => {
+        if (!mounted) {
+          return;
+        }
+
+        void syncAuthState(data.user ?? null);
+      })
+      .catch(() => {
+        if (!mounted) {
+          return;
+        }
+
+        setIsReady(true);
+      });
 
     const {
       data: { subscription },
@@ -72,10 +110,8 @@ export function useAuth() {
       if (!mounted) {
         return;
       }
-      const next = session?.user ?? null;
-      setUser(next);
-      setIsReady(true);
-      writeCachedUser(next);
+
+      void syncAuthState(session?.user ?? null);
     });
 
     return () => {
@@ -98,6 +134,7 @@ export function useAuth() {
     user,
     isReady,
     isAuthenticated: Boolean(user),
+    isAdmin,
     logout,
     dialogMode,
     openLogin,

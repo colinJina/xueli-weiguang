@@ -8,6 +8,7 @@ export const NATIVE_PENDING_SUBMISSION_LIMIT = 3;
 
 export type NativeSubmissionErrorCode =
   | "UNAUTHENTICATED"
+  | "ADMIN_REQUIRED"
   | "FILE_TOO_LARGE"
   | "UNSUPPORTED_MIME"
   | "PENDING_QUOTA_EXCEEDED"
@@ -51,6 +52,7 @@ export type CreateNativeUploadSignatureInput = {
   videoMimeType: unknown;
   videoSize: unknown;
   coverMimeType: unknown;
+  featureOnHome?: unknown;
 };
 
 export type CompleteNativeSubmissionInput = {
@@ -63,6 +65,7 @@ export type CompleteNativeSubmissionInput = {
   videoSize: unknown;
   videoMimeType: unknown;
   coverMimeType: unknown;
+  featureOnHome?: unknown;
 };
 
 export type NativeSubmissionInsertResult = {
@@ -73,6 +76,7 @@ export type NativeSubmissionInsertResult = {
   source_etag: string | null;
   cover_etag: string | null;
   created_at: string;
+  feature_requested: boolean;
 };
 
 export type CreateSubmissionInput = {

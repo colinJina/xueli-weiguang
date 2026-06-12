@@ -25,6 +25,7 @@ type ProfileRow = {
   display_name?: string | null;
   headline?: string | null;
   avatar_url?: string | null;
+  is_admin?: boolean | null;
 };
 
 type CollectionRow = {
@@ -72,7 +73,7 @@ type UserArchiveVideoRow = {
   created_at: string;
 };
 
-const profileSelect = "id,username,display_name,headline,avatar_url";
+const profileSelect = "id,username,display_name,headline,avatar_url,is_admin";
 const videoSelect =
   "id,platform,storage_provider,title,cover_url,view_count,like_count,published_at,created_at";
 
@@ -278,6 +279,7 @@ export function createGuestUserArchivePageData(
 
   return {
     isAuthenticated: false,
+    isAdmin: false,
     profile: null,
     collections: [],
     tags: [],
@@ -334,6 +336,7 @@ export async function getUserArchivePageData(
     throw databaseUnavailableError();
   }
 
+  const profileRow = (profileResult.data ?? null) as ProfileRow | null;
   const collectionRows = (collectionsResult.data ?? []) as CollectionRow[];
   const itemRows = (itemsResult.data ?? []) as CollectionItemRow[];
   const itemIds = itemRows.map((row) => row.id);
@@ -435,7 +438,8 @@ export async function getUserArchivePageData(
 
   return {
     isAuthenticated: true,
-    profile: serializeProfile((profileResult.data as ProfileRow | null) ?? null, userId, email),
+    isAdmin: Boolean(profileRow?.is_admin),
+    profile: serializeProfile(profileRow, userId, email),
     collections: activeCollections,
     tags: tags.map((tag) => ({
       ...tag,
