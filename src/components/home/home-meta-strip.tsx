@@ -2,11 +2,11 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
-import type { HomeMetaStripItem } from "@/components/home/home-content";
 import { createFadeUp, createStagger } from "@/components/home/home-motion";
+import type { HomeSiteStatItem } from "@/lib/home/types";
 
 type HomeMetaStripProps = {
-  items: readonly HomeMetaStripItem[];
+  items: readonly HomeSiteStatItem[];
   motionReady?: boolean;
 };
 
@@ -30,7 +30,11 @@ export function HomeMetaStrip({ items, motionReady = true }: HomeMetaStripProps)
         variants={metaStripListVariants}
       >
         {items.map((item, index) => (
-          <motion.div className="flex items-center gap-3" key={item.label} variants={metaStripItemVariants}>
+          <motion.div
+            className="flex items-center gap-3"
+            key={item.label}
+            variants={metaStripItemVariants}
+          >
             <span className="font-sans uppercase tracking-[0.18em] text-subtle">{item.label}</span>
             <span className="text-sm font-medium text-foreground">{item.value}</span>
             {index < items.length - 1 ? (

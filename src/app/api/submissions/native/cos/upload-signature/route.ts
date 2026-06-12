@@ -13,6 +13,7 @@ type UploadSignatureRequestBody = {
   videoMimeType?: unknown;
   videoSize?: unknown;
   coverMimeType?: unknown;
+  featureOnHome?: unknown;
 };
 
 function errorResponse(error: NativeSubmissionApiError) {
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
       videoMimeType: body.videoMimeType,
       videoSize: body.videoSize,
       coverMimeType: body.coverMimeType,
+      featureOnHome: body.featureOnHome,
     });
 
     return NextResponse.json(credential);

@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
+import {
+  ImageCropDialog,
+  type CroppedImageResult,
+} from "@/components/ui/image-crop-dialog";
 import { TextField } from "@/components/ui/text-field";
 import { ADMIN_REQUIRED_MESSAGE } from "@/lib/auth/admin";
 import { cn } from "@/lib/utils";
@@ -283,6 +287,7 @@ function FileDropZone({
   inputRef,
   label,
   onFileChange,
+  previewUrl,
   progress,
 }: {
   accept: string;
@@ -293,6 +298,7 @@ function FileDropZone({
   inputRef: React.RefObject<HTMLInputElement | null>;
   label: string;
   onFileChange: (file: File | null) => void;
+  previewUrl?: string | null;
   progress: number;
 }) {
   function handleFiles(files: FileList | null) {
@@ -341,9 +347,19 @@ function FileDropZone({
           <span className="block text-sm font-bold text-foreground">{label}</span>
           <span className="block text-xs leading-5 text-muted">{helper}</span>
           {file ? (
-            <span className="block min-w-0 text-xs text-subtle">
-              <span className="block truncate text-foreground">{file.name}</span>
-              <span>{formatFileSize(file.size)}</span>
+            <span className="flex min-w-0 items-center gap-3 text-xs text-subtle">
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt=""
+                  className="h-10 w-[72px] shrink-0 rounded-sm border border-white/10 object-cover"
+                  src={previewUrl}
+                />
+              ) : null}
+              <span className="block min-w-0">
+                <span className="block truncate text-foreground">{file.name}</span>
+                <span>{formatFileSize(file.size)}</span>
+              </span>
             </span>
           ) : null}
         </span>
@@ -373,6 +389,9 @@ export function ArchiveSubmitDialog({
   const [description, setDescription] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const [cropSourceFile, setCropSourceFile] = useState<File | null>(null);
+  const [featureOnHome, setFeatureOnHome] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [coverProgress, setCoverProgress] = useState(0);
   const [status, setStatus] = useState<SubmissionStatus>("idle");
@@ -388,6 +407,8 @@ export function ArchiveSubmitDialog({
       setDescription("");
       setVideoFile(null);
       setCoverFile(null);
+      setCropSourceFile(null);
+      setFeatureOnHome(false);
       setVideoProgress(0);
       setCoverProgress(0);
       setStatus("idle");
@@ -402,11 +423,21 @@ export function ArchiveSubmitDialog({
     setMode("link");
     setVideoFile(null);
     setCoverFile(null);
+    setCropSourceFile(null);
+    setFeatureOnHome(false);
     setVideoProgress(0);
     setCoverProgress(0);
     setStatus("idle");
     setMessage("");
   }, [allowNativeUpload, open]);
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrl) {
+        URL.revokeObjectURL(coverPreviewUrl);
+      }
+    };
+  }, [coverPreviewUrl]);
 
   const nativeDisabledReason = useMemo(() => {
     if (!allowNativeUpload) {
@@ -444,7 +475,7 @@ export function ArchiveSubmitDialog({
     }
 
     if (!coverFile) {
-      return "请先选择封面图";
+      return "请先裁切封面图";
     }
 
     if (!isAllowedFile(coverFile, ALLOWED_COVER_MIME_TYPES)) {
@@ -479,6 +510,44 @@ export function ArchiveSubmitDialog({
     setMode(nextMode);
     setStatus("idle");
     setMessage("");
+  }
+
+  function clearCoverPreview() {
+    if (coverPreviewUrl) {
+      URL.revokeObjectURL(coverPreviewUrl);
+    }
+    setCoverPreviewUrl(null);
+  }
+
+  function handleCoverSourceChange(file: File | null) {
+    clearCoverPreview();
+    setCoverFile(null);
+    setCoverProgress(0);
+
+    if (!file) {
+      setCropSourceFile(null);
+      resetMessage();
+      return;
+    }
+
+    if (!isAllowedFile(file, ALLOWED_COVER_MIME_TYPES)) {
+      setCropSourceFile(null);
+      setStatus("error");
+      setMessage("封面仅支持 JPG/PNG/WebP");
+      return;
+    }
+
+    setCropSourceFile(file);
+    resetMessage();
+  }
+
+  function handleCoverCropConfirm(result: CroppedImageResult) {
+    clearCoverPreview();
+    setCoverFile(result.file);
+    setCoverPreviewUrl(result.objectUrl);
+    setCoverProgress(0);
+    setCropSourceFile(null);
+    resetMessage();
   }
 
   async function handleLinkSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -548,6 +617,7 @@ export function ArchiveSubmitDialog({
     videoMimeType: string;
     videoSize: number;
     coverMimeType: string;
+    featureOnHome: boolean;
   }) {
     const response = await fetch("/api/submissions/native/cos/upload-signature", {
       method: "POST",
@@ -578,6 +648,7 @@ export function ArchiveSubmitDialog({
     videoSize: number;
     videoMimeType: string;
     coverMimeType: string;
+    featureOnHome: boolean;
   }) {
     const response = await fetch("/api/submissions/native/complete", {
       method: "POST",
@@ -618,6 +689,7 @@ export function ArchiveSubmitDialog({
         videoMimeType: videoFile.type,
         videoSize: videoFile.size,
         coverMimeType: coverFile.type,
+        featureOnHome,
       });
 
       setMessage("正在上传视频和封面。");
@@ -659,12 +731,15 @@ export function ArchiveSubmitDialog({
         videoSize: videoFile.size,
         videoMimeType: videoFile.type,
         coverMimeType: coverFile.type,
+        featureOnHome,
       });
 
       setTitle("");
       setDescription("");
       setVideoFile(null);
       setCoverFile(null);
+      clearCoverPreview();
+      setFeatureOnHome(false);
       setVideoProgress(0);
       setCoverProgress(0);
       setStatus("success");
@@ -829,17 +904,35 @@ export function ArchiveSubmitDialog({
               accept="image/jpeg,image/png,image/webp"
               disabled={isSubmitting}
               file={coverFile}
-              helper="拖入或点击选择，JPG/PNG/WebP"
+              helper="拖入或点击选择，JPG/PNG/WebP，随后裁切为 16:9"
               icon={<ImageIcon />}
               inputRef={coverInputRef}
               label="封面图"
-              onFileChange={(file) => {
-                setCoverFile(file);
-                setCoverProgress(0);
-                resetMessage();
-              }}
+              onFileChange={handleCoverSourceChange}
+              previewUrl={coverPreviewUrl}
               progress={coverProgress}
             />
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/[0.08] bg-white/[0.025] p-4 transition hover:border-white/20 hover:bg-white/[0.04]">
+              <input
+                checked={featureOnHome}
+                className="mt-1 h-4 w-4 accent-white"
+                disabled={isSubmitting}
+                onChange={(event) => {
+                  setFeatureOnHome(event.target.checked);
+                  resetMessage();
+                }}
+                type="checkbox"
+              />
+              <span className="space-y-1">
+                <span className="block text-sm font-bold text-foreground">
+                  推送为首页精选
+                </span>
+                <span className="block text-xs leading-5 text-muted">
+                  审核通过后，这条视频的 16:9 封面会作为首页 Hero 视觉候选。
+                </span>
+              </span>
+            </label>
           </div>
 
           {status === "submitting" || status === "success" || status === "error" ? (
@@ -874,6 +967,15 @@ export function ArchiveSubmitDialog({
           </div>
         </form>
       )}
+
+      {cropSourceFile ? (
+        <ImageCropDialog
+          file={cropSourceFile}
+          onClose={() => setCropSourceFile(null)}
+          onConfirm={handleCoverCropConfirm}
+          open
+        />
+      ) : null}
     </DialogShell>
   );
 }

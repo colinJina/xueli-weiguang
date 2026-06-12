@@ -19,6 +19,7 @@ type CompleteNativeSubmissionRequestBody = {
   videoSize?: unknown;
   videoMimeType?: unknown;
   coverMimeType?: unknown;
+  featureOnHome?: unknown;
 };
 
 function errorResponse(error: NativeSubmissionApiError) {
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
       videoSize: body.videoSize,
       videoMimeType: body.videoMimeType,
       coverMimeType: body.coverMimeType,
+      featureOnHome: body.featureOnHome,
     });
 
     return NextResponse.json(submission, { status: 201 });
@@ -87,8 +89,8 @@ export async function POST(request: Request) {
 
     console.error("Failed to complete native submission", error);
     return NextResponse.json(
-      { code: "STORAGE_UNAVAILABLE", message: "视频存储服务暂不可用，请稍后重试。" },
-      { status: 503 },
+      { code: "INTERNAL_ERROR", message: "投稿保存失败，请稍后重试。" },
+      { status: 500 },
     );
   }
 }

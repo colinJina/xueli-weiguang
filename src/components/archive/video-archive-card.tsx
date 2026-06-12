@@ -9,7 +9,7 @@ type VideoArchiveCardProps = {
 
 function CoverFallback() {
   return (
-    <div className="flex aspect-[4/3] h-full w-full items-center justify-center bg-[linear-gradient(180deg,#171719_0%,#080808_100%)]">
+    <div className="flex aspect-[16/9] h-full w-full items-center justify-center bg-[linear-gradient(180deg,#171719_0%,#080808_100%)]">
       <svg
         aria-hidden="true"
         className="h-12 w-12 text-subtle"
@@ -48,7 +48,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
       href={`/video/${item.id}`}
     >
       <div
-        className="relative overflow-hidden rounded-t-[22px] bg-[#080808] [transform:translateZ(0)]"
+        className="relative aspect-[16/9] overflow-hidden rounded-t-[22px] bg-[#080808] [transform:translateZ(0)]"
         style={{
           WebkitBackfaceVisibility: "hidden",
           WebkitTransform: "translate3d(0, 0, 0)",
@@ -58,7 +58,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt=""
-            className="block h-auto w-full origin-bottom rounded-t-[22px] transform-gpu transition duration-300 will-change-transform group-hover:scale-[1.015]"
+            className="block h-full w-full origin-bottom rounded-t-[22px] object-contain transform-gpu transition duration-300 will-change-transform group-hover:scale-[1.015]"
             loading="lazy"
             referrerPolicy="no-referrer"
             src={item.coverUrl}
@@ -73,7 +73,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[6px]——#141415 bg-[#141415]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[6px] bg-[#141415]"
         />
 
         <div className="absolute inset-x-5 bottom-5 flex min-w-0 items-end justify-end gap-4">
