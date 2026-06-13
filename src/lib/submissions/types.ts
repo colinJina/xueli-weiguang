@@ -5,6 +5,12 @@ import type {
 } from "@/lib/storage/types";
 
 export const NATIVE_PENDING_SUBMISSION_LIMIT = 3;
+export const NATIVE_UPLOAD_SESSION_LIMIT = 3;
+export const BILIBILI_PENDING_SUBMISSION_LIMIT = 20;
+export const BILIBILI_DAILY_SUBMISSION_LIMIT = 50;
+export const BILIBILI_SUBMISSION_BODY_LIMIT_BYTES = 4 * 1024;
+export const NATIVE_SUBMISSION_BODY_LIMIT_BYTES = 16 * 1024;
+export const SUBMISSION_SOURCE_URL_MAX_LENGTH = 2048;
 
 export type NativeSubmissionErrorCode =
   | "UNAUTHENTICATED"
@@ -12,6 +18,8 @@ export type NativeSubmissionErrorCode =
   | "FILE_TOO_LARGE"
   | "UNSUPPORTED_MIME"
   | "PENDING_QUOTA_EXCEEDED"
+  | "UPLOAD_SESSION_EXPIRED"
+  | "UPLOAD_SESSION_LIMIT_EXCEEDED"
   | "STORAGE_UNAVAILABLE"
   | "OBJECT_NOT_FOUND"
   | "MIME_MISMATCH"
@@ -21,7 +29,9 @@ export type NativeSubmissionErrorCode =
 
 export type NativeSubmissionLimits = {
   maxBytes: number;
+  maxCoverBytes: number;
   pendingLimit: number;
+  activeUploadSessionLimit: number;
   allowedVideoMimeTypes: readonly NativeVideoMimeType[];
   allowedCoverMimeTypes: readonly NativeCoverMimeType[];
 };
@@ -43,6 +53,7 @@ export type NativeSubmissionApiErrorPayload = {
   message?: string;
   max?: number;
   pending?: number;
+  field?: string;
   allowed?: readonly string[];
   fields?: Record<string, string>;
 };

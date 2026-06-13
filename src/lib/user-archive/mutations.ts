@@ -7,16 +7,21 @@ import {
   notFoundError,
   validationError,
 } from "@/lib/user-archive/errors";
+import {
+  COLLECTION_DESCRIPTION_MAX_LENGTH,
+  COLLECTION_ITEM_NOTE_MAX_LENGTH,
+  COLLECTION_ITEM_PER_COLLECTION_LIMIT,
+  COLLECTION_NAME_MAX_LENGTH,
+  TAG_NAME_MAX_LENGTH,
+  TAGS_PER_ITEM_LIMIT,
+  USER_COLLECTION_ITEM_LIMIT,
+  USER_COLLECTION_LIMIT,
+  USER_COLLECTION_TAG_LIMIT,
+} from "@/lib/user-archive/limits";
 
 type MutationResult = {
   id: string;
 };
-
-const COLLECTION_NAME_MAX_LENGTH = 80;
-const COLLECTION_DESCRIPTION_MAX_LENGTH = 500;
-const COLLECTION_ITEM_NOTE_MAX_LENGTH = 500;
-const TAG_NAME_MAX_LENGTH = 40;
-const TAGS_PER_ITEM_LIMIT = 10;
 
 function assertUuid(value: string, field: string, label: string) {
   if (!isUuid(value)) {
@@ -142,6 +147,73 @@ async function ensureTagIdsBelongToUser(
   }
 }
 
+async function countRows(
+  query: PromiseLike<{ count: number | null; error: { code?: string; message?: string } | null }>,
+) {
+  const { count, error } = await query;
+
+  if (error) {
+    throw mapDatabaseError(error);
+  }
+
+  return count ?? 0;
+}
+
+async function ensureUserCollectionQuota(client: SupabaseClient, userId: string) {
+  const count = await countRows(
+    client
+      .from("collections")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId),
+  );
+
+  if (count >= USER_COLLECTION_LIMIT) {
+    throw limitExceededError(`收藏夹最多只能创建 ${USER_COLLECTION_LIMIT} 个。`);
+  }
+}
+
+async function ensureUserTagQuota(client: SupabaseClient, userId: string) {
+  const count = await countRows(
+    client
+      .from("collection_tags")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId),
+  );
+
+  if (count >= USER_COLLECTION_TAG_LIMIT) {
+    throw limitExceededError(`标签最多只能创建 ${USER_COLLECTION_TAG_LIMIT} 个。`);
+  }
+}
+
+async function ensureCollectionItemQuota(
+  client: SupabaseClient,
+  collectionId: string,
+) {
+  const [userItemCount, collectionItemCount] = await Promise.all([
+    countRows(
+      client
+        .from("collection_items")
+        .select("id", { count: "exact", head: true }),
+    ),
+    countRows(
+      client
+        .from("collection_items")
+        .select("id", { count: "exact", head: true })
+        .eq("collection_id", collectionId),
+    ),
+  ]);
+
+  if (userItemCount >= USER_COLLECTION_ITEM_LIMIT) {
+    throw limitExceededError(`最多只能收藏 ${USER_COLLECTION_ITEM_LIMIT} 条视频。`);
+  }
+
+  if (collectionItemCount >= COLLECTION_ITEM_PER_COLLECTION_LIMIT) {
+    throw limitExceededError(
+      `单个收藏夹最多只能收藏 ${COLLECTION_ITEM_PER_COLLECTION_LIMIT} 条视频。`,
+    );
+  }
+}
+
 export async function createCollection(
   client: SupabaseClient,
   userId: string,
@@ -156,6 +228,8 @@ export async function createCollection(
       COLLECTION_DESCRIPTION_MAX_LENGTH,
     ) ?? "";
   const sortOrder = normalizeSortOrder(input.sortOrder);
+  await ensureUserCollectionQuota(client, userId);
+
   const { data, error } = await client
     .from("collections")
     .insert({
@@ -257,6 +331,8 @@ export async function createTag(
 ): Promise<MutationResult> {
   const name = normalizeRequiredText(input.name, "name", "标签名称", TAG_NAME_MAX_LENGTH);
   const sortOrder = normalizeSortOrder(input.sortOrder);
+  await ensureUserTagQuota(client, userId);
+
   const { data, error } = await client
     .from("collection_tags")
     .insert({
@@ -375,6 +451,7 @@ export async function createCollectionItem(
   const tagIds = normalizeTagIds(input.tagIds);
 
   await ensureTagIdsBelongToUser(client, userId, tagIds);
+  await ensureCollectionItemQuota(client, collectionId);
 
   const { data, error } = await client
     .from("collection_items")
