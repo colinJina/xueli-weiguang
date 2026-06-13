@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotion, motion } from "motion/react";
-import Marquee from "react-fast-marquee"; // 引入成熟的滚动库
+import Marquee from "react-fast-marquee"; 
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
 import { createFadeUp, createStagger } from "@/components/home/home-motion";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
