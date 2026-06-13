@@ -6,9 +6,9 @@ import type { User } from "@supabase/supabase-js";
 
 import { UserMenu } from "@/components/auth/user-menu";
 import {
-  HomeCogIcon,
+  // HomeCogIcon,
   HomeLoginIcon,
-  HomeSearchIcon,
+  // HomeSearchIcon,
   HomeUploadIcon,
 } from "@/components/home/home-icons";
 import { createFadeUp } from "@/components/home/home-motion";
@@ -83,15 +83,15 @@ export function HomeHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <IconButton aria-label="搜索" size="lg" variant="ghost">
+          {/* <IconButton aria-label="搜索" size="lg" variant="ghost">
             <HomeSearchIcon className="h-[1.35rem] w-[1.35rem]" />
-          </IconButton>
+          </IconButton> */}
           <IconButton aria-label="上传" size="lg" variant="ghost">
             <HomeUploadIcon className="h-[1.2rem] w-[1.2rem]" />
           </IconButton>
-          <IconButton aria-label="设置" size="lg" variant="ghost">
+          {/* <IconButton aria-label="设置" size="lg" variant="ghost">
             <HomeCogIcon className="h-[1.3rem] w-[1.3rem]" />
-          </IconButton>
+          </IconButton> */}
 
           {isAuthenticated && user ? (
             <div className="ml-2">
