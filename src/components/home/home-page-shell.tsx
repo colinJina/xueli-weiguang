@@ -69,7 +69,7 @@ export function HomePageShell({
   }, []);
 
   return (
-    <div className="bg-[linear-gradient(180deg,#050505_0,#020202_53rem,#f5f5f3_53rem,#efefeb_100%)] pb-12 sm:pb-16 lg:pb-20">
+    <div className="bg-[#090909] pb-12 sm:pb-16 lg:pb-20">
       <HomeIntroLoader visible={showIntro} />
       <HomeHeader
         motionReady={motionReady}

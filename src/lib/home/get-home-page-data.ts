@@ -99,6 +99,7 @@ async function getHomeHeroFeature(): Promise<HomeHeroFeature | null> {
     overlayStrength: toNumber(row.overlay_strength, 0.62),
     sourceLabel: video.sourceLabel,
     title: video.title,
+    video,
     videoId: video.id,
   };
 }

@@ -1,4 +1,4 @@
-import type { ArchiveVideoItem } from "@/lib/videos/types";
+import type { ArchiveVideoItem, VideoDetail } from "@/lib/videos/types";
 
 export type HomeHeroFeature = {
   authorName: string;
@@ -10,6 +10,7 @@ export type HomeHeroFeature = {
   overlayStrength: number;
   sourceLabel: string;
   title: string;
+  video: VideoDetail;
   videoId: string;
 };
 
