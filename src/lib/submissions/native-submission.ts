@@ -7,9 +7,13 @@ import {
   CosObjectNotFoundError,
 } from "@/lib/storage/cos/client";
 import { getNativeCosObjectKeys } from "@/lib/storage/cos/keys";
-import { createCosUploadCredential } from "@/lib/storage/cos/signature";
+import {
+  createCosUploadCredential,
+  UPLOAD_CREDENTIAL_DURATION_SECONDS,
+} from "@/lib/storage/cos/signature";
 import {
   NATIVE_PENDING_SUBMISSION_LIMIT,
+  NATIVE_UPLOAD_SESSION_LIMIT,
   type CompleteNativeSubmissionInput,
   type CreateNativeUploadSignatureInput,
   type NativeCosUploadCredentialResponse,
@@ -28,6 +32,10 @@ const TITLE_MAX_LENGTH = 80;
 const DESCRIPTION_MAX_LENGTH = 500;
 
 type UnknownRecord = Record<string, unknown>;
+
+function formatMegabytes(bytes: number) {
+  return `${Math.round(bytes / 1024 / 1024)}MB`;
+}
 
 export class NativeSubmissionApiError extends Error {
   readonly code: NativeSubmissionErrorCode;
@@ -60,9 +68,18 @@ function validationError(message: string, extra?: UnknownRecord) {
 function fileTooLargeError(maxBytes: number) {
   return new NativeSubmissionApiError({
     code: "FILE_TOO_LARGE",
-    message: "视频文件不能超过 50MB。",
+    message: `视频文件不能超过 ${formatMegabytes(maxBytes)}。`,
     status: 400,
-    extra: { max: maxBytes },
+    extra: { max: maxBytes, field: "video" },
+  });
+}
+
+function coverTooLargeError(maxBytes: number) {
+  return new NativeSubmissionApiError({
+    code: "FILE_TOO_LARGE",
+    message: `封面文件不能超过 ${formatMegabytes(maxBytes)}。`,
+    status: 400,
+    extra: { max: maxBytes, field: "cover" },
   });
 }
 
@@ -112,9 +129,26 @@ function duplicateRefError() {
 function pendingQuotaExceededError(pending: number) {
   return new NativeSubmissionApiError({
     code: "PENDING_QUOTA_EXCEEDED",
-    message: "当前有 3 条待审稿件，审核完成后可继续投稿。",
+    message: `当前有 ${NATIVE_PENDING_SUBMISSION_LIMIT} 条待审稿件，审核完成后可继续投稿。`,
     status: 429,
     extra: { pending },
+  });
+}
+
+function uploadSessionLimitExceededError(active: number) {
+  return new NativeSubmissionApiError({
+    code: "UPLOAD_SESSION_LIMIT_EXCEEDED",
+    message: `当前有 ${NATIVE_UPLOAD_SESSION_LIMIT} 个未完成上传，请完成或稍后再试。`,
+    status: 429,
+    extra: { pending: active },
+  });
+}
+
+function uploadSessionExpiredError() {
+  return new NativeSubmissionApiError({
+    code: "UPLOAD_SESSION_EXPIRED",
+    message: "上传凭证已过期，请重新选择文件上传。",
+    status: 400,
   });
 }
 
@@ -126,10 +160,23 @@ function isPendingQuotaDatabaseError(error: { code?: string; message?: string })
   );
 }
 
-function getNativeSubmissionLimits(maxBytes: number): NativeSubmissionLimits {
+function isUploadSessionLimitDatabaseError(error: { code?: string; message?: string }) {
+  return (
+    error.code === "23514" &&
+    typeof error.message === "string" &&
+    error.message.toLowerCase().includes("native_upload_session_limit_exceeded")
+  );
+}
+
+function getNativeSubmissionLimits(
+  maxBytes: number,
+  maxCoverBytes: number,
+): NativeSubmissionLimits {
   return {
     maxBytes,
+    maxCoverBytes,
     pendingLimit: NATIVE_PENDING_SUBMISSION_LIMIT,
+    activeUploadSessionLimit: NATIVE_UPLOAD_SESSION_LIMIT,
     allowedVideoMimeTypes: ALLOWED_VIDEO_MIME_TYPES,
     allowedCoverMimeTypes: ALLOWED_COVER_MIME_TYPES,
   };
@@ -261,6 +308,121 @@ async function countPendingNativeSubmissions(
   return count ?? 0;
 }
 
+async function expireStaleNativeUploadSessions(
+  client: SupabaseClient,
+  userId: string,
+) {
+  const { error } = await client
+    .from("native_upload_sessions")
+    .update({ status: "expired" })
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .lte("expires_at", new Date().toISOString());
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function countActiveNativeUploadSessions(
+  client: SupabaseClient,
+  userId: string,
+) {
+  const { count, error } = await client
+    .from("native_upload_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .gt("expires_at", new Date().toISOString());
+
+  if (error) {
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+async function deleteNativeUploadSession(client: SupabaseClient, sessionId: string) {
+  const { error } = await client
+    .from("native_upload_sessions")
+    .delete()
+    .eq("id", sessionId);
+
+  if (error) {
+    console.error("Failed to delete native upload session", error);
+  }
+}
+
+async function markNativeUploadSessionExpired(
+  client: SupabaseClient,
+  sessionId: string,
+) {
+  const { error } = await client
+    .from("native_upload_sessions")
+    .update({ status: "expired" })
+    .eq("id", sessionId);
+
+  if (error) {
+    console.error("Failed to expire native upload session", error);
+  }
+}
+
+async function markNativeUploadSessionCompleted(input: {
+  client: SupabaseClient;
+  sessionId: string;
+  submissionId: string;
+}) {
+  const { error } = await input.client
+    .from("native_upload_sessions")
+    .update({
+      status: "completed",
+      submission_id: input.submissionId,
+    })
+    .eq("id", input.sessionId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function ensureNativeUploadSession(input: {
+  client: SupabaseClient;
+  userId: string;
+  sessionId: string;
+  videoKey: string;
+  coverKey: string;
+}) {
+  const { data, error } = await input.client
+    .from("native_upload_sessions")
+    .select("id,video_key,cover_key,status,expires_at")
+    .eq("id", input.sessionId)
+    .eq("user_id", input.userId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  const session = data as {
+    id: string;
+    video_key: string;
+    cover_key: string;
+    status: string;
+    expires_at: string;
+  } | null;
+
+  if (!session || new Date(session.expires_at).getTime() <= Date.now()) {
+    throw uploadSessionExpiredError();
+  }
+
+  if (session.video_key !== input.videoKey || session.cover_key !== input.coverKey) {
+    throw validationError("上传对象路径无效。", {
+      fields: { videoKey: "上传会话与对象路径不匹配。" },
+    });
+  }
+}
+
 async function cleanupNativeObjects(keys: string[]) {
   let config;
 
@@ -309,10 +471,18 @@ export async function createNativeCosUploadSignature(
   const coverMimeType = parseCoverMimeType(input.coverMimeType);
   validateVideoSize(input.videoSize, config.maxBytes);
 
+  await expireStaleNativeUploadSessions(client, input.userId);
+
   const pendingCount = await countPendingNativeSubmissions(client, input.userId);
 
   if (pendingCount >= NATIVE_PENDING_SUBMISSION_LIMIT) {
     throw pendingQuotaExceededError(pendingCount);
+  }
+
+  const activeSessionCount = await countActiveNativeUploadSessions(client, input.userId);
+
+  if (activeSessionCount >= NATIVE_UPLOAD_SESSION_LIMIT) {
+    throw uploadSessionLimitExceededError(activeSessionCount);
   }
 
   const submissionId = crypto.randomUUID();
@@ -322,6 +492,26 @@ export async function createNativeCosUploadSignature(
     videoMimeType,
     coverMimeType,
   });
+  const expiresAt = new Date(
+    Date.now() + UPLOAD_CREDENTIAL_DURATION_SECONDS * 1000,
+  ).toISOString();
+
+  const { error: sessionError } = await client.from("native_upload_sessions").insert({
+    id: submissionId,
+    user_id: input.userId,
+    video_key: keys.videoKey,
+    cover_key: keys.coverKey,
+    status: "active",
+    expires_at: expiresAt,
+  });
+
+  if (sessionError) {
+    if (isUploadSessionLimitDatabaseError(sessionError)) {
+      throw uploadSessionLimitExceededError(NATIVE_UPLOAD_SESSION_LIMIT);
+    }
+
+    throw sessionError;
+  }
 
   let credential;
 
@@ -331,11 +521,13 @@ export async function createNativeCosUploadSignature(
       allowPrefix: keys.prefix,
       videoKey: keys.videoKey,
       coverKey: keys.coverKey,
-      maxBytes: config.maxBytes,
+      maxVideoBytes: config.maxBytes,
+      maxCoverBytes: config.maxCoverBytes,
       videoMimeType,
       coverMimeType,
     });
   } catch (error) {
+    await deleteNativeUploadSession(client, submissionId);
     console.error("Failed to create COS upload credential", error);
     throw storageUnavailableError();
   }
@@ -349,7 +541,7 @@ export async function createNativeCosUploadSignature(
     coverKey: keys.coverKey,
     credential,
     expiresAt: new Date(credential.expiredTime * 1000).toISOString(),
-    limits: getNativeSubmissionLimits(config.maxBytes),
+    limits: getNativeSubmissionLimits(config.maxBytes, config.maxCoverBytes),
   };
 }
 
@@ -395,6 +587,14 @@ export async function completeNativeSubmission(
     expected: expectedKeys.coverKey,
   });
 
+  await ensureNativeUploadSession({
+    client,
+    userId: input.userId,
+    sessionId: submissionId,
+    videoKey: expectedKeys.videoKey,
+    coverKey: expectedKeys.coverKey,
+  });
+
   const objectKeys = [expectedKeys.videoKey, expectedKeys.coverKey];
   let videoHead;
   let coverHead;
@@ -406,6 +606,7 @@ export async function completeNativeSubmission(
     ]);
   } catch (error) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
 
     if (error instanceof CosObjectNotFoundError) {
       throw objectNotFoundError(error.message);
@@ -417,6 +618,7 @@ export async function completeNativeSubmission(
 
   if (videoHead.size !== videoSize) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
 
     throw validationError("视频文件大小与提交信息不一致。", {
       fields: { videoSize: "文件大小与上传对象不匹配。" },
@@ -427,11 +629,13 @@ export async function completeNativeSubmission(
 
   if (videoHead.size > config.maxBytes) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
     throw fileTooLargeError(config.maxBytes);
   }
 
   if (videoHead.mimeType !== videoMimeType) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
 
     throw mimeMismatchError({
       field: "videoMimeType",
@@ -442,14 +646,22 @@ export async function completeNativeSubmission(
 
   if (coverHead.size <= 0) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
 
     throw validationError("封面文件无效，请重新上传。", {
       fields: { coverKey: "封面文件不能为空。" },
     });
   }
 
+  if (coverHead.size > config.maxCoverBytes) {
+    await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
+    throw coverTooLargeError(config.maxCoverBytes);
+  }
+
   if (coverHead.mimeType !== coverMimeType) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
 
     throw mimeMismatchError({
       field: "coverMimeType",
@@ -464,11 +676,13 @@ export async function completeNativeSubmission(
     pendingCount = await countPendingNativeSubmissions(client, input.userId);
   } catch (error) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
     throw error;
   }
 
   if (pendingCount >= NATIVE_PENDING_SUBMISSION_LIMIT) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
     throw pendingQuotaExceededError(pendingCount);
   }
 
@@ -496,6 +710,7 @@ export async function completeNativeSubmission(
 
   if (error) {
     await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
 
     if (error.code === "23505") {
       throw duplicateRefError();
@@ -518,8 +733,22 @@ export async function completeNativeSubmission(
     if (featureError) {
       await cleanupNativeSubmissionRow(client, data.id);
       await cleanupNativeObjects(objectKeys);
+      await markNativeUploadSessionExpired(client, submissionId);
       throw featureError;
     }
+  }
+
+  try {
+    await markNativeUploadSessionCompleted({
+      client,
+      sessionId: submissionId,
+      submissionId: data.id,
+    });
+  } catch (error) {
+    await cleanupNativeSubmissionRow(client, data.id);
+    await cleanupNativeObjects(objectKeys);
+    await markNativeUploadSessionExpired(client, submissionId);
+    throw error;
   }
 
   return {

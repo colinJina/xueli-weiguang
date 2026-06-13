@@ -1,4 +1,7 @@
-import { NATIVE_VIDEO_MAX_BYTES } from "@/lib/storage/types";
+import {
+  NATIVE_COVER_MAX_BYTES,
+  NATIVE_VIDEO_MAX_BYTES,
+} from "@/lib/storage/types";
 
 export class CosConfigError extends Error {
   constructor(message: string) {
@@ -14,6 +17,7 @@ export type CosServerConfig = {
   secretKey: string;
   cdnDomain: string | null;
   maxBytes: number;
+  maxCoverBytes: number;
 };
 
 function requireEnv(name: string) {
@@ -26,17 +30,20 @@ function requireEnv(name: string) {
   return value;
 }
 
-function getUploadMaxBytes() {
-  const rawValue = process.env.COS_UPLOAD_MAX_BYTES?.trim();
+function getPositiveIntegerEnv(input: {
+  name: string;
+  defaultValue: number;
+}) {
+  const rawValue = process.env[input.name]?.trim();
 
   if (!rawValue) {
-    return NATIVE_VIDEO_MAX_BYTES;
+    return input.defaultValue;
   }
 
   const value = Number(rawValue);
 
   if (!Number.isSafeInteger(value) || value <= 0) {
-    throw new CosConfigError("COS_UPLOAD_MAX_BYTES must be a positive integer");
+    throw new CosConfigError(`${input.name} must be a positive integer`);
   }
 
   return value;
@@ -49,6 +56,13 @@ export function getCosServerConfig(): CosServerConfig {
     secretId: requireEnv("COS_SECRET_ID"),
     secretKey: requireEnv("COS_SECRET_KEY"),
     cdnDomain: process.env.COS_CDN_DOMAIN?.trim() || null,
-    maxBytes: getUploadMaxBytes(),
+    maxBytes: getPositiveIntegerEnv({
+      name: "COS_UPLOAD_MAX_BYTES",
+      defaultValue: NATIVE_VIDEO_MAX_BYTES,
+    }),
+    maxCoverBytes: getPositiveIntegerEnv({
+      name: "COS_COVER_MAX_BYTES",
+      defaultValue: NATIVE_COVER_MAX_BYTES,
+    }),
   };
 }

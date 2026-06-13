@@ -1,6 +1,7 @@
 export type StorageProvider = "bilibili" | "cos";
 
 export const NATIVE_VIDEO_MAX_BYTES = 52_428_800;
+export const NATIVE_COVER_MAX_BYTES = 5_242_880;
 
 export const ALLOWED_VIDEO_MIME_TYPES = ["video/mp4", "video/webm"] as const;
 export const ALLOWED_COVER_MIME_TYPES = [

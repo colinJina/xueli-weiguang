@@ -1,4 +1,11 @@
 import type { UserArchiveErrorCode } from "@/lib/user-archive/types";
+import {
+  COLLECTION_ITEM_PER_COLLECTION_LIMIT,
+  TAGS_PER_ITEM_LIMIT,
+  USER_COLLECTION_ITEM_LIMIT,
+  USER_COLLECTION_LIMIT,
+  USER_COLLECTION_TAG_LIMIT,
+} from "@/lib/user-archive/limits";
 
 type UserArchiveErrorInput = {
   code: UserArchiveErrorCode;
@@ -54,11 +61,11 @@ export function conflictError(message: string) {
   });
 }
 
-export function limitExceededError(message: string) {
+export function limitExceededError(message: string, status = 400) {
   return new UserArchiveError({
     code: "LIMIT_EXCEEDED",
     message,
-    status: 400,
+    status,
   });
 }
 
@@ -89,8 +96,22 @@ export function mapDatabaseError(error: { code?: string; message?: string } | nu
     case "23505":
       return conflictError("同名资源或重复收藏已经存在。");
     case "23514":
+      if (message.includes("user_collection_limit_exceeded")) {
+        return limitExceededError(`收藏夹最多只能创建 ${USER_COLLECTION_LIMIT} 个。`);
+      }
+      if (message.includes("user_collection_tag_limit_exceeded")) {
+        return limitExceededError(`标签最多只能创建 ${USER_COLLECTION_TAG_LIMIT} 个。`);
+      }
+      if (message.includes("user_collection_item_limit_exceeded")) {
+        return limitExceededError(`最多只能收藏 ${USER_COLLECTION_ITEM_LIMIT} 条视频。`);
+      }
+      if (message.includes("collection_item_per_collection_limit_exceeded")) {
+        return limitExceededError(
+          `单个收藏夹最多只能收藏 ${COLLECTION_ITEM_PER_COLLECTION_LIMIT} 条视频。`,
+        );
+      }
       if (message.includes("at most 10 tags")) {
-        return limitExceededError("单条收藏最多只能绑定 10 个标签。");
+        return limitExceededError(`单条收藏最多只能绑定 ${TAGS_PER_ITEM_LIMIT} 个标签。`);
       }
       return validationError("档案内容不符合保存规则，请检查后重试。");
     case "22023":

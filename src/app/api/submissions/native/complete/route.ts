@@ -5,6 +5,11 @@ import {
   NativeSubmissionApiError,
 } from "@/lib/submissions/native-submission";
 import { ADMIN_REQUIRED_MESSAGE, isAdminUser } from "@/lib/auth/admin";
+import {
+  JsonRequestError,
+  readLimitedJsonObject,
+} from "@/lib/http/read-limited-json";
+import { NATIVE_SUBMISSION_BODY_LIMIT_BYTES } from "@/lib/submissions/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,11 +63,20 @@ export async function POST(request: Request) {
   let body: CompleteNativeSubmissionRequestBody;
 
   try {
-    body = (await request.json()) as CompleteNativeSubmissionRequestBody;
-  } catch {
+    body = await readLimitedJsonObject(
+      request,
+      NATIVE_SUBMISSION_BODY_LIMIT_BYTES,
+    );
+  } catch (error) {
+    const message =
+      error instanceof JsonRequestError
+        ? error.message
+        : "请求内容无效，请重新提交。";
+    const status = error instanceof JsonRequestError ? error.status : 400;
+
     return NextResponse.json(
-      { code: "VALIDATION_FAILED", message: "请求内容无效，请重新提交。" },
-      { status: 400 },
+      { code: "VALIDATION_FAILED", message },
+      { status },
     );
   }
 

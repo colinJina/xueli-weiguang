@@ -8,7 +8,7 @@ import type {
 
 import type { CosServerConfig } from "./config";
 
-const UPLOAD_CREDENTIAL_DURATION_SECONDS = 30 * 60;
+export const UPLOAD_CREDENTIAL_DURATION_SECONDS = 30 * 60;
 const PUT_OBJECT_ACTION = "name/cos:PutObject";
 
 type PutObjectPolicy = {
@@ -58,7 +58,8 @@ function createPutObjectPolicy(input: {
   allowPrefix: string;
   videoKey: string;
   coverKey: string;
-  maxBytes: number;
+  maxVideoBytes: number;
+  maxCoverBytes: number;
   videoMimeType: NativeVideoMimeType;
   coverMimeType: NativeCoverMimeType;
 }): PutObjectPolicy {
@@ -75,7 +76,7 @@ function createPutObjectPolicy(input: {
         resource: [getObjectResource(input.config, input.videoKey)],
         condition: {
           numeric_less_than_equal: {
-            "cos:content-length": input.maxBytes,
+            "cos:content-length": input.maxVideoBytes,
           },
           string_equal: {
             "cos:content-type": input.videoMimeType,
@@ -89,7 +90,7 @@ function createPutObjectPolicy(input: {
         resource: [getObjectResource(input.config, input.coverKey)],
         condition: {
           numeric_less_than_equal: {
-            "cos:content-length": input.maxBytes,
+            "cos:content-length": input.maxCoverBytes,
           },
           string_equal: {
             "cos:content-type": input.coverMimeType,
@@ -105,7 +106,8 @@ export async function createCosUploadCredential(input: {
   allowPrefix: string;
   videoKey: string;
   coverKey: string;
-  maxBytes: number;
+  maxVideoBytes: number;
+  maxCoverBytes: number;
   videoMimeType: NativeVideoMimeType;
   coverMimeType: NativeCoverMimeType;
 }): Promise<CosUploadCredential> {

@@ -2,9 +2,18 @@ import { NextResponse } from "next/server";
 
 import { parseBilibiliUrl, BilibiliUrlError } from "@/lib/bilibili/parse-bilibili-url";
 import {
+  JsonRequestError,
+  readLimitedJsonObject,
+} from "@/lib/http/read-limited-json";
+import {
   createSubmission,
   DuplicateSubmissionError,
+  SubmissionQuotaExceededError,
 } from "@/lib/submissions/create-submission";
+import {
+  BILIBILI_SUBMISSION_BODY_LIMIT_BYTES,
+  SUBMISSION_SOURCE_URL_MAX_LENGTH,
+} from "@/lib/submissions/types";
 import { createClient } from "@/lib/supabase/server";
 
 type SubmissionRequestBody = {
@@ -28,8 +37,15 @@ export async function POST(request: Request) {
   let body: SubmissionRequestBody;
 
   try {
-    body = (await request.json()) as SubmissionRequestBody;
-  } catch {
+    body = await readLimitedJsonObject(
+      request,
+      BILIBILI_SUBMISSION_BODY_LIMIT_BYTES,
+    );
+  } catch (error) {
+    if (error instanceof JsonRequestError) {
+      return badRequest(error.message, error.status);
+    }
+
     return badRequest("请求内容无效，请重新提交。");
   }
 
@@ -37,6 +53,10 @@ export async function POST(request: Request) {
 
   if (!url) {
     return badRequest("请提供有效的 Bilibili 视频链接。");
+  }
+
+  if (url.length > SUBMISSION_SOURCE_URL_MAX_LENGTH) {
+    return badRequest(`视频链接不能超过 ${SUBMISSION_SOURCE_URL_MAX_LENGTH} 个字符。`);
   }
 
   try {
@@ -55,6 +75,10 @@ export async function POST(request: Request) {
 
     if (error instanceof DuplicateSubmissionError) {
       return badRequest(error.message, 409);
+    }
+
+    if (error instanceof SubmissionQuotaExceededError) {
+      return badRequest(error.message, error.status);
     }
 
     console.error("Failed to create submission", error);

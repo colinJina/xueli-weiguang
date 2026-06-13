@@ -15,9 +15,17 @@ import { TextField } from "@/components/ui/text-field";
 import { ADMIN_REQUIRED_MESSAGE } from "@/lib/auth/admin";
 import { cn } from "@/lib/utils";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
-import type {
-  NativeCosUploadCredentialResponse,
-  NativeSubmissionApiErrorPayload,
+import {
+  ALLOWED_COVER_MIME_TYPES,
+  ALLOWED_VIDEO_MIME_TYPES,
+  NATIVE_COVER_MAX_BYTES,
+  NATIVE_VIDEO_MAX_BYTES,
+} from "@/lib/storage/types";
+import {
+  NATIVE_PENDING_SUBMISSION_LIMIT,
+  NATIVE_UPLOAD_SESSION_LIMIT,
+  type NativeCosUploadCredentialResponse,
+  type NativeSubmissionApiErrorPayload,
 } from "@/lib/submissions/types";
 
 type ArchiveSubmitDialogProps = {
@@ -35,11 +43,8 @@ type UploadProgressInfo = {
   percent?: number;
 };
 
-const DEFAULT_VIDEO_MAX_BYTES = 52_428_800;
 const TITLE_MAX_LENGTH = 80;
 const DESCRIPTION_MAX_LENGTH = 500;
-const ALLOWED_VIDEO_MIME_TYPES = ["video/mp4", "video/webm"];
-const ALLOWED_COVER_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function LinkIcon() {
   return (
@@ -254,11 +259,19 @@ function parseNativeError(payload: NativeSubmissionApiErrorPayload | null) {
     case "ADMIN_REQUIRED":
       return ADMIN_REQUIRED_MESSAGE;
     case "FILE_TOO_LARGE":
-      return `视频文件不能超过 ${formatFileSize(payload.max ?? DEFAULT_VIDEO_MAX_BYTES)}。`;
+      if (payload.field === "cover") {
+        return `封面文件不能超过 ${formatFileSize(payload.max ?? NATIVE_COVER_MAX_BYTES)}。`;
+      }
+
+      return `视频文件不能超过 ${formatFileSize(payload.max ?? NATIVE_VIDEO_MAX_BYTES)}。`;
     case "UNSUPPORTED_MIME":
       return "暂不支持该文件格式。";
     case "PENDING_QUOTA_EXCEEDED":
-      return `当前有 ${payload.pending ?? 3} 条待审稿件，审核完成后可继续投稿。`;
+      return `当前有 ${payload.pending ?? NATIVE_PENDING_SUBMISSION_LIMIT} 条待审稿件，审核完成后可继续投稿。`;
+    case "UPLOAD_SESSION_LIMIT_EXCEEDED":
+      return `当前有 ${NATIVE_UPLOAD_SESSION_LIMIT} 个未完成上传，请完成或稍后再试。`;
+    case "UPLOAD_SESSION_EXPIRED":
+      return "上传凭证已过期，请重新选择文件上传。";
     case "OBJECT_NOT_FOUND":
       return "上传未完成，请重新上传。";
     case "MIME_MISMATCH":
@@ -470,7 +483,7 @@ export function ArchiveSubmitDialog({
       return "视频仅支持 MP4/WebM";
     }
 
-    if (videoFile.size > DEFAULT_VIDEO_MAX_BYTES) {
+    if (videoFile.size > NATIVE_VIDEO_MAX_BYTES) {
       return "视频文件不能超过 50MB";
     }
 
@@ -484,6 +497,10 @@ export function ArchiveSubmitDialog({
 
     if (coverFile.size <= 0) {
       return "封面文件不能为空";
+    }
+
+    if (coverFile.size > NATIVE_COVER_MAX_BYTES) {
+      return "封面文件不能超过 5MB";
     }
 
     return "";

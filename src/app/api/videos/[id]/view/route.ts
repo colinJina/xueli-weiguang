@@ -33,6 +33,7 @@ type RecordViewRpcClient = {
     args: {
       target_video_id: string;
       target_viewer_hash: string;
+      target_bucket_hash: string;
     },
   ) => Promise<{
     data: unknown;
@@ -48,6 +49,7 @@ type RecordViewRpcClient = {
 const VIEWER_COOKIE_NAME = "xlwg_viewer_id";
 const VIEWER_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 const VIEWER_ID_PATTERN = /^[A-Za-z0-9_-]{32,}$/;
+const DEVELOPMENT_VIEW_METRICS_HASH_SALT = "development-view-metrics-salt";
 
 function interactionError(
   code: VideoInteractionErrorCode,
@@ -86,7 +88,38 @@ function createViewerHash(videoId: string, viewerId: string) {
   return createHash("sha256").update(`${videoId}:${viewerId}`).digest("hex");
 }
 
-export async function POST(_request: Request, { params }: RouteContext) {
+function getViewMetricsHashSalt() {
+  const salt = process.env.VIEW_METRICS_HASH_SALT?.trim();
+
+  if (salt) {
+    return salt;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Missing VIEW_METRICS_HASH_SALT");
+  }
+
+  return DEVELOPMENT_VIEW_METRICS_HASH_SALT;
+}
+
+function getClientBucketSource(request: Request) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const ip =
+    forwardedFor?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip")?.trim() ||
+    "unknown";
+  const userAgent = request.headers.get("user-agent")?.trim() || "unknown";
+
+  return `${ip}:${userAgent}`;
+}
+
+function createViewerBucketHash(request: Request) {
+  return createHash("sha256")
+    .update(`${getViewMetricsHashSalt()}:${getClientBucketSource(request)}`)
+    .digest("hex");
+}
+
+export async function POST(request: Request, { params }: RouteContext) {
   const { id } = await params;
 
   if (!isVideoId(id)) {
@@ -129,11 +162,25 @@ export async function POST(_request: Request, { params }: RouteContext) {
 
   const viewerId = await getViewerId();
   const viewerHash = createViewerHash(id, viewerId);
+  let bucketHash: string;
+
+  try {
+    bucketHash = createViewerBucketHash(request);
+  } catch (error) {
+    console.error("Failed to create video view bucket hash", error);
+    return interactionError(
+      "METRICS_UNAVAILABLE",
+      "播放数据暂时无法记录，请稍后再试。",
+      503,
+    );
+  }
+
   const { data, error } = await (adminClient as unknown as RecordViewRpcClient).rpc(
     "record_cos_video_view",
     {
       target_video_id: id,
       target_viewer_hash: viewerHash,
+      target_bucket_hash: bucketHash,
     },
   );
 

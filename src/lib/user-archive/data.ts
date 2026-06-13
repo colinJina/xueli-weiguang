@@ -16,6 +16,11 @@ import {
   type UserArchiveVideoFavoriteState,
   type UserArchiveVideoMembership,
 } from "@/lib/user-archive/types";
+import {
+  USER_COLLECTION_ITEM_LIMIT,
+  USER_COLLECTION_LIMIT,
+  USER_COLLECTION_TAG_LIMIT,
+} from "@/lib/user-archive/limits";
 import { formatCompactNumber } from "@/lib/videos/metrics";
 import type { VideoStorageProvider } from "@/lib/videos/types";
 
@@ -314,18 +319,21 @@ export async function getUserArchivePageData(
       .select("id,name,description,sort_order,created_at")
       .eq("user_id", userId)
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(0, USER_COLLECTION_LIMIT - 1),
     client
       .from("collection_tags")
       .select("id,name,sort_order,created_at")
       .eq("user_id", userId)
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(0, USER_COLLECTION_TAG_LIMIT - 1),
     client
       .from("collection_items")
       .select("id,collection_id,video_id,note,sort_order,created_at")
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(0, USER_COLLECTION_ITEM_LIMIT - 1),
   ]);
 
   if (profileResult.error) {
@@ -474,20 +482,26 @@ export async function getUserVideoFavoriteState(
       .select("id,name,description,sort_order,created_at")
       .eq("user_id", userId)
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(0, USER_COLLECTION_LIMIT - 1),
     client
       .from("collection_tags")
       .select("id,name,sort_order,created_at")
       .eq("user_id", userId)
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(0, USER_COLLECTION_TAG_LIMIT - 1),
     client
       .from("collection_items")
       .select("id,collection_id,video_id,note,sort_order,created_at")
       .eq("video_id", videoId)
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
-    client.from("collection_items").select("collection_id"),
+      .order("created_at", { ascending: false })
+      .range(0, USER_COLLECTION_LIMIT - 1),
+    client
+      .from("collection_items")
+      .select("collection_id")
+      .range(0, USER_COLLECTION_ITEM_LIMIT - 1),
   ]);
 
   if (collectionsResult.error || tagsResult.error || videoItemsResult.error || allItemsResult.error) {

@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 
+import {
+  JsonRequestError,
+  readLimitedJsonObject,
+} from "@/lib/http/read-limited-json";
 import { createClient } from "@/lib/supabase/server";
 import {
   databaseUnavailableError,
+  limitExceededError,
   unauthenticatedError,
   validationError,
   UserArchiveError,
 } from "@/lib/user-archive/errors";
+import { USER_ARCHIVE_MUTATION_BODY_LIMIT_BYTES } from "@/lib/user-archive/limits";
 
 export async function createAuthenticatedUserArchiveContext() {
   const supabase = await createClient();
@@ -25,13 +31,22 @@ export async function createAuthenticatedUserArchiveContext() {
 }
 
 export async function readJsonObject(request: Request) {
-  const payload = (await request.json().catch(() => null)) as unknown;
+  try {
+    return await readLimitedJsonObject(
+      request,
+      USER_ARCHIVE_MUTATION_BODY_LIMIT_BYTES,
+    );
+  } catch (error) {
+    if (error instanceof JsonRequestError) {
+      if (error.status === 413) {
+        throw limitExceededError(error.message, 413);
+      }
 
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    throw validationError("请求内容无效，请检查后重试。");
+      throw validationError("请求内容无效，请检查后重试。");
+    }
+
+    throw error;
   }
-
-  return payload as Record<string, unknown>;
 }
 
 export function userArchiveErrorResponse(error: unknown, context: string) {
