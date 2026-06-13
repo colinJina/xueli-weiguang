@@ -1,7 +1,6 @@
 "use client";
 
 import { useLayoutEffect, useState } from "react";
-import { useReducedMotion } from "motion/react";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { HomeFeaturedGrid } from "@/components/home/home-featured-grid";
@@ -11,6 +10,7 @@ import { HomeIntroLoader } from "@/components/home/home-intro-loader";
 import { HomeMetaStrip } from "@/components/home/home-meta-strip";
 import {
   homeIntroDurationMs,
+  homeIntroInitialState,
   homeIntroSessionKey,
 } from "@/components/home/home-motion";
 import { useAuth } from "@/lib/auth/use-auth";
@@ -35,14 +35,18 @@ export function HomePageShell({
   navigation,
   metaItems,
 }: HomePageShellProps) {
-  const prefersReducedMotion = useReducedMotion();
-  const [showIntro, setShowIntro] = useState(false);
-  const [motionReady, setMotionReady] = useState(false);
+  const [showIntro, setShowIntro] = useState(homeIntroInitialState.showIntro);
+  const [motionReady, setMotionReady] = useState(
+    homeIntroInitialState.motionReady,
+  );
   const { user, logout, dialogMode, openLogin, openRegister, closeDialog, switchMode } =
     useAuth();
 
   useLayoutEffect(() => {
     const hasSeenIntro = window.sessionStorage.getItem(homeIntroSessionKey) === "1";
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     if (prefersReducedMotion || hasSeenIntro) {
       setShowIntro(false);
@@ -50,10 +54,11 @@ export function HomePageShell({
       return;
     }
 
-    window.sessionStorage.setItem(homeIntroSessionKey, "1");
     setShowIntro(true);
+    setMotionReady(false);
 
     const timer = window.setTimeout(() => {
+      window.sessionStorage.setItem(homeIntroSessionKey, "1");
       setShowIntro(false);
       setMotionReady(true);
     }, homeIntroDurationMs);
@@ -61,7 +66,7 @@ export function HomePageShell({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
   return (
     <div className="bg-[linear-gradient(180deg,#050505_0,#020202_53rem,#f5f5f3_53rem,#efefeb_100%)] pb-12 sm:pb-16 lg:pb-20">
