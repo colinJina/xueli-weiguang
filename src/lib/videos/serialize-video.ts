@@ -50,7 +50,11 @@ function getSourceLabel(platform: string) {
 }
 
 function normalizeStorageProvider(value: string | null | undefined): VideoStorageProvider {
-  return value === "cos" ? "cos" : "bilibili";
+  if (value === "youtube" || value === "cos") {
+    return value;
+  }
+
+  return "bilibili";
 }
 
 function getFallbackCategory(category: VideoDictionaryItem | null): VideoDictionaryItem {

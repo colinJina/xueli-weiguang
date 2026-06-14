@@ -84,6 +84,7 @@ const videoSelect =
 
 const sourceLabels: Record<VideoStorageProvider, string> = {
   bilibili: "Bilibili",
+  youtube: "YouTube",
   cos: "原创",
 };
 
@@ -101,7 +102,11 @@ function normalizeMediaUrl(value: string | null) {
 }
 
 function normalizeStorageProvider(value: string | null | undefined): VideoStorageProvider {
-  return value === "cos" ? "cos" : "bilibili";
+  if (value === "youtube" || value === "cos") {
+    return value;
+  }
+
+  return "bilibili";
 }
 
 function resolvePublicMediaUrl(
