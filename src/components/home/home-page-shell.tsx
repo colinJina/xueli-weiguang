@@ -1,18 +1,21 @@
 "use client";
 
 import { useLayoutEffect, useState } from "react";
+import { useReducedMotion } from "motion/react";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { HomeFeaturedGrid } from "@/components/home/home-featured-grid";
 import { HomeHeader } from "@/components/home/home-header";
 import { HomeHero } from "@/components/home/home-hero";
+import {
+  getHomeIntroInitialState,
+  getHomeIntroStorage,
+  homeIntroInitialState,
+  markHomeIntroSeen,
+} from "@/components/home/home-intro-state";
 import { HomeIntroLoader } from "@/components/home/home-intro-loader";
 import { HomeMetaStrip } from "@/components/home/home-meta-strip";
-import {
-  homeIntroDurationMs,
-  homeIntroInitialState,
-  homeIntroSessionKey,
-} from "@/components/home/home-motion";
+import { homeIntroDurationMs } from "@/components/home/home-motion";
 import { useAuth } from "@/lib/auth/use-auth";
 import type { HomeHeroFeature, HomeSiteStatItem } from "@/lib/home/types";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
@@ -39,26 +42,26 @@ export function HomePageShell({
   const [motionReady, setMotionReady] = useState(
     homeIntroInitialState.motionReady,
   );
+  const prefersReducedMotion = useReducedMotion();
   const { user, logout, dialogMode, openLogin, openRegister, closeDialog, switchMode } =
     useAuth();
 
   useLayoutEffect(() => {
-    const hasSeenIntro = window.sessionStorage.getItem(homeIntroSessionKey) === "1";
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const storage = getHomeIntroStorage();
+    const introState = getHomeIntroInitialState(Boolean(prefersReducedMotion), storage);
 
-    if (prefersReducedMotion || hasSeenIntro) {
-      setShowIntro(false);
-      setMotionReady(true);
+    setShowIntro(introState.showIntro);
+    setMotionReady(introState.motionReady);
+
+    if (!introState.showIntro) {
       return;
     }
 
-    setShowIntro(true);
-    setMotionReady(false);
-
     const timer = window.setTimeout(() => {
-      window.sessionStorage.setItem(homeIntroSessionKey, "1");
+      if (introState.shouldPersistIntroSeenAfterIntro) {
+        markHomeIntroSeen(getHomeIntroStorage());
+      }
+
       setShowIntro(false);
       setMotionReady(true);
     }, homeIntroDurationMs);
@@ -66,7 +69,7 @@ export function HomePageShell({
     return () => {
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <div className="bg-[#090909] pb-12 sm:pb-16 lg:pb-20">

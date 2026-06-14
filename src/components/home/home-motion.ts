@@ -1,17 +1,6 @@
 import type { Transition, Variants } from "motion/react";
 export const homeEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
 export const homeIntroDurationMs = 3800;
-export const homeIntroSessionKey = "xueli-weiguang:home-intro-seen";
-
-type HomeIntroInitialState = {
-  showIntro: boolean;
-  motionReady: boolean;
-};
-
-export const homeIntroInitialState: HomeIntroInitialState = {
-  showIntro: true,
-  motionReady: false,
-};
 export const hoverTransition: Transition = {
   duration: 0.5,
   ease: homeEase,
