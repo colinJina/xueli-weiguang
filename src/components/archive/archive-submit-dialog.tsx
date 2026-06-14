@@ -572,7 +572,7 @@ export function ArchiveSubmitDialog({
 
     if (!url.trim()) {
       setStatus("error");
-      setMessage("请输入有效的 Bilibili 视频链接。");
+      setMessage("请输入有效的 Bilibili 或 YouTube 视频链接。");
       return;
     }
 
@@ -772,7 +772,7 @@ export function ArchiveSubmitDialog({
   const dialogDescription =
     allowNativeUpload && mode === "upload"
       ? "上传本地视频与封面。文件会直传至 COS，审核通过前不会进入公开视频库。"
-      : "粘贴一条 Bilibili 视频链接。我们会先记录投稿，再进入人工审核。";
+      : "粘贴一条 Bilibili 或 YouTube 视频链接。我们会先记录投稿，再进入人工审核。";
 
   return (
     <DialogShell
@@ -829,18 +829,18 @@ export function ArchiveSubmitDialog({
             <TextField
               autoFocus
               icon={<LinkIcon />}
-              label="BILIBILI URL"
+              label="VIDEO URL"
               onChange={(event) => {
                 setUrl(event.target.value);
                 resetMessage();
               }}
-              placeholder="https://www.bilibili.com/video/BV..."
+              placeholder="https://www.youtube.com/watch?v=..."
               type="text"
               value={url}
             />
 
             <p className="text-xs leading-6 text-subtle">
-              支持完整视频链接、裸 BV 号，以及 b23.tv 短链接。
+              支持 Bilibili 完整链接、裸 BV 号、b23.tv 短链接，以及 YouTube watch、shorts、embed、youtu.be 链接。
             </p>
           </div>
 

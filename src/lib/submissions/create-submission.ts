@@ -1,11 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
-  BILIBILI_DAILY_SUBMISSION_LIMIT,
-  BILIBILI_PENDING_SUBMISSION_LIMIT,
+  EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT,
+  EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT,
   type CreateSubmissionInput,
   type SubmissionInsertResult,
-} from "@/lib/submissions/types";
+} from "./types";
+
+const EXTERNAL_LINK_STORAGE_PROVIDERS = ["bilibili", "youtube"] as const;
 
 export class DuplicateSubmissionError extends Error {
   constructor(message: string) {
@@ -31,15 +33,21 @@ function mapQuotaDatabaseError(error: { code?: string; message?: string }) {
     return null;
   }
 
-  if (message.includes("bilibili_pending_submission_limit_exceeded")) {
+  if (
+    message.includes("external_link_pending_submission_limit_exceeded") ||
+    message.includes("bilibili_pending_submission_limit_exceeded")
+  ) {
     return new SubmissionQuotaExceededError(
-      `当前有 ${BILIBILI_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿。`,
+      `当前有 ${EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿。`,
     );
   }
 
-  if (message.includes("bilibili_daily_submission_limit_exceeded")) {
+  if (
+    message.includes("external_link_daily_submission_limit_exceeded") ||
+    message.includes("bilibili_daily_submission_limit_exceeded")
+  ) {
     return new SubmissionQuotaExceededError(
-      `24 小时内最多只能提交 ${BILIBILI_DAILY_SUBMISSION_LIMIT} 条 Bilibili 链接。`,
+      `24 小时内最多只能提交 ${EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT} 条外部视频链接。`,
     );
   }
 
@@ -58,7 +66,7 @@ async function countSubmissions(
   return count ?? 0;
 }
 
-async function ensureBilibiliSubmissionQuota(
+async function ensureExternalLinkSubmissionQuota(
   client: SupabaseClient,
   userId: string,
 ) {
@@ -69,7 +77,7 @@ async function ensureBilibiliSubmissionQuota(
         .from("submissions")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("storage_provider", "bilibili")
+        .in("storage_provider", [...EXTERNAL_LINK_STORAGE_PROVIDERS])
         .eq("status", "pending"),
     ),
     countSubmissions(
@@ -77,20 +85,20 @@ async function ensureBilibiliSubmissionQuota(
         .from("submissions")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("storage_provider", "bilibili")
+        .in("storage_provider", [...EXTERNAL_LINK_STORAGE_PROVIDERS])
         .gte("created_at", since),
     ),
   ]);
 
-  if (pendingCount >= BILIBILI_PENDING_SUBMISSION_LIMIT) {
+  if (pendingCount >= EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT) {
     throw new SubmissionQuotaExceededError(
-      `当前有 ${BILIBILI_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿。`,
+      `当前有 ${EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿。`,
     );
   }
 
-  if (dailyCount >= BILIBILI_DAILY_SUBMISSION_LIMIT) {
+  if (dailyCount >= EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT) {
     throw new SubmissionQuotaExceededError(
-      `24 小时内最多只能提交 ${BILIBILI_DAILY_SUBMISSION_LIMIT} 条 Bilibili 链接。`,
+      `24 小时内最多只能提交 ${EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT} 条外部视频链接。`,
     );
   }
 }
@@ -99,16 +107,16 @@ export async function createSubmission(
   client: SupabaseClient,
   input: CreateSubmissionInput,
 ): Promise<SubmissionInsertResult> {
-  await ensureBilibiliSubmissionQuota(client, input.userId);
+  await ensureExternalLinkSubmissionQuota(client, input.userId);
 
   const { data, error } = await client
     .from("submissions")
     .insert({
       user_id: input.userId,
-      platform: "bilibili",
-      storage_provider: "bilibili",
+      platform: input.platform,
+      storage_provider: input.platform,
       source_url: input.sourceUrl,
-      external_id: input.bvid,
+      external_id: input.externalId,
       status: "pending",
     })
     .select("id, status, storage_provider, external_id, created_at")

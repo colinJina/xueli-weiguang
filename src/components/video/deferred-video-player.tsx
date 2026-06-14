@@ -43,14 +43,16 @@ export function DeferredVideoPlayer({
   const hasReportedPlayRef = useRef(false);
   const [isPlayerActive, setIsPlayerActive] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
-  const canRenderBilibili = video.storageProvider === "bilibili" && Boolean(video.embedUrl);
+  const canRenderExternalEmbed =
+    (video.storageProvider === "bilibili" || video.storageProvider === "youtube") &&
+    Boolean(video.embedUrl);
   const canRenderCosVideo = video.storageProvider === "cos" && Boolean(video.playbackUrl);
-  const shouldRenderBilibili = isPlayerActive && canRenderBilibili;
+  const shouldRenderExternalEmbed = isPlayerActive && canRenderExternalEmbed;
   const shouldRenderCosVideo =
     isPlayerActive && canRenderCosVideo && !hasVideoError;
-  const shouldRenderCover = !isPlayerActive && (canRenderBilibili || canRenderCosVideo);
+  const shouldRenderCover = !isPlayerActive && (canRenderExternalEmbed || canRenderCosVideo);
   const shouldRenderUnavailable =
-    (!shouldRenderCover && !shouldRenderBilibili && !shouldRenderCosVideo) || hasVideoError;
+    (!shouldRenderCover && !shouldRenderExternalEmbed && !shouldRenderCosVideo) || hasVideoError;
 
   function handleActivatePlayer() {
     setIsPlayerActive(true);
@@ -117,7 +119,7 @@ export function DeferredVideoPlayer({
           </button>
         ) : null}
 
-        {shouldRenderBilibili ? (
+        {shouldRenderExternalEmbed ? (
           <iframe
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen

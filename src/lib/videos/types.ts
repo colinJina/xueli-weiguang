@@ -10,7 +10,7 @@ export type VideoDictionaryRow = {
   color_hex?: string | null;
 };
 
-export type VideoStorageProvider = "bilibili" | "cos";
+export type VideoStorageProvider = "bilibili" | "youtube" | "cos";
 
 export type VideoBaseRow = {
   id: string;

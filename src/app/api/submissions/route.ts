@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { parseBilibiliUrl, BilibiliUrlError } from "@/lib/bilibili/parse-bilibili-url";
+import {
+  ExternalVideoUrlError,
+  parseExternalVideoUrl,
+} from "@/lib/external-video/parse-video-url";
 import {
   JsonRequestError,
   readLimitedJsonObject,
@@ -11,7 +14,7 @@ import {
   SubmissionQuotaExceededError,
 } from "@/lib/submissions/create-submission";
 import {
-  BILIBILI_SUBMISSION_BODY_LIMIT_BYTES,
+  EXTERNAL_LINK_SUBMISSION_BODY_LIMIT_BYTES,
   SUBMISSION_SOURCE_URL_MAX_LENGTH,
 } from "@/lib/submissions/types";
 import { createClient } from "@/lib/supabase/server";
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
   try {
     body = await readLimitedJsonObject(
       request,
-      BILIBILI_SUBMISSION_BODY_LIMIT_BYTES,
+      EXTERNAL_LINK_SUBMISSION_BODY_LIMIT_BYTES,
     );
   } catch (error) {
     if (error instanceof JsonRequestError) {
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
   const url = typeof body.url === "string" ? body.url.trim() : "";
 
   if (!url) {
-    return badRequest("请提供有效的 Bilibili 视频链接。");
+    return badRequest("请提供有效的 Bilibili 或 YouTube 视频链接。");
   }
 
   if (url.length > SUBMISSION_SOURCE_URL_MAX_LENGTH) {
@@ -60,16 +63,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { bvid, canonicalUrl } = await parseBilibiliUrl(url);
+    const parsed = await parseExternalVideoUrl(url);
     const submission = await createSubmission(supabase, {
       userId: user.id,
-      sourceUrl: canonicalUrl,
-      bvid,
+      platform: parsed.platform,
+      sourceUrl: parsed.canonicalUrl,
+      externalId: parsed.externalId,
     });
 
     return NextResponse.json(submission, { status: 201 });
   } catch (error) {
-    if (error instanceof BilibiliUrlError) {
+    if (error instanceof ExternalVideoUrlError) {
       return badRequest(error.message);
     }
 
