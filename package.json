@@ -1,6 +1,6 @@
 {
   "name": "xueli-weiguang",
-  "version": "1.4.3",
+  "version": "1.5.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
