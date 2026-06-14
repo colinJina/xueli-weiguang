@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import type { VideoDetail } from "@/lib/videos/types";
 import { VideoSourceIcon } from "@/components/ui/video-source-icon";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 type DeferredVideoPlayerProps = {
   className?: string;
   coverObjectPosition?: string;
+  coverOverlayContent?: ReactNode;
   coverOverlayStrength?: number;
   mediaClassName?: string;
   onCosPlay?: () => void;
@@ -34,6 +36,7 @@ function getAutoplayEmbedUrl(value: string) {
 export function DeferredVideoPlayer({
   className,
   coverObjectPosition = "50% 50%",
+  coverOverlayContent,
   coverOverlayStrength = 0.55,
   mediaClassName,
   onCosPlay,
@@ -116,6 +119,7 @@ export function DeferredVideoPlayer({
             <span className="absolute left-1/2 top-1/2 z-30 inline-flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition duration-200 group-hover:scale-105 group-hover:border-white/45 group-hover:bg-white group-hover:text-black max-sm:h-12 max-sm:w-12">
               <VideoPlayIcon className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5" />
             </span>
+            {coverOverlayContent}
           </button>
         ) : null}
 

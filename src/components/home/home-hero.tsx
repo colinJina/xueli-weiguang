@@ -53,6 +53,7 @@ export function HomeHero({ hero }: HomeHeroProps) {
         <DeferredVideoPlayer
           className="rounded-[22px] border-0 bg-[#090909] p-2 shadow-none"
           coverObjectPosition={objectPosition}
+          coverOverlayContent={<HomeHeroInfo displayHero={displayHero} />}
           coverOverlayStrength={displayHero.overlayStrength}
           mediaClassName="rounded-[22px]"
           onCosPlay={handleHeroCosPlay}
@@ -109,6 +110,27 @@ function HomeHeroFallback({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[length:76px_76px] opacity-[0.10]"
       />
+      <HomeHeroInfo displayHero={displayHero} />
+    </div>
+  );
+}
+
+function HomeHeroInfo({ displayHero }: { displayHero: HomeHeroFallbackModel }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30">
+      <div className="page-container pb-6 sm:pb-10 md:pb-14 lg:pb-20">
+        <div className="max-w-[58rem] space-y-4 text-left sm:space-y-5 md:space-y-7">
+          <div className="space-y-3 sm:space-y-4 md:space-y-5">
+            <h1 className="max-w-[52rem] text-[2rem] font-black leading-[0.95] text-white sm:text-[2.65rem] md:text-[3.2rem] lg:text-[4rem] xl:text-[4.8rem]">
+              {displayHero.title}
+            </h1>
+
+            <p className="line-clamp-2 max-w-[44rem] text-sm leading-6 text-[#d5d7dc] sm:text-base sm:leading-7 md:text-lg">
+              {displayHero.description || "这条精选作品已进入公开档案。"}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
