@@ -48,12 +48,12 @@
 ## 常用命令
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-npm run type-check
-npm run check
+bun run dev
+bun run build
+bun run start
+bun run lint
+bun run type-check
+bun run check
 ```
 
 ## 目录归属
