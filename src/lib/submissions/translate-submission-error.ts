@@ -4,7 +4,6 @@ const ERROR_MAP: ReadonlyArray<{ match: RegExp; message: string }> = [
     match: /valid bilibili|有效的 bilibili|valid youtube|有效的 youtube|bv 号/i,
     message: "请输入有效的 Bilibili 或 YouTube 视频链接。",
   },
-  { match: /short link/i, message: "短链接解析失败，请改用完整视频链接后重试。" },
   { match: /unauthorized|请先登录/i, message: "请先登录后再投稿。" },
   { match: /network error|failed to fetch/i, message: "网络异常，请稍后重试。" },
 ];

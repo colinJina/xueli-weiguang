@@ -840,7 +840,7 @@ export function ArchiveSubmitDialog({
             />
 
             <p className="text-xs leading-6 text-subtle">
-              支持 Bilibili 完整链接、裸 BV 号、b23.tv 短链接，以及 YouTube watch、shorts、embed、youtu.be 链接。
+              支持 Bilibili 完整链接或裸 BV 号，以及 YouTube watch、shorts、embed、youtu.be 链接。
             </p>
           </div>
 

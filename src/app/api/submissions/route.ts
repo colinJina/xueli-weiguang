@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const parsed = await parseExternalVideoUrl(url);
+    const parsed = parseExternalVideoUrl(url);
     const submission = await createSubmission(supabase, {
       userId: user.id,
       platform: parsed.platform,

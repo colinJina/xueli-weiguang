@@ -28,35 +28,9 @@ function extractBvidFromUrl(url: URL): string | null {
   return normalizeBvid(segments[segments.length - 1] ?? "");
 }
 
-async function resolveShortLink(inputUrl: URL): Promise<URL> {
-  const methods: Array<"HEAD" | "GET"> = ["HEAD", "GET"];
-  let lastError: unknown;
-
-  for (const method of methods) {
-    try {
-      const response = await fetch(inputUrl, {
-        method,
-        redirect: "follow",
-        headers: {
-          Accept: "text/html,application/xhtml+xml",
-          "User-Agent": "Mozilla/5.0 (compatible; XueliWeiguang/1.0)",
-        },
-      });
-
-      return new URL(response.url);
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  throw new BilibiliUrlError(
-    lastError instanceof Error ? lastError.message : "无法解析短链接，请稍后再试。",
-  );
-}
-
-export async function parseBilibiliUrl(
+export function parseBilibiliUrl(
   input: string,
-): Promise<{ bvid: string; canonicalUrl: string }> {
+): { bvid: string; canonicalUrl: string } {
   const trimmed = input.trim();
   const directBvid = normalizeBvid(trimmed);
 
@@ -80,20 +54,6 @@ export async function parseBilibiliUrl(
   }
 
   const hostname = parsed.hostname.toLowerCase();
-
-  if (hostname === "b23.tv" || hostname === "www.b23.tv") {
-    const resolved = await resolveShortLink(parsed);
-    const resolvedBvid = extractBvidFromUrl(resolved);
-
-    if (!resolvedBvid) {
-      throw new BilibiliUrlError("短链接未解析到有效的视频地址。");
-    }
-
-    return {
-      bvid: resolvedBvid,
-      canonicalUrl: buildCanonicalUrl(resolvedBvid),
-    };
-  }
 
   if (hostname === "bilibili.com" || hostname === "www.bilibili.com") {
     const bvid = extractBvidFromUrl(parsed);

@@ -22,9 +22,9 @@ export class ExternalVideoUrlError extends Error {
   }
 }
 
-export async function parseExternalVideoUrl(
+export function parseExternalVideoUrl(
   input: string,
-): Promise<ParsedExternalVideoUrl> {
+): ParsedExternalVideoUrl {
   const trimmed = input.trim();
 
   try {
@@ -42,7 +42,7 @@ export async function parseExternalVideoUrl(
   }
 
   try {
-    const { bvid, canonicalUrl } = await parseBilibiliUrl(trimmed);
+    const { bvid, canonicalUrl } = parseBilibiliUrl(trimmed);
 
     return {
       platform: "bilibili",
