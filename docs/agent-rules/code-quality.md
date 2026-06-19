@@ -5,18 +5,18 @@
 ## 常用命令
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-npm run type-check
-npm run check
+bun run dev
+bun run build
+bun run start
+bun run lint
+bun run type-check
+bun run check
 ```
 
 ## TypeScript 检查
 
-- 任何涉及 `.ts`、`.tsx`、`tsconfig`、`next.config`、`tailwind.config` 或其他 TypeScript 相关配置的修改后，都必须执行 `npm run type-check`。
-- 如果 `npm run type-check` 失败，必须先修复问题，或明确说明阻塞原因与失败输出的关键点。
+- 任何涉及 `.ts`、`.tsx`、`tsconfig`、`next.config`、`tailwind.config` 或其他 TypeScript 相关配置的修改后，都必须执行 `bun run type-check`。
+- 如果 `bun run type-check` 失败，必须先修复问题，或明确说明阻塞原因与失败输出的关键点。
 - 在未执行必要检查前，不得声称任务“已完成”“已修复”或“可以提交”。
 
 ## ESLint 规则
@@ -29,8 +29,8 @@ npm run check
 - 允许以下划线 `_` 开头的变量、参数、捕获错误或解构占位符作为有意未使用。
 - 类型导入优先使用 `import type`。
 - 基础一致性规则至少保持 `curly` 与 `eqeqeq`。
-- 修改 ESLint 规则、脚本或相关依赖后，必须重新执行 `npm run lint`。
-- 如果改动涉及 TypeScript 相关文件或配置，还必须执行 `npm run type-check`。
+- 修改 ESLint 规则、脚本或相关依赖后，必须重新执行 `bun run lint`。
+- 如果改动涉及 TypeScript 相关文件或配置，还必须执行 `bun run type-check`。
 
 ## Git hook
 
@@ -42,11 +42,11 @@ npm run check
 
 - 新增生产依赖前必须确认是否已有本地实现、浏览器 API、Next.js 或 Supabase 官方能力可满足需求。
 - 不引入与当前 Node-only 约束冲突的 Python、`child_process` 或第三方 Bilibili wrapper。
-- 修改 `package.json` scripts、依赖、ESLint、TypeScript、Next 或 Tailwind 配置后，至少运行 `npm run lint` 和 `npm run type-check`。
+- 修改 `package.json` scripts、依赖、ESLint、TypeScript、Next 或 Tailwind 配置后，至少运行 `bun run lint` 和 `bun run type-check`。
 
 ## 最终回复
 
-- 最终回复必须明确说明是否运行 `npm run type-check`。
+- 最终回复必须明确说明是否运行 `bun run type-check`。
 - 如果运行，说明结果。
 - 如果未运行，说明原因，例如“仅修改 Markdown 文档”。
 - 若验证失败，必须给出关键失败点和下一步处理建议。

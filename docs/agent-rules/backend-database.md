@@ -189,7 +189,7 @@
 
 ## 验证要求
 
-- 修改 `.ts`、`.tsx`、Supabase client、API route、migration 或 TypeScript 相关配置后，必须运行 `npm run type-check`。
-- 涉及代码质量或工程配置时，还必须运行 `npm run lint`。
+- 修改 `.ts`、`.tsx`、Supabase client、API route、migration 或 TypeScript 相关配置后，必须运行 `bun run type-check`。
+- 涉及代码质量或工程配置时，还必须运行 `bun run lint`。
 - 仅修改 Markdown 文档时，可以不运行 type-check，但最终回复必须明确说明未运行的原因。
 - 如果涉及真实 Supabase 项目变更，还必须运行对应 SQL 验证、RLS/grant 检查和 advisor 检查。

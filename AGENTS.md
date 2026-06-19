@@ -13,7 +13,7 @@ Codex 会自动加载根 `AGENTS.md`。`docs/agent-rules/*` 不会自动加载�
 - UI 外壳、控件、排版、装饰语言必须保持严格黑白系统；内容封面可以保留原始色彩。
 - 不在 `globals.css` 写业务组件样式；业务样式一律优先使用 Tailwind 和现有组件。
 - 每次新增或修改功能，涉及变更的操作都要更新 `design-input` 下的需求文档。
-- 涉及 TypeScript 代码或配置改动后，必须运行 `npm run type-check`；涉及代码质量或工程配置时还要运行 `npm run lint`。
+- 涉及 TypeScript 代码或配置改动后，必须运行 `bun run type-check`；涉及代码质量或工程配置时还要运行 `bun run lint`。
 
 ## 渐进式加载路由
 
@@ -43,12 +43,12 @@ Codex 会自动加载根 `AGENTS.md`。`docs/agent-rules/*` 不会自动加载�
 ## 常用命令
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-npm run type-check
-npm run check
+bun run dev
+bun run build
+bun run start
+bun run lint
+bun run type-check
+bun run check
 ```
 
 ## 文档维护规则
@@ -61,5 +61,5 @@ npm run check
 ## 最终回复要求
 
 - 简要说明改了哪些文件。
-- 明确说明是否运行 `npm run type-check`，以及结果或未运行原因。
+- 明确说明是否运行 `bun run type-check`，以及结果或未运行原因。
 - 如果没有运行必要验证，不能声称任务已完成或可提交。
