@@ -55,6 +55,75 @@ export function HomeSearchIcon({ className, ...props }: HomeIconProps) {
   );
 }
 
+export function HomeCompassIcon({ className, ...props }: HomeIconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn("h-4 w-4", className)}
+      fill="none"
+      viewBox="0 0 20 20"
+      {...props}
+    >
+      <circle cx="10" cy="10" r="6.3" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="m8.1 11.9 1.45-4.15 4.15-1.45-1.45 4.15-4.15 1.45Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.3"
+      />
+      <circle cx="10" cy="10" r="0.8" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function HomeArchiveIcon({ className, ...props }: HomeIconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn("h-4 w-4", className)}
+      fill="none"
+      viewBox="0 0 20 20"
+      {...props}
+    >
+      <rect
+        x="3.4"
+        y="4.3"
+        width="13.2"
+        height="11.4"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M6.4 8.2h7.2M6.4 11.3h4.4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.4"
+      />
+    </svg>
+  );
+}
+
+export function HomeProfileIcon({ className, ...props }: HomeIconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn("h-4 w-4", className)}
+      fill="none"
+      viewBox="0 0 20 20"
+      {...props}
+    >
+      <circle cx="10" cy="7.1" r="2.6" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M5.2 15.2a4.8 4.8 0 0 1 9.6 0"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.4"
+      />
+    </svg>
+  );
+}
+
 export function HomeBellIcon({ className, ...props }: HomeIconProps) {
   return (
     <svg

@@ -6,9 +6,10 @@ import type { User } from "@supabase/supabase-js";
 
 import { UserMenu } from "@/components/auth/user-menu";
 import {
-  // HomeCogIcon,
+  HomeArchiveIcon,
+  HomeCompassIcon,
   HomeLoginIcon,
-  // HomeSearchIcon,
+  HomeProfileIcon,
   HomeUploadIcon,
 } from "@/components/home/home-icons";
 import { createFadeUp } from "@/components/home/home-motion";
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 type HomeNavigationItem = {
   href: string;
+  icon: "explore" | "library" | "profile";
   label: string;
 };
 
@@ -29,9 +31,21 @@ type HomeHeaderProps = {
   onLoginClick: () => void;
   onRegisterClick: () => void;
   onLogout: () => void;
+  onUploadClick: () => void;
 };
 
 const headerVariants = createFadeUp(10, 0.04, 0.32);
+
+function getNavigationIcon(icon: HomeNavigationItem["icon"]) {
+  switch (icon) {
+    case "explore":
+      return HomeCompassIcon;
+    case "library":
+      return HomeArchiveIcon;
+    case "profile":
+      return HomeProfileIcon;
+  }
+}
 
 export function HomeHeader({
   navigation,
@@ -40,6 +54,7 @@ export function HomeHeader({
   onLoginClick,
   onRegisterClick,
   onLogout,
+  onUploadClick,
 }: HomeHeaderProps) {
   const prefersReducedMotion = useReducedMotion();
   const isAuthenticated = Boolean(user);
@@ -53,54 +68,65 @@ export function HomeHeader({
       }
       variants={headerVariants}
     >
-      <div className="page-container flex h-[72px] items-center justify-between gap-6">
-        <div className="flex min-w-0 items-center gap-8">
+      <div className="page-container flex h-[72px] items-center justify-between gap-2 sm:gap-3 md:gap-6">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:flex-none md:gap-8">
           <SiteBrand
-            className="shrink-0"
+            className="min-w-0 shrink"
+            markClassName="max-sm:h-5 max-sm:w-5"
             subtitle="VIDEO ARCHIVE"
             subtitleClassName="hidden"
-            titleClassName="text-[1.85rem] tracking-[-0.04em]"
+            titleClassName="max-w-[7ch] truncate text-[1.2rem] tracking-[-0.04em] sm:max-w-none sm:text-[1.45rem] md:text-[1.85rem]"
           />
 
-          <nav className="flex min-w-0 items-center gap-7" aria-label="主导航">
+          <nav className="flex shrink-0 items-center gap-1 sm:gap-2 md:min-w-0 md:gap-7" aria-label="主导航">
             {navigation.map((item) => {
+              const NavigationIcon = getNavigationIcon(item.icon);
               const isActive = item.href === "/";
               return (
                 <Link
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={item.label}
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "relative shrink-0 pb-1 text-[1.05rem] font-semibold tracking-[-0.02em] text-[#a5a9b1] transition duration-200 hover:text-white",
+                    "relative inline-flex shrink-0 items-center justify-center text-[#a5a9b1] transition duration-200 hover:text-white md:pb-1",
+                    "max-md:h-9 max-md:w-9 max-md:rounded-full max-md:border max-md:border-transparent sm:max-md:h-10 sm:max-md:w-10",
                     isActive &&
-                      "text-white after:absolute after:inset-x-0 after:-bottom-[19px] after:h-[2px] after:bg-white",
+                      "text-white md:after:absolute md:after:inset-x-0 md:after:-bottom-[19px] md:after:h-[2px] md:after:bg-white max-md:border-white/[0.12] max-md:bg-white/[0.06]",
+                    !isActive &&
+                      "max-md:hover:border-white/10 max-md:hover:bg-white/[0.04]",
                   )}
                 >
-                  {item.label}
+                  <span className="hidden text-[1.05rem] font-semibold tracking-[-0.02em] md:inline">
+                    {item.label}
+                  </span>
+                  <span className="md:hidden">
+                    <NavigationIcon className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]" />
+                  </span>
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {/* <IconButton aria-label="搜索" size="lg" variant="ghost">
-            <HomeSearchIcon className="h-[1.35rem] w-[1.35rem]" />
-          </IconButton> */}
-          <IconButton aria-label="上传" size="lg" variant="ghost">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:gap-2">
+          <IconButton
+            aria-label="上传"
+            className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11"
+            onClick={onUploadClick}
+            size="sm"
+            variant="ghost"
+          >
             <HomeUploadIcon className="h-[1.2rem] w-[1.2rem]" />
           </IconButton>
-          {/* <IconButton aria-label="设置" size="lg" variant="ghost">
-            <HomeCogIcon className="h-[1.3rem] w-[1.3rem]" />
-          </IconButton> */}
-
           {isAuthenticated && user ? (
-            <div className="ml-2">
+            <div className="ml-0.5 sm:ml-1 md:ml-2">
               <UserMenu onLogout={onLogout} user={user} variant="expanded" />
             </div>
           ) : (
-            <div className="ml-2 flex items-center gap-2">
+            <div className="ml-0.5 flex shrink-0 items-center gap-1 sm:ml-1 sm:gap-2 md:ml-2">
               <Button
-                className="text-base"
+                className="hidden text-base md:inline-flex"
                 onClick={onRegisterClick}
                 size="default"
                 type="button"
@@ -108,8 +134,17 @@ export function HomeHeader({
               >
                 <span>注册</span>
               </Button>
+              <IconButton
+                aria-label="登录"
+                className="h-9 w-9 md:hidden"
+                onClick={onLoginClick}
+                size="sm"
+                variant="ghost"
+              >
+                <HomeLoginIcon className="h-[1.1rem] w-[1.1rem]" />
+              </IconButton>
               <Button
-                className="gap-2 text-base"
+                className="hidden gap-2 text-base md:inline-flex"
                 onClick={onLoginClick}
                 size="default"
                 type="button"
