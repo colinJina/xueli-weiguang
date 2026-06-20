@@ -16,7 +16,7 @@ type HomeHeroFallbackModel = Omit<HomeHeroFeature, "video">;
 const fallbackHero: HomeHeroFallbackModel = {
   authorName: "雪笠微光",
   coverUrl: null,
-  description: "精选影像与创作作品的黑白档案入口。",
+  description: "",
   focalX: 0.5,
   focalY: 0.5,
   href: "/archive",
@@ -55,7 +55,7 @@ export function HomeHero({ hero }: HomeHeroProps) {
           coverObjectPosition={objectPosition}
           coverOverlayContent={<HomeHeroInfo displayHero={displayHero} />}
           coverOverlayStrength={displayHero.overlayStrength}
-          mediaClassName="rounded-[22px]"
+          mediaClassName={`aspect-video lg:h-[min(100svh,calc(100vw*9/16+72px))] lg:aspect-auto rounded-[22px]`}
           onCosPlay={handleHeroCosPlay}
           showSourceBadge={false}
           video={hero.video}
@@ -75,7 +75,9 @@ function HomeHeroFallback({
   objectPosition: string;
 }) {
   return (
-    <div className="relative aspect-video overflow-hidden rounded-[22px] bg-[#090909] p-2 lg:aspect-auto">
+    <div
+      className={`relative overflow-hidden rounded-[22px] bg-[#090909] p-2 aspect-video lg:h-[min(100svh,calc(100vw*9/16+72px))] lg:aspect-auto`}
+    >
       {displayHero.coverUrl ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
