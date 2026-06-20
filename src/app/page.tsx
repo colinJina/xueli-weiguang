@@ -5,11 +5,11 @@ import type { HomePageData } from "@/lib/home/types";
 const siteConfig = {
   name: "雪笠微光",
   navigation: [
-    { href: "/", label: "探索" },
-    { href: "/archive", label: "库" },
-    { href: "/user", label: "档案" },
+    { href: "/", icon: "explore", label: "探索" },
+    { href: "/archive", icon: "library", label: "库" },
+    { href: "/user", icon: "profile", label: "档案" },
   ],
-};
+} as const;
 
 export const revalidate = 60;
 

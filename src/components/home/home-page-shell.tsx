@@ -3,6 +3,7 @@
 import { useLayoutEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 
+import { ArchiveSubmitDialog } from "@/components/archive/archive-submit-dialog";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { HomeFeaturedGrid } from "@/components/home/home-featured-grid";
 import { HomeHeader } from "@/components/home/home-header";
@@ -22,6 +23,7 @@ import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type HomeNavigationItem = {
   href: string;
+  icon: "explore" | "library" | "profile";
   label: string;
 };
 
@@ -42,9 +44,21 @@ export function HomePageShell({
   const [motionReady, setMotionReady] = useState(
     homeIntroInitialState.motionReady,
   );
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [continueToSubmit, setContinueToSubmit] = useState(false);
   const prefersReducedMotion = useReducedMotion();
-  const { user, logout, dialogMode, openLogin, openRegister, closeDialog, switchMode } =
-    useAuth();
+  const {
+    user,
+    isReady,
+    isAuthenticated,
+    isAdmin,
+    logout,
+    dialogMode,
+    openLogin,
+    openRegister,
+    closeDialog,
+    switchMode,
+  } = useAuth();
 
   useLayoutEffect(() => {
     const storage = getHomeIntroStorage();
@@ -71,6 +85,16 @@ export function HomePageShell({
     };
   }, [prefersReducedMotion]);
 
+  function handleUploadClick() {
+    if (isReady && isAuthenticated) {
+      setSubmitDialogOpen(true);
+      return;
+    }
+
+    setContinueToSubmit(true);
+    openLogin();
+  }
+
   return (
     <div className="bg-[#090909] pb-12 sm:pb-16 lg:pb-20">
       <HomeIntroLoader visible={showIntro} />
@@ -80,6 +104,7 @@ export function HomePageShell({
         onLoginClick={openLogin}
         onLogout={logout}
         onRegisterClick={openRegister}
+        onUploadClick={handleUploadClick}
         user={user}
       />
 
@@ -94,12 +119,27 @@ export function HomePageShell({
       {dialogMode ? (
         <AuthDialog
           mode={dialogMode}
-          onClose={closeDialog}
-          onSuccess={closeDialog}
+          onClose={() => {
+            setContinueToSubmit(false);
+            closeDialog();
+          }}
+          onSuccess={() => {
+            closeDialog();
+            if (continueToSubmit) {
+              setContinueToSubmit(false);
+              setSubmitDialogOpen(true);
+            }
+          }}
           onSwitchMode={switchMode}
           open
         />
       ) : null}
+
+      <ArchiveSubmitDialog
+        onClose={() => setSubmitDialogOpen(false)}
+        allowNativeUpload={isAdmin}
+        open={submitDialogOpen && isReady && isAuthenticated}
+      />
     </div>
   );
 }

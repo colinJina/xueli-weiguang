@@ -7,9 +7,9 @@ Codex 会自动加载根 `AGENTS.md`。`docs/agent-rules/*` 不会自动加载�
 ## 常驻红线
 
 - 当前仓库是公开主站，不要在没有明确指令的情况下扩展后台审核界面、举报、评论、隐藏下载页、推荐系统或普通用户上传系统。
-- 公开提交路径只解析 Bilibili 链接并写入 `submissions`，不得调用 Bilibili。
-- Bilibili 元数据抓取只允许在后台审核流程中延迟触发。
-- 公开 Archive / Video 读取路径不得调用 Bilibili 接口。
+- 公开提交路径只解析 Bilibili/youtube 链接并写入 `submissions`，不得调用 Bilibili/youtube。
+- Bilibil/youtubei 元数据抓取只允许在后台审核流程中延迟触发。
+- 公开 Archive / Video 读取路径不得调用 Bilibili/youtube 接口。
 - UI 外壳、控件、排版、装饰语言必须保持严格黑白系统；内容封面可以保留原始色彩。
 - 不在 `globals.css` 写业务组件样式；业务样式一律优先使用 Tailwind 和现有组件。
 - 每次新增或修改功能，涉及变更的操作都要更新 `design-input` 下的需求文档。
