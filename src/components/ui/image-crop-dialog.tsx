@@ -12,6 +12,8 @@ import ReactCrop, {
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
+import CropIcon from "@/components/icons/ui/crop.svg";
+import WarningIcon from "@/components/icons/shared/alert-circle.svg";
 import { cn } from "@/lib/utils";
 
 const COVER_ASPECT = 16 / 9;
@@ -31,35 +33,6 @@ type ImageCropDialogProps = {
   onConfirm: (result: CroppedImageResult) => void;
   open: boolean;
 };
-
-function CropIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M5 2.5v8.5a1 1 0 0 0 1 1h8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-      <path
-        d="M2 5h8a1 1 0 0 1 1 1v8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function WarningIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
-}
 
 function getCenteredAspectCrop(width: number, height: number) {
   return centerCrop(
@@ -270,7 +243,7 @@ export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDia
         </div>
 
         {error ? (
-          <FormMessage icon={<WarningIcon />} variant="error">
+          <FormMessage icon={<WarningIcon aria-hidden="true" className="h-4 w-4 flex-none" />} variant="error">
             {error}
           </FormMessage>
         ) : null}
@@ -281,7 +254,7 @@ export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDia
           </Button>
           <Button disabled={isCropping} onClick={confirmCrop} type="button">
             <span className="inline-flex items-center gap-2">
-              <CropIcon />
+              <CropIcon aria-hidden="true" className="h-4 w-4" />
               {isCropping ? "正在裁切" : "保存裁切"}
             </span>
           </Button>

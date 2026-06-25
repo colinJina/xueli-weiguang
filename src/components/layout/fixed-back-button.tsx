@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
+import BackArrowIcon from "@/components/icons/layout/back-arrow.svg";
 import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 
@@ -39,32 +40,7 @@ export function FixedBackButton({
       type="button"
       variant="surface"
     >
-      <BackArrowIcon />
+      <BackArrowIcon aria-hidden="true" className="h-[1.15rem] w-[1.15rem]" />
     </IconButton>
-  );
-}
-
-function BackArrowIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[1.15rem] w-[1.15rem]"
-      fill="none"
-      viewBox="0 0 20 20"
-    >
-      <path
-        d="M12.8 4.6 7.4 10l5.4 5.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M8 10h8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.8"
-      />
-    </svg>
   );
 }

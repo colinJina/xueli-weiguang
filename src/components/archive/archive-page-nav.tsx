@@ -3,6 +3,13 @@ import type { User } from "@supabase/supabase-js";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
 import { UserMenu } from "@/components/auth/user-menu";
+import ArchiveBellIcon from "@/components/icons/archive/bell.svg";
+import ArchiveHeartIcon from "@/components/icons/archive/nav-heart.svg";
+import ArchivePlayIcon from "@/components/icons/archive/nav-play.svg";
+import ArchiveSearchIcon from "@/components/icons/archive/search.svg";
+import ArchiveSettingsIcon from "@/components/icons/archive/settings.svg";
+import ArchiveUserIcon from "@/components/icons/archive/user.svg";
+import ArchiveUserPlusIcon from "@/components/icons/archive/user-plus.svg";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { IconButton } from "@/components/ui/icon-button";
@@ -18,140 +25,6 @@ type ArchivePageNavProps = {
   onSubmitOpen: () => void;
   onLogout: () => void;
 };
-
-function PlayIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[13px] w-[13px]"
-      fill="none"
-      viewBox="0 0 16 16"
-    >
-      <path
-        d="M6 4.75 10.5 8 6 11.25V4.75Z"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="0.4"
-      />
-    </svg>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[13px] w-[13px]"
-      fill="none"
-      viewBox="0 0 16 16"
-    >
-      <path
-        d="M8 12.5 3.7 8.35A2.7 2.7 0 0 1 7.5 4.6L8 5.1l.5-.5a2.7 2.7 0 0 1 3.8 3.75L8 12.5Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.2"
-      />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[17px] w-[17px]"
-      fill="none"
-      viewBox="0 0 20 20"
-    >
-      <circle cx="9" cy="9" r="4.7" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="m12.7 12.7 3.6 3.6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[17px] w-[17px]"
-      fill="none"
-      viewBox="0 0 20 20"
-    >
-      <path
-        d="M10 4.2a3.6 3.6 0 0 0-3.6 3.6v2.3c0 .7-.2 1.3-.6 1.9l-1 1.4h10.4l-1-1.4a3.2 3.2 0 0 1-.6-1.9V7.8A3.6 3.6 0 0 0 10 4.2Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-      <path
-        d="M8.3 14.4a1.8 1.8 0 0 0 3.4 0"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function SettingsIcon() {
-  return (
-    <svg
-      className="w-[17px] h-[17px]"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-      ></path>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      ></path>
-    </svg>
-  );
-}
-
-function UserIcon({ plus = false }: { plus?: boolean }) {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 18 18">
-      <circle cx="7" cy="6" r="2.6" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="M2.8 14c.9-2 2.5-3 4.2-3s3.3 1 4.2 3"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.3"
-      />
-      {plus ? (
-        <>
-          <path
-            d="M13.5 5.2v4.4"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="1.3"
-          />
-          <path
-            d="M11.3 7.4h4.4"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="1.3"
-          />
-        </>
-      ) : null}
-    </svg>
-  );
-}
 
 export function ArchivePageNav({
   activeChannel,
@@ -187,7 +60,7 @@ export function ArchivePageNav({
               size="sm"
               variant="strong"
             >
-              <PlayIcon />
+              <ArchivePlayIcon aria-hidden="true" className="h-[13px] w-[13px]" />
               <span className="text-base">{activeChannel}</span>
               <Chip size="count" variant="count">
                 {channelCount}
@@ -195,7 +68,7 @@ export function ArchivePageNav({
             </Chip>
 
             <Chip aria-label={`支持 ${supportCount}`} size="sm">
-              <HeartIcon />
+              <ArchiveHeartIcon aria-hidden="true" className="h-[13px] w-[13px]" />
               <span className="text-base">支持</span>
               <Chip size="count" variant="count">
                 {supportCount}
@@ -210,13 +83,13 @@ export function ArchivePageNav({
             aria-label="工具栏"
           >
             <IconButton aria-label="搜索">
-              <SearchIcon />
+              <ArchiveSearchIcon aria-hidden="true" className="h-[17px] w-[17px]" />
             </IconButton>
             <IconButton aria-label="通知">
-              <BellIcon />
+              <ArchiveBellIcon aria-hidden="true" className="h-[17px] w-[17px]" />
             </IconButton>
             <IconButton aria-label="设置">
-              <SettingsIcon />
+              <ArchiveSettingsIcon aria-hidden="true" className="h-[17px] w-[17px]" />
             </IconButton>
           </div>
 
@@ -234,7 +107,7 @@ export function ArchivePageNav({
                   type="button"
                   variant="pill"
                 >
-                  <UserIcon />
+                  <ArchiveUserIcon aria-hidden="true" className="h-4 w-4" />
                   <span>登录</span>
                 </Button>
                 <Button
@@ -243,7 +116,7 @@ export function ArchivePageNav({
                   type="button"
                   variant="pill"
                 >
-                  <UserIcon plus />
+                  <ArchiveUserPlusIcon aria-hidden="true" className="h-4 w-4" />
                   <span>注册</span>
                 </Button>
               </>

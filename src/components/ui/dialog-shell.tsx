@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import CloseIcon from "@/components/icons/shared/close-16.svg";
 import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 
@@ -15,19 +16,6 @@ type DialogShellProps = {
   title: ReactNode;
   titleAside?: ReactNode;
 };
-
-function CloseIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M4 4l8 8M12 4l-8 8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
 
 export function DialogShell({
   children,
@@ -67,7 +55,7 @@ export function DialogShell({
           <div className="flex shrink-0 items-center gap-2">
             {titleAside}
             <IconButton aria-label={closeLabel} onClick={onClose} variant="surface">
-              <CloseIcon />
+              <CloseIcon aria-hidden="true" className="h-3.5 w-3.5" />
             </IconButton>
           </div>
         </div>

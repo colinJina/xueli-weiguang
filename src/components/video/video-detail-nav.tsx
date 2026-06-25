@@ -1,7 +1,7 @@
-import { HomeCogIcon } from "@/components/home/home-icons";
+import HomeCogIcon from "@/components/icons/home/cog.svg";
+import VideoUserIcon from "@/components/icons/video/user.svg";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { IconButton } from "@/components/ui/icon-button";
-import { VideoUserIcon } from "@/components/video/video-detail-icons";
 
 export function VideoDetailNav() {
   return (
@@ -15,10 +15,10 @@ export function VideoDetailNav() {
 
         <div className="flex shrink-0 items-center gap-2">
           <IconButton aria-label="设置" variant="ghost">
-            <HomeCogIcon className="h-[1.1rem] w-[1.1rem]" />
+            <HomeCogIcon aria-hidden="true" className="h-[1.1rem] w-[1.1rem]" />
           </IconButton>
           <IconButton aria-label="个人中心" variant="ghost">
-            <VideoUserIcon className="h-[1.15rem] w-[1.15rem]" />
+            <VideoUserIcon aria-hidden="true" className="h-[1.15rem] w-[1.15rem]" />
           </IconButton>
         </div>
       </div>

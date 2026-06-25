@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-import { VideoSourceIcon } from "@/components/ui/video-source-icon";
+import ArchiveCoverFallbackIcon from "@/components/icons/archive/cover-image-fallback.svg";
+import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
+import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
+import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
 import type { ArchiveVideoItem, VideoDictionaryItem } from "@/lib/videos/types";
 
 type VideoArchiveCardProps = {
@@ -10,37 +13,27 @@ type VideoArchiveCardProps = {
 function CoverFallback() {
   return (
     <div className="flex aspect-[16/9] h-full w-full items-center justify-center bg-[linear-gradient(180deg,#171719_0%,#080808_100%)]">
-      <svg
-        aria-hidden="true"
-        className="h-12 w-12 text-subtle"
-        fill="none"
-        viewBox="0 0 48 48"
-      >
-        <rect
-          height="26"
-          rx="5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          width="34"
-          x="7"
-          y="11"
-        />
-        <path
-          d="m18 29 5-5 4 4 3-3 6 6"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
-        <circle cx="18" cy="20" r="2" fill="currentColor" />
-      </svg>
+      <ArchiveCoverFallbackIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
     </div>
   );
+}
+
+function getVideoSourceIcon(platform: string) {
+  if (platform === "bilibili") {
+    return BilibiliSourceIcon;
+  }
+
+  if (platform === "youtube") {
+    return YoutubeSourceIcon;
+  }
+
+  return GenericSourceIcon;
 }
 
 export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
   const visibleTags = item.tags.slice(0, 4);
   const visibleTones = item.tones.filter((tone) => tone.colorHex).slice(0, 4);
+  const SourceIcon = getVideoSourceIcon(item.storageProvider);
 
   return (
     <Link
@@ -78,9 +71,9 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
 
         <div className="absolute inset-x-5 bottom-5 flex min-w-0 items-end justify-end gap-4">
           <span className="inline-flex h-[34px] max-w-full items-center gap-2 rounded-full border border-white/20 bg-black/55 px-3 text-[0.72rem] font-medium tracking-[0.04em] text-foreground backdrop-blur-sm">
-            <VideoSourceIcon
+            <SourceIcon
+              aria-hidden="true"
               className="h-[18px] w-[18px]"
-              platform={item.storageProvider}
             />
             <span className="min-w-0 truncate">{item.sourceLabel}</span>
           </span>

@@ -4,8 +4,11 @@ import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { VideoDetail } from "@/lib/videos/types";
-import { VideoSourceIcon } from "@/components/ui/video-source-icon";
-import { VideoPlayIcon } from "@/components/video/video-detail-icons";
+import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
+import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
+import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
+import VideoPlayIcon from "@/components/icons/video/play.svg";
+import VideoUnavailableIcon from "@/components/icons/video/unavailable.svg";
 import { cn } from "@/lib/utils";
 
 type DeferredVideoPlayerProps = {
@@ -33,6 +36,18 @@ function getAutoplayEmbedUrl(value: string) {
   }
 }
 
+function getVideoSourceIcon(platform: string) {
+  if (platform === "bilibili") {
+    return BilibiliSourceIcon;
+  }
+
+  if (platform === "youtube") {
+    return YoutubeSourceIcon;
+  }
+
+  return GenericSourceIcon;
+}
+
 export function DeferredVideoPlayer({
   className,
   coverObjectPosition = "50% 50%",
@@ -56,6 +71,7 @@ export function DeferredVideoPlayer({
   const shouldRenderCover = !isPlayerActive && (canRenderExternalEmbed || canRenderCosVideo);
   const shouldRenderUnavailable =
     (!shouldRenderCover && !shouldRenderExternalEmbed && !shouldRenderCosVideo) || hasVideoError;
+  const SourceIcon = getVideoSourceIcon(video.storageProvider);
 
   function handleActivatePlayer() {
     setIsPlayerActive(true);
@@ -81,7 +97,7 @@ export function DeferredVideoPlayer({
       {showSourceBadge ? (
         <div className="absolute left-4 top-4 z-30 sm:left-5 sm:top-5">
           <div className="inline-flex items-center gap-2 rounded-[12px] border border-white/10 bg-[rgba(10,10,11,0.86)] px-3 py-2 text-[0.78rem] font-medium tracking-[0.06em] text-foreground shadow-panel">
-            <VideoSourceIcon className="h-[0.95rem] w-[0.95rem]" platform={video.storageProvider} />
+            <SourceIcon aria-hidden="true" className="h-[0.95rem] w-[0.95rem]" />
             <span>{video.sourceLabel}</span>
           </div>
         </div>
@@ -117,7 +133,7 @@ export function DeferredVideoPlayer({
               className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[length:76px_76px] opacity-[0.10]"
             />
             <span className="absolute left-1/2 top-1/2 z-30 inline-flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition duration-200 group-hover:scale-105 group-hover:border-white/45 group-hover:bg-white group-hover:text-black max-sm:h-12 max-sm:w-12">
-              <VideoPlayIcon className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5" />
+              <VideoPlayIcon aria-hidden="true" className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5" />
             </span>
             {coverOverlayContent}
           </button>
@@ -161,26 +177,7 @@ function VideoUnavailableState() {
     <div className="flex h-full w-full items-center justify-center px-6 text-center">
       <div className="flex max-w-[22rem] flex-col items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.03] text-subtle">
-          <svg
-            aria-hidden="true"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M5.75 5.75h8.08a4.42 4.42 0 0 1 4.42 4.42v3.66a4.42 4.42 0 0 1-.66 2.32M15.2 18.25H10.17a4.42 4.42 0 0 1-4.42-4.42v-3.66c0-.99.32-1.9.86-2.64"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="1.5"
-            />
-            <path
-              d="m9.85 9.25 4.3 2.75-2.16 1.38M4.75 4.75l14.5 14.5"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-            />
-          </svg>
+          <VideoUnavailableIcon aria-hidden="true" className="h-6 w-6" />
         </div>
         <div className="space-y-1">
           <p className="text-sm font-semibold tracking-[0.02em] text-foreground">

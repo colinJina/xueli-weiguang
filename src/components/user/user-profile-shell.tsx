@@ -16,7 +16,24 @@ import { Button } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
-import { VideoSourceIcon } from "@/components/ui/video-source-icon";
+import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
+import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
+import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
+import AlertIcon from "@/components/icons/shared/alert-circle.svg";
+import EditIcon from "@/components/icons/shared/edit-16.svg";
+import ClearFilterIcon from "@/components/icons/user/clear-filter.svg";
+import CloseIcon from "@/components/icons/user/close.svg";
+import FolderActiveSvgIcon from "@/components/icons/user/folder-active.svg";
+import FolderSvgIcon from "@/components/icons/user/folder.svg";
+import GridIcon from "@/components/icons/user/grid.svg";
+import HeartIcon from "@/components/icons/user/heart.svg";
+import UserArchiveIcon from "@/components/icons/user/empty-archive.svg";
+import UserChevronLeftIcon from "@/components/icons/user/chevron-left.svg";
+import UserChevronRightIcon from "@/components/icons/user/chevron-right.svg";
+import EyeIcon from "@/components/icons/user/eye.svg";
+import ListIcon from "@/components/icons/user/list.svg";
+import PlusIcon from "@/components/icons/user/plus-20.svg";
+import SearchIcon from "@/components/icons/user/search.svg";
 import { useAuth } from "@/lib/auth/use-auth";
 import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
 import type {
@@ -42,203 +59,26 @@ type MutationResult = {
   id: string;
 };
 
-function GridIcon() {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d="M4 4h5v5H4V4Zm7 0h5v5h-5V4ZM4 11h5v5H4v-5Zm7 0h5v5h-5v-5Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
+function getVideoSourceIcon(platform: string) {
+  if (platform === "bilibili") {
+    return BilibiliSourceIcon;
+  }
 
-function ListIcon() {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d="M4 5.5h12M4 10h12M4 14.5h12"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
+  if (platform === "youtube") {
+    return YoutubeSourceIcon;
+  }
 
-function CloseIcon() {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d="m5 5 10 10M15 5 5 15"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
+  return GenericSourceIcon;
 }
 
 function SidebarChevronIcon({ direction }: { direction: "left" | "right" }) {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d={direction === "left" ? "m12 5-5 5 5 5" : "m8 5 5 5-5 5"}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d="M10 4.5v11M4.5 10h11"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <circle
-        cx="8.5"
-        cy="8.5"
-        r="4.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path
-        d="m12 12 4 4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
+  const Icon = direction === "left" ? UserChevronLeftIcon : UserChevronRightIcon;
+  return <Icon aria-hidden="true" className="h-5 w-5" />;
 }
 
 function FolderIcon({ active = false }: { active?: boolean }) {
-  return (
-    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d="M3.5 6.5c0-.95.65-1.6 1.6-1.6h3l1.3 1.35H15c.95 0 1.6.65 1.6 1.6v5.85c0 .95-.65 1.6-1.6 1.6H5.1c-.95 0-1.6-.65-1.6-1.6V6.5Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.45"
-      />
-      {active ? (
-        <path
-          d="M7.2 10.2h5.6"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="1.45"
-        />
-      ) : null}
-    </svg>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M2 8s2-3.5 6-3.5S14 8 14 8s-2 3.5-6 3.5S2 8 2 8Z"
-        stroke="currentColor"
-        strokeWidth="1.3"
-      />
-      <circle cx="8" cy="8" r="1.6" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M8 12.8S3.2 10 3.2 6.6c0-1.4 1-2.4 2.3-2.4.9 0 1.6.45 2 1.1.4-.65 1.1-1.1 2-1.1 1.3 0 2.3 1 2.3 2.4C11.8 10 8 12.8 8 12.8Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.25"
-      />
-    </svg>
-  );
-}
-
-function EditIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="m4.2 11.8 1.8-.35 5.9-5.9-1.45-1.45-5.9 5.9-.35 1.8Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.3"
-      />
-      <path
-        d="M9.8 4.8 11.2 6.2"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.3"
-      />
-    </svg>
-  );
-}
-
-function ArchiveIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-12 w-12 text-subtle"
-      fill="none"
-      viewBox="0 0 48 48"
-    >
-      <rect
-        height="24"
-        rx="5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        width="32"
-        x="8"
-        y="12"
-      />
-      <path
-        d="M15 20h18M15 26h10"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function AlertIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-4 w-4 flex-none"
-      fill="none"
-      viewBox="0 0 16 16"
-    >
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="M8 4.5v4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
+  const Icon = active ? FolderActiveSvgIcon : FolderSvgIcon;
+  return <Icon aria-hidden="true" className="h-5 w-5" />;
 }
 
 function createMembershipsForVideo(
@@ -1048,25 +888,7 @@ function FilterRow({
             onClick={onClear}
             type="button"
           >
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M3 4h10l-4 4v3l-2 1V8L3 4Z"
-                stroke="currentColor"
-                strokeLinejoin="round"
-                strokeWidth="1.3"
-              />
-              <path
-                d="m3 13 10-10"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="1.3"
-              />
-            </svg>
+            <ClearFilterIcon aria-hidden="true" className="h-4 w-4" />
             <span>清空筛选</span>
           </button>
 
@@ -1186,6 +1008,7 @@ function ArchiveCard({
   view: UserArchiveView;
 }) {
   const listView = view === "list";
+  const SourceIcon = getVideoSourceIcon(item.storageProvider);
 
   return (
     <article
@@ -1218,15 +1041,15 @@ function ArchiveCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-surface">
-            <ArchiveIcon />
+            <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
           </div>
         )}
 
         <div className="absolute bottom-2 right-2 flex min-w-0 items-end justify-end sm:bottom-3 sm:right-3">
           <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
-            <VideoSourceIcon
+            <SourceIcon
+              aria-hidden="true"
               className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
-              platform={item.storageProvider}
             />
             <span className="min-w-0 truncate">{item.sourceLabel}</span>
           </span>
@@ -1296,7 +1119,7 @@ function GuestEmptyState() {
     <section className="flex min-h-[360px] items-center justify-center rounded-xl border border-border bg-panel px-6 py-10 text-center">
       <div className="max-w-md space-y-4">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
-          <ArchiveIcon />
+          <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
         </div>
         <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
           登录后打开你的档案
@@ -1314,7 +1137,7 @@ function ArchiveEmptyState() {
     <section className="flex min-h-[360px] items-center justify-center rounded-xl border border-border bg-panel px-6 py-10 text-center">
       <div className="max-w-md space-y-4">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
-          <ArchiveIcon />
+          <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
         </div>
         <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
           当前范围暂无收藏
@@ -1326,3 +1149,4 @@ function ArchiveEmptyState() {
     </section>
   );
 }
+

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArchiveClientShell } from "@/components/archive/archive-client-shell";
 import { ArchiveFilterBar, getArchivePageHref } from "@/components/archive/archive-filter-bar";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
+import ChevronLeftIcon from "@/components/icons/archive/chevron-left.svg";
+import ChevronRightIcon from "@/components/icons/archive/chevron-right.svg";
 import { buttonVariants } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
 import { getArchiveVideos } from "@/lib/videos/get-videos";
@@ -60,7 +62,7 @@ function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pa
       className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5"
     >
       <PageLink disabled={filters.page <= 1} href={getArchivePageHref(filters, previousPage)}>
-        <ArrowIcon direction="left" />
+        <ChevronLeftIcon aria-hidden="true" className="h-4 w-4" />
         <span>上一页</span>
       </PageLink>
 
@@ -87,7 +89,7 @@ function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pa
 
       <PageLink disabled={filters.page >= pageCount} href={getArchivePageHref(filters, nextPage)}>
         <span>下一页</span>
-        <ArrowIcon direction="right" />
+        <ChevronRightIcon aria-hidden="true" className="h-4 w-4" />
       </PageLink>
     </nav>
   );
@@ -120,21 +122,3 @@ function PageLink({
   );
 }
 
-function ArrowIcon({ direction }: { direction: "left" | "right" }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-4 w-4"
-      fill="none"
-      viewBox="0 0 16 16"
-    >
-      <path
-        d={direction === "left" ? "M9.5 4.5 6 8l3.5 3.5" : "M6.5 4.5 10 8l-3.5 3.5"}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}

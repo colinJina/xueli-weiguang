@@ -5,14 +5,12 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
 import { UserMenu } from "@/components/auth/user-menu";
-import {
-  HomeArchiveIcon,
-  HomeCompassIcon,
-  HomeLoginIcon,
-  HomeProfileIcon,
-  HomeUploadIcon,
-} from "@/components/home/home-icons";
 import { createFadeUp } from "@/components/home/home-motion";
+import HomeArchiveIcon from "@/components/icons/home/archive.svg";
+import HomeCompassIcon from "@/components/icons/home/compass.svg";
+import HomeLoginIcon from "@/components/icons/home/login.svg";
+import HomeProfileIcon from "@/components/icons/home/profile.svg";
+import HomeUploadIcon from "@/components/icons/home/upload.svg";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -101,7 +99,7 @@ export function HomeHeader({
                     {item.label}
                   </span>
                   <span className="md:hidden">
-                    <NavigationIcon className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]" />
+                    <NavigationIcon aria-hidden="true" className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]" />
                   </span>
                 </Link>
               );
@@ -117,7 +115,7 @@ export function HomeHeader({
             size="sm"
             variant="ghost"
           >
-            <HomeUploadIcon className="h-[1.2rem] w-[1.2rem]" />
+            <HomeUploadIcon aria-hidden="true" className="h-[1.2rem] w-[1.2rem]" />
           </IconButton>
           {isAuthenticated && user ? (
             <div className="ml-0.5 sm:ml-1 md:ml-2">
@@ -141,7 +139,7 @@ export function HomeHeader({
                 size="sm"
                 variant="ghost"
               >
-                <HomeLoginIcon className="h-[1.1rem] w-[1.1rem]" />
+                <HomeLoginIcon aria-hidden="true" className="h-[1.1rem] w-[1.1rem]" />
               </IconButton>
               <Button
                 className="hidden gap-2 text-base md:inline-flex"
@@ -150,7 +148,7 @@ export function HomeHeader({
                 type="button"
                 variant="primary"
               >
-                <HomeLoginIcon className="h-[1.1rem] w-[1.1rem]" />
+                <HomeLoginIcon aria-hidden="true" className="h-[1.1rem] w-[1.1rem]" />
                 <span>登录</span>
               </Button>
             </div>

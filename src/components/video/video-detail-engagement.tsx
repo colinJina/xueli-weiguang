@@ -6,11 +6,9 @@ import Image from "next/image";
 import { Chip } from "@/components/ui/chip";
 import { DeferredVideoPlayer } from "@/components/video/deferred-video-player";
 import { VideoDetailActions } from "@/components/video/video-detail-actions";
-import {
-  VideoArchiveIcon,
-  VideoUserIcon,
-  VideoVisibilityIcon,
-} from "@/components/video/video-detail-icons";
+import VideoArchiveIcon from "@/components/icons/video/archive.svg";
+import VideoUserIcon from "@/components/icons/video/user.svg";
+import VideoVisibilityIcon from "@/components/icons/video/visibility-dot.svg";
 import type { FavoriteEditorVideo } from "@/components/user/favorite-editor-dialog";
 import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import type {
@@ -108,7 +106,7 @@ export function VideoDetailEngagement({ favoriteState, video }: VideoDetailEngag
                       width={20}
                     />
                   ) : (
-                    <VideoUserIcon className="h-4 w-4 text-subtle" />
+                    <VideoUserIcon aria-hidden="true" className="h-4 w-4 text-subtle" />
                   )}
                   <span>原作者 {video.authorName}</span>
                 </div>
@@ -119,7 +117,7 @@ export function VideoDetailEngagement({ favoriteState, video }: VideoDetailEngag
                 />
 
                 <div className="flex items-center gap-2">
-                  <VideoArchiveIcon className="h-4 w-4 text-subtle" />
+                  <VideoArchiveIcon aria-hidden="true" className="h-4 w-4 text-subtle" />
                   <span>
                     发布于 <span className="text-foreground">{video.publishedAtLabel}</span>
                   </span>
@@ -201,7 +199,7 @@ function ToneSwatch({ item }: { item: VideoDictionaryItem }) {
 function VisibilityPill({ label }: { label: string }) {
   return (
     <Chip size="md">
-      <VideoVisibilityIcon className="h-2.5 w-2.5 text-foreground" />
+      <VideoVisibilityIcon aria-hidden="true" className="h-2.5 w-2.5 text-foreground" />
       <span>{label}</span>
     </Chip>
   );

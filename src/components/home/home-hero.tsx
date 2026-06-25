@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import Link from "next/link";
 
-import { HomePlayIcon } from "@/components/home/home-icons";
+import HomePlayIcon from "@/components/icons/home/play.svg";
 import { DeferredVideoPlayer } from "@/components/video/deferred-video-player";
 import type { HomeHeroFeature } from "@/lib/home/types";
 
@@ -101,7 +101,7 @@ function HomeHeroFallback({
         className="absolute left-1/2 top-1/2 z-30 inline-flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition duration-200 hover:scale-105 hover:border-white/45 hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 max-sm:h-12 max-sm:w-12"
         href={displayHero.href}
       >
-        <HomePlayIcon className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5" />
+        <HomePlayIcon aria-hidden="true" className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5" />
       </Link>
       <div
         aria-hidden="true"
