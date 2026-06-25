@@ -8,8 +8,8 @@ import type {
   HomeCardLayout,
   HomeCardVisual,
 } from "@/components/home/home-content";
-import { HomeImageIcon } from "@/components/home/home-icons";
 import { hoverTransition } from "@/components/home/home-motion";
+import HomeImageIcon from "@/components/icons/home/image.svg";
 import { cn } from "@/lib/utils";
 
 type HomeMediaCardProps = {
@@ -49,7 +49,7 @@ function CardVisual({ visual }: { visual: HomeCardVisual }) {
       <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(220,220,216,0.28)),#f1f1ee]">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))]" />
         <div className="absolute inset-0 grid place-items-center text-black/35">
-          <HomeImageIcon />
+          <HomeImageIcon aria-hidden="true" className="h-6 w-6" />
         </div>
       </div>
     );

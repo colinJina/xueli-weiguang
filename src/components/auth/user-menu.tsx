@@ -5,6 +5,9 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
+import ChevronDownIcon from "@/components/icons/auth/chevron-down.svg";
+import LogoutIcon from "@/components/icons/auth/logout.svg";
+import ProfileIcon from "@/components/icons/auth/profile.svg";
 import { cn } from "@/lib/utils";
 
 type UserMenuProps = {
@@ -17,54 +20,6 @@ type DropdownPosition = {
   top: number;
   right: number;
 };
-
-function ChevronDownIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3 w-3" fill="none" viewBox="0 0 12 12">
-      <path
-        d="m3 4.5 3 3 3-3"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function LogoutIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M10 3.5H4.5A1.5 1.5 0 0 0 3 5v6a1.5 1.5 0 0 0 1.5 1.5H10"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.3"
-      />
-      <path
-        d="M8 8h6m0 0-2.5-2.5M14 8l-2.5 2.5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.3"
-      />
-    </svg>
-  );
-}
-
-function ProfileIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="M3 13.2c.9-2 2.7-3 5-3s4.1 1 5 3"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.3"
-      />
-    </svg>
-  );
-}
 
 function deriveInitial(user: User): string {
   const source = user.email ?? user.user_metadata?.name ?? user.id;
@@ -221,3 +176,4 @@ export function UserMenu({ user, onLogout, variant = "compact" }: UserMenuProps)
     </div>
   );
 }
+

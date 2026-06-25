@@ -5,6 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
+import ArrowRightIcon from "@/components/icons/auth/arrow-right.svg";
+import LockIcon from "@/components/icons/auth/lock.svg";
+import MailIcon from "@/components/icons/auth/mail.svg";
+import AlertIcon from "@/components/icons/shared/alert-circle.svg";
+import CheckIcon from "@/components/icons/shared/check-circle.svg";
 import { TextField } from "@/components/ui/text-field";
 import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth/translate-error";
@@ -35,63 +40,6 @@ const registerCopy: Record<RegisterStep, { title: string; description: string }>
     description: "请输入邮箱里收到的 6 位验证码，验证通过后即可完成注册。",
   },
 };
-
-function AlertIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="m5.5 8 1.8 1.8L10.8 6.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function MailIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <rect height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" width="12" x="2" y="3.5" />
-      <path d="m2.5 4.5 5.5 4 5.5-4" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <rect height="7" rx="1.4" stroke="currentColor" strokeWidth="1.3" width="10" x="3" y="7" />
-      <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function ArrowRightIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M3 8h10m0 0-4-4m4 4-4 4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
 
 function ModeTab({
   active,
@@ -474,3 +422,4 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
     </DialogShell>
   );
 }
+

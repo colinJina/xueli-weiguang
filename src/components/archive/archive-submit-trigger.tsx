@@ -1,25 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import SubmitPlusIcon from "@/components/icons/shared/plus-16.svg";
 
 type ArchiveSubmitTriggerProps = {
   isAuthenticated: boolean;
   onRequestLogin: () => void;
   onRequestSubmit: () => void;
 };
-
-function PlusIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M8 3.5v9M3.5 8h9"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
-}
 
 export function ArchiveSubmitTrigger({
   isAuthenticated,
@@ -43,7 +31,7 @@ export function ArchiveSubmitTrigger({
       type="button"
       variant="pill"
     >
-      <PlusIcon />
+      <SubmitPlusIcon aria-hidden="true" className="h-4 w-4" />
       <span>推荐投稿</span>
     </Button>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { HomeBrandMark } from "@/components/home/home-icons";
+import HomeBrandMarkIcon from "@/components/icons/home/brand-mark.svg";
 import { cn } from "@/lib/utils";
 
 type SiteBrandProps = {
@@ -32,7 +32,7 @@ export function SiteBrand({
           markClassName,
         )}
       >
-        <HomeBrandMark className="h-5 w-5" />
+        <HomeBrandMarkIcon aria-hidden="true" className="h-5 w-5" />
       </span>
 
       <span className="flex min-w-0 flex-col gap-0.5">

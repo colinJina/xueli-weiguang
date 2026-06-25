@@ -11,11 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
-import {
-  VideoBookmarkIcon,
-  VideoHeartIcon,
-  VideoShareIcon,
-} from "@/components/video/video-detail-icons";
+import StatusAlertIcon from "@/components/icons/shared/alert-circle.svg";
+import VideoBookmarkIcon from "@/components/icons/video/bookmark.svg";
+import VideoHeartIcon from "@/components/icons/video/heart.svg";
+import VideoHeartFilledIcon from "@/components/icons/video/heart-filled.svg";
+import VideoActionLoadingIcon from "@/components/icons/video/loading-spinner.svg";
+import VideoShareIcon from "@/components/icons/video/share.svg";
 import { useAuth } from "@/lib/auth/use-auth";
 import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import { formatCompactNumber } from "@/lib/videos/metrics";
@@ -24,7 +25,6 @@ import type {
   VideoLikeResponse,
   VideoStorageProvider,
 } from "@/lib/videos/types";
-import { cn } from "@/lib/utils";
 
 type VideoDetailActionsProps = {
   likeCount: number;
@@ -35,31 +35,6 @@ type VideoDetailActionsProps = {
   storageProvider: VideoStorageProvider;
   videoId: string;
 };
-
-function AlertIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
-}
-
-function LoadingIcon() {
-  return (
-    <svg aria-hidden="true" className="h-[1.05rem] w-[1.05rem] animate-spin" fill="none" viewBox="0 0 20 20">
-      <circle className="opacity-25" cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        className="opacity-80"
-        d="M17 10a7 7 0 0 0-7-7"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
 
 async function readLikeResponse(response: Response) {
   const payload = (await response.json().catch(() => null)) as
@@ -206,9 +181,13 @@ export function VideoDetailActions({
       variant={liked ? "pillActive" : "pill"}
     >
       {isPending ? (
-        <LoadingIcon />
+        <VideoActionLoadingIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem] animate-spin" />
       ) : (
-        <VideoHeartIcon className={cn("h-[1.05rem] w-[1.05rem]", liked && "[&_path]:fill-current")} />
+        liked ? (
+          <VideoHeartFilledIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+        ) : (
+          <VideoHeartIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+        )
       )}
       <span>{likeCountLabel}</span>
     </Button>
@@ -221,7 +200,7 @@ export function VideoDetailActions({
       type="button"
       variant="pill"
     >
-      <VideoHeartIcon className="h-[1.05rem] w-[1.05rem]" />
+      <VideoHeartIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
       <span>{likeCountLabel}</span>
     </Button>
   );
@@ -232,17 +211,17 @@ export function VideoDetailActions({
         {likeButton}
 
         <Button className="gap-2 font-medium" onClick={handleFavoriteClick} size="md" type="button" variant="pill">
-          <VideoBookmarkIcon className="h-[1.05rem] w-[1.05rem]" />
+          <VideoBookmarkIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
           <span>收藏与标签</span>
         </Button>
 
         <IconButton aria-label="分享" type="button">
-          <VideoShareIcon className="h-[1.05rem] w-[1.05rem]" />
+          <VideoShareIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
         </IconButton>
       </div>
 
       {errorMessage ? (
-        <FormMessage className="lg:max-w-[20rem]" icon={<AlertIcon />} variant="error">
+        <FormMessage className="lg:max-w-[20rem]" icon={<StatusAlertIcon aria-hidden="true" className="h-4 w-4 flex-none" />} variant="error">
           {errorMessage}
         </FormMessage>
       ) : null}

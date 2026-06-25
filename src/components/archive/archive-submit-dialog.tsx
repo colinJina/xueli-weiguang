@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
+import ImageIcon from "@/components/icons/archive/image-file.svg";
+import LinkIcon from "@/components/icons/archive/link.svg";
+import LockIcon from "@/components/icons/archive/lock.svg";
+import RetryIcon from "@/components/icons/archive/retry.svg";
+import UploadIcon from "@/components/icons/archive/upload.svg";
+import VideoIcon from "@/components/icons/archive/video-file.svg";
+import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
+import SuccessIcon from "@/components/icons/shared/check-circle.svg";
+import WarningIcon from "@/components/icons/shared/alert-circle.svg";
 import {
   ImageCropDialog,
   type CroppedImageResult,
@@ -45,151 +54,6 @@ type UploadProgressInfo = {
 
 const TITLE_MAX_LENGTH = 80;
 const DESCRIPTION_MAX_LENGTH = 500;
-
-function LinkIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M7 4H4.5A2.5 2.5 0 0 0 2 6.5v3A2.5 2.5 0 0 0 4.5 12H7"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-      <path
-        d="M9 12h2.5A2.5 2.5 0 0 0 14 9.5v-3A2.5 2.5 0 0 0 11.5 4H9"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-      <path d="M5.5 8h5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
-function UploadIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="M8 11V3.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
-      <path
-        d="M5.1 6.3 8 3.4l2.9 2.9"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M3.3 10.4v1.1A2.2 2.2 0 0 0 5.5 13.7h5a2.2 2.2 0 0 0 2.2-2.2v-1.1"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function VideoIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <rect height="8.5" rx="1.8" stroke="currentColor" strokeWidth="1.35" width="10" x="2" y="3.8" />
-      <path
-        d="m12 6.2 2-1.1v5.8l-2-1.1"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.35"
-      />
-    </svg>
-  );
-}
-
-function ImageIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <rect height="10" rx="1.8" stroke="currentColor" strokeWidth="1.35" width="11" x="2.5" y="3" />
-      <circle cx="6" cy="6.3" r="1" fill="currentColor" />
-      <path
-        d="m3.2 11 3-2.9 2.1 1.8 1.5-1.4 3 2.6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.35"
-      />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <rect height="7" rx="1.7" stroke="currentColor" strokeWidth="1.35" width="9" x="3.5" y="7" />
-      <path
-        d="M5.5 7V5.5A2.5 2.5 0 0 1 8 3a2.5 2.5 0 0 1 2.5 2.5V7"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.35"
-      />
-    </svg>
-  );
-}
-
-function RetryIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M12.5 5.2A5 5 0 1 0 13 9"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-      <path
-        d="M12.8 2.8v2.7h-2.7"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function SpinnerIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.4" />
-      <path
-        d="M13.5 8A5.5 5.5 0 0 0 8 2.5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function SuccessIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="m5.5 8 1.8 1.8L10.8 6.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-function WarningIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
-}
 
 function StatusNotice({
   status,
@@ -996,3 +860,4 @@ export function ArchiveSubmitDialog({
     </DialogShell>
   );
 }
+

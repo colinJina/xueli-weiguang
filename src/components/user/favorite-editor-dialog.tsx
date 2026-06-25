@@ -7,7 +7,15 @@ import { chipVariants } from "@/components/ui/chip";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
 import { TextField } from "@/components/ui/text-field";
-import { VideoSourceIcon } from "@/components/ui/video-source-icon";
+import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
+import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
+import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
+import AlertIcon from "@/components/icons/shared/alert-circle.svg";
+import CheckIcon from "@/components/icons/shared/check-circle.svg";
+import PlusIcon from "@/components/icons/shared/plus-16.svg";
+import SaveIcon from "@/components/icons/shared/save-check.svg";
+import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
+import TrashIcon from "@/components/icons/shared/trash-16.svg";
 import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
 import type {
   UserArchiveCollectionSummary,
@@ -45,75 +53,16 @@ type NoticeState = {
   message: string;
 };
 
-function AlertIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
-}
+function getVideoSourceIcon(platform: string) {
+  if (platform === "bilibili") {
+    return BilibiliSourceIcon;
+  }
 
-function CheckIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path
-        d="m5.5 8 1.8 1.8L10.8 6.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
+  if (platform === "youtube") {
+    return YoutubeSourceIcon;
+  }
 
-function SpinnerIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.4" />
-      <path d="M13.5 8A5.5 5.5 0 0 0 8 2.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="M8 3.2v9.6M3.2 8h9.6" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="M3.5 5h9" stroke="currentColor" strokeLinecap="round" strokeWidth="1.35" />
-      <path d="M6.5 5V3.6h3V5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.35" />
-      <path
-        d="M5 6.8v5A1.6 1.6 0 0 0 6.6 13.4h2.8A1.6 1.6 0 0 0 11 11.8v-5"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.35"
-      />
-    </svg>
-  );
-}
-
-function SaveIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M3.4 8.2 6.6 11.4 12.8 4.8"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
+  return GenericSourceIcon;
 }
 
 function Notice({ notice }: { notice: NoticeState }) {
@@ -152,6 +101,7 @@ export function FavoriteEditorDialog({
   const [newTagName, setNewTagName] = useState("");
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const SourceIcon = getVideoSourceIcon(video.storageProvider);
 
   useEffect(() => {
     if (!open) {
@@ -404,7 +354,7 @@ export function FavoriteEditorDialog({
                   {video.title}
                 </p>
                 <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-subtle">
-                  <VideoSourceIcon className="h-3.5 w-3.5" platform={video.storageProvider} />
+                  <SourceIcon aria-hidden="true" className="h-3.5 w-3.5" />
                   {video.sourceLabel}
                 </p>
               </div>
@@ -581,3 +531,4 @@ export function FavoriteEditorDialog({
     </DialogShell>
   );
 }
+

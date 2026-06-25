@@ -7,6 +7,12 @@ import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
 import { TextField } from "@/components/ui/text-field";
+import AlertIcon from "@/components/icons/shared/alert-circle.svg";
+import CheckIcon from "@/components/icons/shared/check-circle.svg";
+import EditIcon from "@/components/icons/shared/edit-16.svg";
+import PlusIcon from "@/components/icons/shared/plus-16.svg";
+import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
+import TrashIcon from "@/components/icons/shared/trash-16.svg";
 import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
 import type { UserArchiveTagSummary } from "@/lib/user-archive/types";
 
@@ -25,66 +31,6 @@ type NoticeState = {
   variant: "error" | "success" | "loading";
   message: string;
 };
-
-function PlusIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="M8 3.2v9.6M3.2 8h9.6" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-function EditIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="m4.2 11.8 1.8-.35 5.9-5.9-1.45-1.45-5.9 5.9-.35 1.8Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.3" />
-      <path d="M9.8 4.8 11.2 6.2" stroke="currentColor" strokeLinecap="round" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 16 16">
-      <path d="M3.5 5h9" stroke="currentColor" strokeLinecap="round" strokeWidth="1.35" />
-      <path d="M6.5 5V3.6h3V5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.35" />
-      <path
-        d="M5 6.8v5A1.6 1.6 0 0 0 6.6 13.4h2.8A1.6 1.6 0 0 0 11 11.8v-5"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.35"
-      />
-    </svg>
-  );
-}
-
-function AlertIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 4.5v4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-      <circle cx="8" cy="11.2" r="0.7" fill="currentColor" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 flex-none" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="m5.5 8 1.8 1.8L10.8 6.4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
-function SpinnerIcon() {
-  return (
-    <svg aria-hidden="true" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.4" />
-      <path d="M13.5 8A5.5 5.5 0 0 0 8 2.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.4" />
-    </svg>
-  );
-}
 
 function Notice({ notice }: { notice: NoticeState }) {
   const icon =
@@ -334,3 +280,4 @@ export function UserTagManagerDialog({
     </DialogShell>
   );
 }
+
