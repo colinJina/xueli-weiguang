@@ -1,3 +1,5 @@
+import type { ExternalStorageProvider } from "@/lib/storage/types";
+
 import {
   BilibiliUrlError,
   parseBilibiliUrl,
@@ -7,7 +9,7 @@ import {
   YouTubeUrlError,
 } from "../youtube/parse-youtube-url";
 
-export type ExternalVideoPlatform = "bilibili" | "youtube";
+export type ExternalVideoPlatform = ExternalStorageProvider;
 
 export type ParsedExternalVideoUrl = {
   platform: ExternalVideoPlatform;

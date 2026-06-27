@@ -1,13 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { EXTERNAL_STORAGE_PROVIDERS } from "@/lib/storage/types";
 import {
   EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT,
   EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT,
   type CreateSubmissionInput,
   type SubmissionInsertResult,
 } from "./types";
-
-const EXTERNAL_LINK_STORAGE_PROVIDERS = ["bilibili", "youtube"] as const;
 
 export class DuplicateSubmissionError extends Error {
   constructor(message: string) {
@@ -77,7 +76,7 @@ async function ensureExternalLinkSubmissionQuota(
         .from("submissions")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .in("storage_provider", [...EXTERNAL_LINK_STORAGE_PROVIDERS])
+        .in("storage_provider", [...EXTERNAL_STORAGE_PROVIDERS])
         .eq("status", "pending"),
     ),
     countSubmissions(
@@ -85,7 +84,7 @@ async function ensureExternalLinkSubmissionQuota(
         .from("submissions")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .in("storage_provider", [...EXTERNAL_LINK_STORAGE_PROVIDERS])
+        .in("storage_provider", [...EXTERNAL_STORAGE_PROVIDERS])
         .gte("created_at", since),
     ),
   ]);

@@ -1,7 +1,9 @@
 import type {
   CosUploadCredential,
+  ExternalStorageProvider,
   NativeCoverMimeType,
   NativeVideoMimeType,
+  StorageProvider,
 } from "@/lib/storage/types";
 
 export const NATIVE_PENDING_SUBMISSION_LIMIT = 3;
@@ -12,7 +14,7 @@ export const EXTERNAL_LINK_SUBMISSION_BODY_LIMIT_BYTES = 4 * 1024;
 export const NATIVE_SUBMISSION_BODY_LIMIT_BYTES = 16 * 1024;
 export const SUBMISSION_SOURCE_URL_MAX_LENGTH = 2048;
 
-export type ExternalSubmissionPlatform = "bilibili" | "youtube";
+export type ExternalSubmissionPlatform = ExternalStorageProvider;
 
 export type NativeSubmissionErrorCode =
   | "UNAUTHENTICATED"
@@ -102,7 +104,7 @@ export type CreateSubmissionInput = {
 export type SubmissionInsertResult = {
   id: string;
   status: string;
-  storage_provider: string;
+  storage_provider: StorageProvider;
   external_id: string;
   created_at: string;
 };

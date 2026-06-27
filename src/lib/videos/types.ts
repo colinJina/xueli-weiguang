@@ -1,3 +1,5 @@
+import type { StorageProvider } from "@/lib/storage/types";
+
 export type VideoDictionaryItem = {
   id: string;
   name: string;
@@ -10,7 +12,7 @@ export type VideoDictionaryRow = {
   color_hex?: string | null;
 };
 
-export type VideoStorageProvider = "bilibili" | "youtube" | "cos";
+export type VideoStorageProvider = StorageProvider;
 
 export type VideoBaseRow = {
   id: string;
