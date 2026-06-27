@@ -12,6 +12,18 @@ const nextConfig: NextConfig = {
         hostname: "**.hdslb.com",
         protocol: "http",
       },
+      {
+        hostname: "yt3.ggpht.com",
+        protocol: "https",
+      },
+      {
+        hostname: "**.googleusercontent.com",
+        protocol: "https",
+      },
+      {
+        hostname: "i.ytimg.com",
+        protocol: "https",
+      },
     ],
   },
   webpack(config) {
