@@ -60,22 +60,24 @@ export function getArchivePageHref(filters: ArchiveFilters, page: number) {
 export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps) {
   return (
     <div className="grid gap-4 overflow-hidden border-b border-white/[0.06] py-[14px] pb-5 lg:grid-cols-2 lg:gap-8">
-      <FilterRow label="类型">
-        <FilterLink
-          active={!filters.categoryId}
-          href={buildArchiveHref(filters, { categoryId: null })}
-        >
-          全部
-        </FilterLink>
-        {categories.map((category) => (
+      <FilterRow contentClassName="w-full max-w-full lg:w-[34rem]" label="类型" scrollable>
+        <div className="inline-flex min-w-max items-center gap-2.5 pr-1">
           <FilterLink
-            active={filters.categoryId === category.id}
-            href={buildArchiveHref(filters, { categoryId: category.id })}
-            key={category.id}
+            active={!filters.categoryId}
+            href={buildArchiveHref(filters, { categoryId: null })}
           >
-            {category.name}
+            全部
           </FilterLink>
-        ))}
+          {categories.map((category) => (
+            <FilterLink
+              active={filters.categoryId === category.id}
+              href={buildArchiveHref(filters, { categoryId: category.id })}
+              key={category.id}
+            >
+              {category.name}
+            </FilterLink>
+          ))}
+        </div>
       </FilterRow>
 
       <FilterRow align="end" label="色调">
@@ -118,11 +120,15 @@ export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps)
 function FilterRow({
   align = "start",
   children,
+  contentClassName,
   label,
+  scrollable = false,
 }: {
   align?: "start" | "end";
   children: ReactNode;
+  contentClassName?: string;
   label: string;
+  scrollable?: boolean;
 }) {
   return (
     <div
@@ -136,7 +142,11 @@ function FilterRow({
       </p>
       <div
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden pb-0.5 max-md:w-full max-md:flex-wrap",
+          "min-w-0 flex-1 pb-0.5 max-md:w-full",
+          scrollable
+            ? "overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            : "flex items-center gap-2.5 overflow-hidden max-md:flex-wrap",
+          contentClassName,
           align === "end" && "lg:flex-none lg:justify-end",
         )}
       >
