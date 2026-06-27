@@ -1,11 +1,7 @@
 import { createPublicClient } from "@/lib/supabase/public";
-import { serializeDictionaryItem, serializeVideoDetail } from "@/lib/videos/serialize-video";
-import type {
-  VideoBaseRow,
-  VideoDetail,
-  VideoDictionaryItem,
-  VideoDictionaryRow,
-} from "@/lib/videos/types";
+import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
+import { serializeVideoDetail } from "@/lib/videos/serialize-video";
+import type { VideoBaseRow, VideoDetail, VideoDictionaryItem } from "@/lib/videos/types";
 
 type RelationRow = {
   tag_id?: string;
@@ -39,26 +35,11 @@ export async function getVideoById(id: string): Promise<VideoDetail | null> {
   }
 
   const row = data as VideoBaseRow;
-  const [categoriesResult, tagsResult, tonesResult, tagRowsResult, toneRowsResult] =
-    await Promise.all([
-      supabase.from("categories").select("id,name"),
-      supabase.from("tags").select("id,name"),
-      supabase.from("tones").select("id,name,color_hex"),
-      supabase.from("video_tags").select("tag_id").eq("video_id", row.id),
-      supabase.from("video_tones").select("tone_id").eq("video_id", row.id),
-    ]);
-
-  if (categoriesResult.error) {
-    throw new Error(categoriesResult.error.message);
-  }
-
-  if (tagsResult.error) {
-    throw new Error(tagsResult.error.message);
-  }
-
-  if (tonesResult.error) {
-    throw new Error(tonesResult.error.message);
-  }
+  const [dictionaries, tagRowsResult, toneRowsResult] = await Promise.all([
+    getVideoDictionaries(),
+    supabase.from("video_tags").select("tag_id").eq("video_id", row.id),
+    supabase.from("video_tones").select("tone_id").eq("video_id", row.id),
+  ]);
 
   if (tagRowsResult.error) {
     throw new Error(tagRowsResult.error.message);
@@ -68,15 +49,9 @@ export async function getVideoById(id: string): Promise<VideoDetail | null> {
     throw new Error(toneRowsResult.error.message);
   }
 
-  const categoryMap = createDictionaryMap(
-    ((categoriesResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
-  );
-  const tagMap = createDictionaryMap(
-    ((tagsResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
-  );
-  const toneMap = createDictionaryMap(
-    ((tonesResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
-  );
+  const categoryMap = createDictionaryMap(dictionaries.categories);
+  const tagMap = createDictionaryMap(dictionaries.tags);
+  const toneMap = createDictionaryMap(dictionaries.tones);
   const tags = ((tagRowsResult.data ?? []) as RelationRow[])
     .map((relation) => (relation.tag_id ? tagMap.get(relation.tag_id) : null))
     .filter((tag): tag is VideoDictionaryItem => Boolean(tag));

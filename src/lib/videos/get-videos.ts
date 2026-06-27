@@ -1,5 +1,6 @@
 import { createPublicClient } from "@/lib/supabase/public";
-import { serializeDictionaryItem, serializeArchiveVideo } from "@/lib/videos/serialize-video";
+import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
+import { serializeArchiveVideo } from "@/lib/videos/serialize-video";
 import { getToneFilterOption, getToneFilterOptions } from "@/lib/videos/tone-options";
 import type {
   ArchiveDictionaries,
@@ -7,7 +8,6 @@ import type {
   ArchiveVideosResult,
   VideoBaseRow,
   VideoDictionaryItem,
-  VideoDictionaryRow,
 } from "@/lib/videos/types";
 
 export const ARCHIVE_PAGE_SIZE = 24;
@@ -75,32 +75,6 @@ export function parseArchiveFilters(searchParams: SearchParamsInput): ArchiveFil
     tagIds: parseIdList(searchParams.tags),
     toneKeys: parseToneKeyList(searchParams.tones),
     page: safePage,
-  };
-}
-
-async function listDictionaries(supabase: PublicSupabaseClient): Promise<ArchiveDictionaries> {
-  const [categoriesResult, tagsResult, tonesResult] = await Promise.all([
-    supabase.from("categories").select("id,name").order("sort_order", { ascending: true }),
-    supabase.from("tags").select("id,name").order("name", { ascending: true }),
-    supabase.from("tones").select("id,name,color_hex").order("name", { ascending: true }),
-  ]);
-
-  if (categoriesResult.error) {
-    throw new Error(categoriesResult.error.message);
-  }
-
-  if (tagsResult.error) {
-    throw new Error(tagsResult.error.message);
-  }
-
-  if (tonesResult.error) {
-    throw new Error(tonesResult.error.message);
-  }
-
-  return {
-    categories: ((categoriesResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
-    tags: ((tagsResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
-    tones: ((tonesResult.data ?? []) as VideoDictionaryRow[]).map(serializeDictionaryItem),
   };
 }
 
@@ -210,7 +184,7 @@ export async function getArchiveVideos(
 ): Promise<ArchiveVideosResult> {
   const supabase = createPublicClient();
   const filters = parseArchiveFilters(rawSearchParams);
-  const dictionaries = await listDictionaries(supabase);
+  const dictionaries = await getVideoDictionaries();
   const selectedToneOptions = getToneFilterOptions(filters.toneKeys);
   const selectedToneIds = getToneIdsForFilter(dictionaries.tones, filters.toneKeys);
 
