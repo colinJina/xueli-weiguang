@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { ArchiveHorizontalWheelScroll } from "@/components/archive/archive-horizontal-wheel-scroll";
 import { TONE_FILTER_OPTIONS } from "@/lib/videos/tone-options";
 import type { ArchiveFilters, VideoDictionaryItem } from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
@@ -130,6 +131,15 @@ function FilterRow({
   label: string;
   scrollable?: boolean;
 }) {
+  const contentClassNameValue = cn(
+    "min-w-0 flex-1 pb-0.5 max-md:w-full",
+    scrollable
+      ? "overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      : "flex items-center gap-2.5 overflow-hidden max-md:flex-wrap",
+    contentClassName,
+    align === "end" && "lg:flex-none lg:justify-end",
+  );
+
   return (
     <div
       className={cn(
@@ -140,18 +150,13 @@ function FilterRow({
       <p className="mt-2 shrink-0 font-sans text-[0.68rem] tracking-[0.18em] text-subtle">
         {label}
       </p>
-      <div
-        className={cn(
-          "min-w-0 flex-1 pb-0.5 max-md:w-full",
-          scrollable
-            ? "overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            : "flex items-center gap-2.5 overflow-hidden max-md:flex-wrap",
-          contentClassName,
-          align === "end" && "lg:flex-none lg:justify-end",
-        )}
-      >
-        {children}
-      </div>
+      {scrollable ? (
+        <ArchiveHorizontalWheelScroll className={contentClassNameValue}>
+          {children}
+        </ArchiveHorizontalWheelScroll>
+      ) : (
+        <div className={contentClassNameValue}>{children}</div>
+      )}
     </div>
   );
 }
