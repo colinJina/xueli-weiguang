@@ -36,6 +36,7 @@ import PlusIcon from "@/components/icons/user/plus-20.svg";
 import SearchIcon from "@/components/icons/user/search.svg";
 import { useAuth } from "@/lib/auth/use-auth";
 import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
+import { COLLECTION_NAME_MAX_LENGTH } from "@/lib/user-archive/limits";
 import type {
   UserArchiveItem,
   UserArchivePageData,
@@ -514,7 +515,7 @@ function SidebarContent({
             <GridIcon />
           </IconButton>
 
-          <div className="min-h-0 w-full flex-1 overflow-y-auto px-1">
+          <div className="min-h-0 w-full flex-1 overflow-y-auto px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <div className="space-y-2">
               {data.collections.map((collection) => (
                 <IconButton
@@ -591,7 +592,7 @@ function SidebarContent({
           <p className="px-3 font-sans text-xs uppercase tracking-[0.18em] text-subtle">
             收藏夹
           </p>
-          <div className="mt-4 min-h-[140px] flex-1 space-y-2 overflow-y-auto pr-1">
+          <div className="mt-4 min-h-[140px] flex-1 space-y-2 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {data.collections.map((collection) => (
               <button
                 aria-pressed={collection.active}
@@ -732,7 +733,7 @@ function CreateCollectionForm({ onCreated }: { onCreated: () => void }) {
         <input
           className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-foreground outline-none transition placeholder:text-subtle focus:border-borderStrong"
           disabled={submitting}
-          maxLength={80}
+          maxLength={COLLECTION_NAME_MAX_LENGTH}
           onChange={(event) => setName(event.target.value)}
           placeholder="收藏夹名称"
           value={name}
@@ -935,7 +936,7 @@ function FilterRow({
         />
       </div>
 
-      <div className="flex max-h-[104px] min-h-11 min-w-0 flex-wrap items-start gap-2 overflow-y-auto pr-1">
+      <div className="flex max-h-[104px] min-h-11 min-w-0 flex-wrap items-start gap-2 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {sortedTags.map((tag) => (
           <button
             className={chipVariants({

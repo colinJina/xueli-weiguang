@@ -14,6 +14,7 @@ import PlusIcon from "@/components/icons/shared/plus-16.svg";
 import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import TrashIcon from "@/components/icons/shared/trash-16.svg";
 import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
+import { TAG_NAME_MAX_LENGTH } from "@/lib/user-archive/limits";
 import type { UserArchiveTagSummary } from "@/lib/user-archive/types";
 
 type MutationResult = {
@@ -195,7 +196,7 @@ export function UserTagManagerDialog({
         <TextField
           disabled={isSubmitting}
           label="新建标签"
-          maxLength={40}
+          maxLength={TAG_NAME_MAX_LENGTH}
           onChange={(event) => setNewTagName(event.target.value)}
           placeholder="输入标签名"
           value={newTagName}
@@ -217,7 +218,7 @@ export function UserTagManagerDialog({
                 <input
                   className="h-10 min-w-0 flex-1 rounded-md border border-border bg-panel px-3 text-sm text-foreground outline-none focus:border-borderStrong"
                   disabled={isSubmitting}
-                  maxLength={40}
+                  maxLength={TAG_NAME_MAX_LENGTH}
                   onChange={(event) => setEditingName(event.target.value)}
                   value={editingName}
                 />
