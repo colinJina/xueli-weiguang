@@ -34,6 +34,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
   const visibleTags = item.tags.slice(0, 4);
   const visibleTones = item.tones.filter((tone) => tone.colorHex).slice(0, 4);
   const SourceIcon = getVideoSourceIcon(item.storageProvider);
+  const hasMetaGroup = visibleTags.length > 0 || visibleTones.length > 0;
 
   return (
     <Link
@@ -85,22 +86,27 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
           <h2 className="min-h-[2.6rem] line-clamp-2 text-[1.1rem] font-bold leading-[1.18] tracking-[-0.04em] text-foreground transition duration-200 group-hover:text-white">
             {item.title}
           </h2>
-          <div className="flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch">
-            <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-              {visibleTags.map((tag) => (
-                <span
-                  className="inline-flex items-center rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-[5px] text-[0.72rem] text-subtle"
-                  key={`${tag.id}-${tag.name}`}
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
+        </div>
+
+        {hasMetaGroup ? (
+          <div className="mt-auto flex flex-col items-end gap-2.5">
+            {visibleTags.length > 0 ? (
+              <div className="flex w-full flex-wrap gap-2">
+                {visibleTags.map((tag) => (
+                  <span
+                    className="inline-flex items-center rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-[5px] text-[0.72rem] text-subtle"
+                    key={`${tag.id}-${tag.name}`}
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
 
             {visibleTones.length > 0 ? (
               <div
-                className="flex shrink-0 items-center gap-2 pt-0.5"
                 aria-label="视频色调"
+                className="flex w-full items-center justify-end gap-2 pt-0.5"
               >
                 {visibleTones.map((tone) => (
                   <ToneSwatch item={tone} key={`${tone.id}-${tone.name}`} />
@@ -108,9 +114,15 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
               </div>
             ) : null}
           </div>
-        </div>
+        ) : null}
 
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/[0.05] pt-3">
+        <div
+          className={
+            hasMetaGroup
+              ? "flex items-center justify-between gap-3 border-t border-white/[0.05] pt-3"
+              : "mt-auto flex items-center justify-between gap-3 border-t border-white/[0.05] pt-3"
+          }
+        >
           <span className="min-w-0 truncate font-sans text-[0.72rem] uppercase tracking-[0.08em] text-subtle">
             {item.authorName}
           </span>
