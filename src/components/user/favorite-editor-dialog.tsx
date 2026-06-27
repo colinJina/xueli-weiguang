@@ -17,6 +17,10 @@ import SaveIcon from "@/components/icons/shared/save-check.svg";
 import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import TrashIcon from "@/components/icons/shared/trash-16.svg";
 import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
+import {
+  COLLECTION_NAME_MAX_LENGTH,
+  TAG_NAME_MAX_LENGTH,
+} from "@/lib/user-archive/limits";
 import type {
   UserArchiveCollectionSummary,
   UserArchiveTagSummary,
@@ -406,6 +410,7 @@ export function FavoriteEditorDialog({
               className="h-10"
               disabled={isSubmitting}
               label="新建收藏夹"
+              maxLength={COLLECTION_NAME_MAX_LENGTH}
               onChange={(event) => setNewCollectionName(event.target.value)}
               placeholder="例如：动态图形"
               value={newCollectionName}
@@ -489,7 +494,7 @@ export function FavoriteEditorDialog({
                 className="h-10"
                 disabled={isSubmitting}
                 label="新建标签"
-                maxLength={40}
+                maxLength={TAG_NAME_MAX_LENGTH}
                 onChange={(event) => setNewTagName(event.target.value)}
                 placeholder="输入标签名"
                 value={newTagName}
