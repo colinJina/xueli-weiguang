@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { normalizeStorageProvider } from "@/lib/storage/types";
 import { resolveCosPublicUrl } from "@/lib/storage/cos/public-url";
 import {
   parseUserArchiveFilters,
@@ -99,14 +100,6 @@ function normalizeMediaUrl(value: string | null) {
   }
 
   return value.startsWith("http://") ? `https://${value.slice("http://".length)}` : value;
-}
-
-function normalizeStorageProvider(value: string | null | undefined): VideoStorageProvider {
-  if (value === "youtube" || value === "cos") {
-    return value;
-  }
-
-  return "bilibili";
 }
 
 function resolvePublicMediaUrl(

@@ -1,3 +1,4 @@
+import { normalizeStorageProvider } from "@/lib/storage/types";
 import { resolveCosPublicUrl } from "@/lib/storage/cos/public-url";
 import { formatCompactNumber, toMetricNumber } from "@/lib/videos/metrics";
 import { normalizeToneColorHex } from "@/lib/videos/tone-options";
@@ -19,7 +20,7 @@ type VideoRelations = {
   tones: VideoDictionaryItem[];
 };
 
-const sourceLabels: Record<string, string> = {
+const sourceLabels: Record<VideoStorageProvider, string> = {
   bilibili: "Bilibili",
   cos: "原创",
   youtube: "YouTube",
@@ -45,16 +46,8 @@ export function formatPublishedDate(value: string | null) {
   }).format(date);
 }
 
-function getSourceLabel(platform: string) {
+function getSourceLabel(platform: VideoStorageProvider) {
   return sourceLabels[platform] ?? platform;
-}
-
-function normalizeStorageProvider(value: string | null | undefined): VideoStorageProvider {
-  if (value === "youtube" || value === "cos") {
-    return value;
-  }
-
-  return "bilibili";
 }
 
 function getFallbackCategory(category: VideoDictionaryItem | null): VideoDictionaryItem {
