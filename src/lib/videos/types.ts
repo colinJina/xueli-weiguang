@@ -4,12 +4,32 @@ export type VideoDictionaryItem = {
   id: string;
   name: string;
   colorHex?: string;
+  familyId?: string;
 };
 
 export type VideoDictionaryRow = {
   id: string;
   name: string;
   color_hex?: string | null;
+  family_id?: string | null;
+};
+
+export type ToneFamilyItem = {
+  id: string;
+  key: string;
+  name: string;
+  colorHex: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type ToneFamilyRow = {
+  id: string;
+  key: string;
+  name: string;
+  color_hex: string;
+  sort_order: number;
+  is_active: boolean;
 };
 
 export type VideoStorageProvider = StorageProvider;
@@ -89,6 +109,7 @@ export type ArchiveFilters = {
 export type ArchiveDictionaries = {
   categories: VideoDictionaryItem[];
   tags: VideoDictionaryItem[];
+  toneFamilies: ToneFamilyItem[];
   tones: VideoDictionaryItem[];
 };
 

@@ -10,6 +10,8 @@ import type {
   VideoDictionaryItem,
   VideoDictionaryRow,
   VideoStorageProvider,
+  ToneFamilyItem,
+  ToneFamilyRow,
 } from "@/lib/videos/types";
 
 export { formatCompactNumber } from "@/lib/videos/metrics";
@@ -61,6 +63,20 @@ export function serializeDictionaryItem(row: VideoDictionaryRow): VideoDictionar
     id: row.id,
     name: row.name,
     ...(colorHex ? { colorHex } : {}),
+    ...(row.family_id ? { familyId: row.family_id } : {}),
+  };
+}
+
+export function serializeToneFamilyItem(row: ToneFamilyRow): ToneFamilyItem {
+  const colorHex = normalizeToneColorHex(row.color_hex) ?? "#737373";
+
+  return {
+    id: row.id,
+    key: row.key,
+    name: row.name,
+    colorHex,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
   };
 }
 
