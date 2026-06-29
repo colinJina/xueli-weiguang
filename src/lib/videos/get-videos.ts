@@ -1,11 +1,12 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
 import { serializeArchiveVideo } from "@/lib/videos/serialize-video";
-import { getToneFilterOption, getToneFilterOptions } from "@/lib/videos/tone-options";
+import { getToneIdsForFamilyKeys, parseToneFamilyKeyList } from "@/lib/videos/tone-options";
 import type {
   ArchiveDictionaries,
   ArchiveFilters,
   ArchiveVideosResult,
+  ToneFamilyItem,
   VideoBaseRow,
   VideoDictionaryItem,
 } from "@/lib/videos/types";
@@ -48,24 +49,10 @@ function parseIdList(value: SearchParamValue) {
   );
 }
 
-function parseToneKeyList(value: SearchParamValue) {
-  const rawValue = getSingleParam(value);
-
-  if (!rawValue) {
-    return [];
-  }
-
-  return Array.from(
-    new Set(
-      rawValue
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => Boolean(getToneFilterOption(item))),
-    ),
-  );
-}
-
-export function parseArchiveFilters(searchParams: SearchParamsInput): ArchiveFilters {
+export function parseArchiveFilters(
+  searchParams: SearchParamsInput,
+  toneFamilies: readonly ToneFamilyItem[] = [],
+): ArchiveFilters {
   const categoryValue = getSingleParam(searchParams.category);
   const pageValue = Number(getSingleParam(searchParams.page) ?? "1");
   const safePage = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1;
@@ -73,7 +60,7 @@ export function parseArchiveFilters(searchParams: SearchParamsInput): ArchiveFil
   return {
     categoryId: categoryValue && UUID_PATTERN.test(categoryValue) ? categoryValue : null,
     tagIds: parseIdList(searchParams.tags),
-    toneKeys: parseToneKeyList(searchParams.tones),
+    toneKeys: parseToneFamilyKeyList(searchParams.tones, toneFamilies),
     page: safePage,
   };
 }
@@ -113,20 +100,6 @@ function intersectVideoIdSets(sets: Array<Set<string> | null>) {
 
 function createDictionaryMap(items: VideoDictionaryItem[]) {
   return new Map(items.map((item) => [item.id, item]));
-}
-
-function getToneIdsForFilter(tones: readonly VideoDictionaryItem[], toneKeys: readonly string[]) {
-  const selectedHexes = new Set<string>(
-    getToneFilterOptions(toneKeys).map((option) => option.colorHex),
-  );
-
-  if (selectedHexes.size === 0) {
-    return [];
-  }
-
-  return tones
-    .filter((tone) => tone.colorHex && selectedHexes.has(tone.colorHex))
-    .map((tone) => tone.id);
 }
 
 async function listVideoRelations(
@@ -183,12 +156,15 @@ export async function getArchiveVideos(
   rawSearchParams: SearchParamsInput,
 ): Promise<ArchiveVideosResult> {
   const supabase = createPublicClient();
-  const filters = parseArchiveFilters(rawSearchParams);
   const dictionaries = await getVideoDictionaries();
-  const selectedToneOptions = getToneFilterOptions(filters.toneKeys);
-  const selectedToneIds = getToneIdsForFilter(dictionaries.tones, filters.toneKeys);
+  const filters = parseArchiveFilters(rawSearchParams, dictionaries.toneFamilies);
+  const selectedToneIds = getToneIdsForFamilyKeys(
+    dictionaries.tones,
+    dictionaries.toneFamilies,
+    filters.toneKeys,
+  );
 
-  if (selectedToneOptions.length > 0 && selectedToneIds.length === 0) {
+  if (filters.toneKeys.length > 0 && selectedToneIds.length === 0) {
     return {
       items: [],
       dictionaries,

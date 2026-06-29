@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { ArchiveHorizontalWheelScroll } from "@/components/archive/archive-horizontal-wheel-scroll";
-import { TONE_FILTER_OPTIONS } from "@/lib/videos/tone-options";
-import type { ArchiveFilters, VideoDictionaryItem } from "@/lib/videos/types";
+import type { ArchiveFilters, ToneFamilyItem, VideoDictionaryItem } from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
 
 type ArchiveFilterBarProps = {
   categories: readonly VideoDictionaryItem[];
   filters: ArchiveFilters;
+  toneFamilies: readonly ToneFamilyItem[];
 };
 
 type FilterPatch = Partial<{
@@ -58,7 +58,9 @@ export function getArchivePageHref(filters: ArchiveFilters, page: number) {
   return buildArchiveHref(filters, { page });
 }
 
-export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps) {
+export function ArchiveFilterBar({ categories, filters, toneFamilies }: ArchiveFilterBarProps) {
+  const activeToneFamilies = toneFamilies.filter((tone) => tone.isActive);
+
   return (
     <div className="grid gap-4 overflow-hidden border-b border-white/[0.06] py-[14px] pb-5 lg:grid-cols-2 lg:gap-8">
       <FilterRow contentClassName="w-full max-w-full lg:w-[34rem]" label="类型" scrollable>
@@ -82,12 +84,12 @@ export function ArchiveFilterBar({ categories, filters }: ArchiveFilterBarProps)
       </FilterRow>
 
       <FilterRow align="end" label="色调">
-        {TONE_FILTER_OPTIONS.map((tone) => {
+        {activeToneFamilies.map((tone) => {
           const isActive = filters.toneKeys.includes(tone.key);
 
           return (
             <Link
-              aria-label={isActive ? `清除${tone.label}色色调筛选` : `筛选${tone.label}色色调`}
+              aria-label={isActive ? `清除${tone.name}色调筛选` : `筛选${tone.name}色调`}
               aria-pressed={isActive}
               className={cn(
                 "group relative inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full transition duration-200 hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90",

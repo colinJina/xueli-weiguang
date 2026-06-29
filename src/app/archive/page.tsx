@@ -37,6 +37,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
         <ArchiveFilterBar
           categories={dictionaries.categories}
           filters={filters}
+          toneFamilies={dictionaries.toneFamilies}
         />
       </section>
 
