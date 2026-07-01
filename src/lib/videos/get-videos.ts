@@ -1,7 +1,7 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
 import { serializeArchiveVideo } from "@/lib/videos/serialize-video";
-import { getToneIdsForFamilyKeys, parseToneFamilyKeyList } from "@/lib/videos/tone-options";
+import { parseToneFamilyKeyList } from "@/lib/videos/tone-options";
 import type {
   ArchiveDictionaries,
   ArchiveFilters,
@@ -21,12 +21,29 @@ type RelationRow = {
   tag_id?: string;
   tone_id?: string;
 };
+type ArchiveVideosRpcPayload = {
+  total_count?: number | string | null;
+  items?: unknown;
+};
+type ArchiveVideosRpcArgs = {
+  p_category_id: string | null;
+  p_tag_ids: string[];
+  p_tone_family_keys: string[];
+  p_limit: number;
+  p_offset: number;
+};
+type ArchiveVideosRpcClient = {
+  rpc: (
+    functionName: "get_archive_videos",
+    args: ArchiveVideosRpcArgs,
+  ) => Promise<{
+    data: ArchiveVideosRpcPayload | null;
+    error: { message: string } | null;
+  }>;
+};
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-const videoSelect =
-  "id,platform,storage_provider,source_url,embed_url,playback_ref,title,cover_url,description,author_name,author_avatar,view_count,like_count,category_id,published_at,created_at";
 
 function getSingleParam(value: SearchParamValue) {
   return Array.isArray(value) ? value[0] : value;
@@ -65,41 +82,18 @@ export function parseArchiveFilters(
   };
 }
 
-async function getVideoIdsForRelation(
-  supabase: PublicSupabaseClient,
-  tableName: "video_tags" | "video_tones",
-  columnName: "tag_id" | "tone_id",
-  ids: string[],
-) {
-  if (ids.length === 0) {
-    return null;
-  }
-
-  const { data, error } = await supabase
-    .from(tableName)
-    .select(`video_id,${columnName}`)
-    .in(columnName, ids);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return new Set(((data ?? []) as RelationRow[]).map((row) => row.video_id));
-}
-
-function intersectVideoIdSets(sets: Array<Set<string> | null>) {
-  const activeSets = sets.filter((set): set is Set<string> => Boolean(set));
-
-  if (activeSets.length === 0) {
-    return null;
-  }
-
-  const [firstSet, ...restSets] = activeSets;
-  return Array.from(firstSet).filter((id) => restSets.every((set) => set.has(id)));
-}
-
 function createDictionaryMap(items: VideoDictionaryItem[]) {
   return new Map(items.map((item) => [item.id, item]));
+}
+
+function parseArchiveVideosRpcPayload(payload: ArchiveVideosRpcPayload | null) {
+  const totalCount = Number(payload?.total_count ?? 0);
+  const rows = Array.isArray(payload?.items) ? (payload.items as VideoBaseRow[]) : [];
+
+  return {
+    rows,
+    totalCount: Number.isFinite(totalCount) && totalCount > 0 ? totalCount : 0,
+  };
 }
 
 async function listVideoRelations(
@@ -158,68 +152,28 @@ export async function getArchiveVideos(
   const supabase = createPublicClient();
   const dictionaries = await getVideoDictionaries();
   const filters = parseArchiveFilters(rawSearchParams, dictionaries.toneFamilies);
-  const selectedToneIds = getToneIdsForFamilyKeys(
-    dictionaries.tones,
-    dictionaries.toneFamilies,
-    filters.toneKeys,
-  );
-
-  if (filters.toneKeys.length > 0 && selectedToneIds.length === 0) {
-    return {
-      items: [],
-      dictionaries,
-      filters,
-      totalCount: 0,
-      pageCount: 1,
-    };
-  }
-
-  const [tagVideoIds, toneVideoIds] = await Promise.all([
-    getVideoIdsForRelation(supabase, "video_tags", "tag_id", filters.tagIds),
-    getVideoIdsForRelation(supabase, "video_tones", "tone_id", selectedToneIds),
-  ]);
-  const constrainedVideoIds = intersectVideoIdSets([tagVideoIds, toneVideoIds]);
-
-  if (constrainedVideoIds && constrainedVideoIds.length === 0) {
-    return {
-      items: [],
-      dictionaries,
-      filters,
-      totalCount: 0,
-      pageCount: 1,
-    };
-  }
 
   const from = (filters.page - 1) * ARCHIVE_PAGE_SIZE;
-  const to = from + ARCHIVE_PAGE_SIZE - 1;
-  let query = supabase
-    .from("videos")
-    .select(videoSelect, { count: "exact" })
-    .order("published_at", { ascending: false })
-    .range(from, to);
-
-  if (filters.categoryId) {
-    query = query.eq("category_id", filters.categoryId);
-  }
-
-  if (constrainedVideoIds) {
-    query = query.in("id", constrainedVideoIds);
-  }
-
-  const { data, error, count } = await query;
+  const archiveRpcClient = supabase as unknown as ArchiveVideosRpcClient;
+  const { data, error } = await archiveRpcClient.rpc("get_archive_videos", {
+    p_category_id: filters.categoryId,
+    p_tag_ids: filters.tagIds,
+    p_tone_family_keys: filters.toneKeys,
+    p_limit: ARCHIVE_PAGE_SIZE,
+    p_offset: from,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  const rows = (data ?? []) as VideoBaseRow[];
+  const { rows, totalCount } = parseArchiveVideosRpcPayload(data);
   const categoryMap = createDictionaryMap(dictionaries.categories);
   const { tagsByVideoId, tonesByVideoId } = await listVideoRelations(
     supabase,
     rows.map((row) => row.id),
     dictionaries,
   );
-  const totalCount = count ?? 0;
 
   return {
     items: rows.map((row, index) =>
