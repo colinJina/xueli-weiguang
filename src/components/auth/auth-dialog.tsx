@@ -13,7 +13,6 @@ import MailIcon from "@/components/icons/auth/mail.svg";
 import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import AlertIcon from "@/components/icons/shared/alert-circle.svg";
 import CheckIcon from "@/components/icons/shared/check-circle.svg";
-import { AuthSuccessIcon } from "@/components/auth/auth-success-icon";
 import { TextField } from "@/components/ui/text-field";
 import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth/translate-error";
@@ -197,7 +196,7 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
 
     setIsSubmitting(false);
     finishAuthFlow({
-      icon: <AuthSuccessIcon />,
+      icon: <CheckIcon />,
       onClose,
       onSuccess,
       showMessage,
@@ -241,7 +240,7 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
 
       setIsSubmitting(false);
       finishAuthFlow({
-        icon: <AuthSuccessIcon />,
+        icon: <CheckIcon />,
         onClose,
         onSuccess,
         showMessage,
@@ -287,7 +286,7 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
 
     setIsSubmitting(false);
     finishAuthFlow({
-      icon: <AuthSuccessIcon />,
+      icon: <CheckIcon />,
       onClose,
       onSuccess,
       showMessage,
