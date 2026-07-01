@@ -1,15 +1,19 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
+import { usePageTopMessage } from "@/components/ui/page-top-message-provider";
 import ArrowRightIcon from "@/components/icons/auth/arrow-right.svg";
 import LockIcon from "@/components/icons/auth/lock.svg";
 import MailIcon from "@/components/icons/auth/mail.svg";
+import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import AlertIcon from "@/components/icons/shared/alert-circle.svg";
 import CheckIcon from "@/components/icons/shared/check-circle.svg";
+import { AuthSuccessIcon } from "@/components/auth/auth-success-icon";
 import { TextField } from "@/components/ui/text-field";
 import { createClient } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth/translate-error";
@@ -79,8 +83,35 @@ function isSupabaseObfuscatedExistingUser(
   return Array.isArray(user?.identities) && user.identities.length === 0;
 }
 
+function finishAuthFlow({
+  icon,
+  onClose,
+  onSuccess,
+  showMessage,
+  text,
+}: {
+  icon?: ReactNode;
+  onClose: () => void;
+  onSuccess?: () => void;
+  showMessage: ReturnType<typeof usePageTopMessage>["showMessage"];
+  text: string;
+}) {
+  showMessage({
+    icon,
+    text,
+  });
+
+  if (onSuccess) {
+    onSuccess();
+    return;
+  }
+
+  onClose();
+}
+
 export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: AuthDialogProps) {
   const supabase = useMemo(() => createClient(), []);
+  const { showMessage } = usePageTopMessage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
@@ -164,10 +195,14 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
       return;
     }
 
-    setSuccessMessage("登录成功，正在返回。");
     setIsSubmitting(false);
-    onSuccess?.();
-    onClose();
+    finishAuthFlow({
+      icon: <AuthSuccessIcon />,
+      onClose,
+      onSuccess,
+      showMessage,
+      text: "登录成功",
+    });
   }
 
   async function handleRegisterSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -204,10 +239,14 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
         return;
       }
 
-      setSuccessMessage("注册完成，正在返回。");
       setIsSubmitting(false);
-      onSuccess?.();
-      onClose();
+      finishAuthFlow({
+        icon: <AuthSuccessIcon />,
+        onClose,
+        onSuccess,
+        showMessage,
+        text: "注册成功",
+      });
       return;
     }
 
@@ -246,10 +285,14 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
       return;
     }
 
-    setSuccessMessage("注册完成，正在返回。");
     setIsSubmitting(false);
-    onSuccess?.();
-    onClose();
+    finishAuthFlow({
+      icon: <AuthSuccessIcon />,
+      onClose,
+      onSuccess,
+      showMessage,
+      text: "注册成功",
+    });
   }
 
   async function handleResendSignupCode() {
@@ -389,6 +432,7 @@ export function AuthDialog({ mode, open, onClose, onSwitchMode, onSuccess }: Aut
         <div className="flex flex-col gap-3 border-t border-border pt-4">
           <Button className="w-full" disabled={submitDisabled} type="submit">
             <span className="inline-flex items-center gap-2">
+              {isSubmitting ? <SpinnerIcon aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
               {submitLabel}
               {!isSubmitting ? <ArrowRightIcon /> : null}
             </span>

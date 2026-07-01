@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
+import { usePageTopMessage } from "@/components/ui/page-top-message-provider";
 import { TextField } from "@/components/ui/text-field";
 import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
 import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
@@ -53,7 +54,7 @@ type FavoriteEditorDialogProps = {
 };
 
 type NoticeState = {
-  variant: "error" | "success" | "loading";
+  variant: "error" | "loading";
   message: string;
 };
 
@@ -73,8 +74,6 @@ function Notice({ notice }: { notice: NoticeState }) {
   const icon =
     notice.variant === "loading" ? (
       <SpinnerIcon />
-    ) : notice.variant === "success" ? (
-      <CheckIcon />
     ) : (
       <AlertIcon />
     );
@@ -96,6 +95,7 @@ export function FavoriteEditorDialog({
   tags,
   video,
 }: FavoriteEditorDialogProps) {
+  const { showMessage } = usePageTopMessage();
   const [localCollections, setLocalCollections] = useState(collections);
   const [localTags, setLocalTags] = useState(tags);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
@@ -199,7 +199,11 @@ export function FavoriteEditorDialog({
       ]);
       setSelectedCollectionId(result.id);
       setNewCollectionName("");
-      setNotice({ variant: "success", message: "收藏夹已创建。" });
+      setNotice(null);
+      showMessage({
+        icon: <CheckIcon />,
+        text: "收藏夹已创建",
+      });
       onChanged();
     } catch (error) {
       setError(error instanceof Error ? error.message : "收藏夹创建失败，请稍后重试。");
@@ -247,7 +251,11 @@ export function FavoriteEditorDialog({
       ]);
       setSelectedTagIds((current) => [...current, result.id]);
       setNewTagName("");
-      setNotice({ variant: "success", message: "标签已创建并加入当前收藏。" });
+      setNotice(null);
+      showMessage({
+        icon: <CheckIcon />,
+        text: "标签已创建并加入当前收藏",
+      });
       onChanged();
     } catch (error) {
       setError(error instanceof Error ? error.message : "标签创建失败，请稍后重试。");
@@ -298,7 +306,11 @@ export function FavoriteEditorDialog({
         );
       }
 
-      setNotice({ variant: "success", message: "收藏记录已保存。" });
+      setNotice(null);
+      showMessage({
+        icon: <CheckIcon />,
+        text: "收藏记录已保存",
+      });
       onChanged();
       onClose();
     } catch (error) {
@@ -324,7 +336,11 @@ export function FavoriteEditorDialog({
         },
         "取消收藏失败，请稍后重试。",
       );
-      setNotice({ variant: "success", message: "已移出当前收藏夹。" });
+      setNotice(null);
+      showMessage({
+        icon: <CheckIcon />,
+        text: "已移出当前收藏夹",
+      });
       onChanged();
       onClose();
     } catch (error) {
