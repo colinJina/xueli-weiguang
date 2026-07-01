@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { ArchiveClientShell } from "@/components/archive/archive-client-shell";
-import { ArchiveFilterBar, getArchivePageHref } from "@/components/archive/archive-filter-bar";
+import { ArchiveFilterBar } from "@/components/archive/archive-filter-bar";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
 import ChevronLeftIcon from "@/components/icons/archive/chevron-left.svg";
 import ChevronRightIcon from "@/components/icons/archive/chevron-right.svg";
 import { buttonVariants } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
+import { getArchivePageHref } from "@/lib/videos/archive-href";
 import { getArchiveVideos } from "@/lib/videos/get-videos";
 import { formatCompactNumber } from "@/lib/videos/serialize-video";
 import type { ArchiveFilters } from "@/lib/videos/types";

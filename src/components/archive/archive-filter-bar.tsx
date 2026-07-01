@@ -1,7 +1,12 @@
-import type { ReactNode } from "react";
+"use client";
+
+import type { MouseEvent, ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { ArchiveHorizontalWheelScroll } from "@/components/archive/archive-horizontal-wheel-scroll";
+import { InlineLoadingMark } from "@/components/ui/inline-loading-mark";
+import { buildArchiveHref, selectSingleToneKey } from "@/lib/videos/archive-href";
 import type { ArchiveFilters, ToneFamilyItem, VideoDictionaryItem } from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
 
@@ -11,55 +16,31 @@ type ArchiveFilterBarProps = {
   toneFamilies: readonly ToneFamilyItem[];
 };
 
-type FilterPatch = Partial<{
-  categoryId: string | null;
-  tagIds: string[];
-  toneKeys: string[];
-  page: number;
-}>;
-
 const filterPillClass =
   "inline-flex min-h-[34px] shrink-0 items-center rounded-full border px-[15px] text-[0.84rem] font-semibold transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
 
-function buildArchiveHref(filters: ArchiveFilters, patch: FilterPatch) {
-  const nextFilters = {
-    categoryId: patch.categoryId !== undefined ? patch.categoryId : filters.categoryId,
-    tagIds: patch.tagIds ?? filters.tagIds,
-    toneKeys: patch.toneKeys ?? filters.toneKeys,
-    page: patch.page ?? 1,
-  };
-  const params = new URLSearchParams();
-
-  if (nextFilters.categoryId) {
-    params.set("category", nextFilters.categoryId);
-  }
-
-  if (nextFilters.tagIds.length > 0) {
-    params.set("tags", nextFilters.tagIds.join(","));
-  }
-
-  if (nextFilters.toneKeys.length > 0) {
-    params.set("tones", nextFilters.toneKeys.join(","));
-  }
-
-  if (nextFilters.page > 1) {
-    params.set("page", String(nextFilters.page));
-  }
-
-  const query = params.toString();
-  return query ? `/archive?${query}` : "/archive";
-}
-
-function selectSingleToneKey(selectedKeys: readonly string[], key: string) {
-  return selectedKeys.includes(key) ? [] : [key];
-}
-
-export function getArchivePageHref(filters: ArchiveFilters, page: number) {
-  return buildArchiveHref(filters, { page });
-}
-
 export function ArchiveFilterBar({ categories, filters, toneFamilies }: ArchiveFilterBarProps) {
+  const [pendingToneKey, setPendingToneKey] = useState<string | null>(null);
   const activeToneFamilies = toneFamilies.filter((tone) => tone.isActive);
+  const isTonePending = pendingToneKey !== null;
+  const currentToneKey = filters.toneKeys.join(",");
+
+  useEffect(() => {
+    setPendingToneKey(null);
+  }, [currentToneKey]);
+
+  function handleToneClick(event: MouseEvent<HTMLAnchorElement>, toneKey: string) {
+    if (isTonePending) {
+      event.preventDefault();
+      return;
+    }
+
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return;
+    }
+
+    setPendingToneKey(toneKey);
+  }
 
   return (
     <div className="grid gap-4 overflow-hidden border-b border-white/[0.06] py-[14px] pb-5 lg:grid-cols-2 lg:gap-8">
@@ -86,32 +67,46 @@ export function ArchiveFilterBar({ categories, filters, toneFamilies }: ArchiveF
       <FilterRow align="end" label="色调">
         {activeToneFamilies.map((tone) => {
           const isActive = filters.toneKeys.includes(tone.key);
+          const isPending = pendingToneKey === tone.key;
 
           return (
             <Link
               aria-label={isActive ? `清除${tone.name}色调筛选` : `筛选${tone.name}色调`}
+              aria-busy={isPending || undefined}
+              aria-disabled={isTonePending && !isPending ? true : undefined}
               aria-pressed={isActive}
               className={cn(
                 "group relative inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full transition duration-200 hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90",
                 isActive && "bg-white/[0.08]",
+                isTonePending && !isPending && "pointer-events-none opacity-35",
+                isPending && "bg-white/[0.09]",
               )}
               href={buildArchiveHref(filters, {
                 toneKeys: selectSingleToneKey(filters.toneKeys, tone.key),
               })}
               key={tone.key}
+              onClick={(event) => handleToneClick(event, tone.key)}
             >
               <span
                 className={cn(
                   "h-3.5 w-3.5 rounded-full transition duration-200 group-hover:scale-110",
                   isActive && "h-4 w-4",
+                  isPending && "scale-75 opacity-25 group-hover:scale-75",
                 )}
                 style={{ backgroundColor: tone.colorHex }}
               />
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-full left-1/2 mb-2 h-6 w-10 -translate-x-1/2 rounded-full opacity-0 shadow-overlay transition duration-200 group-hover:translate-y-[-2px] group-hover:opacity-100 group-focus-visible:translate-y-[-2px] group-focus-visible:opacity-100"
-                style={{ backgroundColor: tone.colorHex }}
-              />
+              {isPending ? (
+                <InlineLoadingMark
+                  className="absolute h-[22px] w-[22px]"
+                  label={`正在应用${tone.name}色调筛选`}
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-full left-1/2 mb-2 h-6 w-10 -translate-x-1/2 rounded-full opacity-0 shadow-overlay transition duration-200 group-hover:translate-y-[-2px] group-hover:opacity-100 group-focus-visible:translate-y-[-2px] group-focus-visible:opacity-100"
+                  style={{ backgroundColor: tone.colorHex }}
+                />
+              )}
             </Link>
           );
         })}
