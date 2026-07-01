@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { GeistSans } from "geist/font/sans";
 
+import { RootProviders } from "@/components/providers/root-providers";
 import "./globals.css";
 import "react-image-crop/dist/ReactCrop.css";
 export const metadata: Metadata = {
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={GeistSans.variable}>
       <body className="min-h-screen text-foreground">
-        <main>{children}</main>
+        <RootProviders>
+          <main>{children}</main>
+        </RootProviders>
       </body>
     </html>
   );
