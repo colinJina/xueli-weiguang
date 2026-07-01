@@ -18,7 +18,7 @@ bun run check
 - 任何涉及 `.ts`、`.tsx`、`tsconfig`、`next.config`、`tailwind.config` 或其他 TypeScript 相关配置的修改后，都必须执行 `bun run type-check`。
 - 如果 `bun run type-check` 失败，必须先修复问题，或明确说明阻塞原因与失败输出的关键点。
 - 在未执行必要检查前，不得声称任务“已完成”“已修复”或“可以提交”。
-
+- 能让TS自动推断类型的地方就先让TS自动推断，如果要使用any或者类型断言，要向用户说明原因。
 ## ESLint 规则
 
 - ESLint 配置入口固定为根目录 `eslint.config.mjs`，并保持 ESLint 9 flat config 方案。
@@ -26,7 +26,7 @@ bun run check
 - React 与 React Hook 规则交由 Next 官方规则集维护。
 - 不要在未经明确要求的情况下关闭 `react-hooks/rules-of-hooks` 或 `react-hooks/exhaustive-deps`。
 - TypeScript 文件中的未使用变量统一使用 `@typescript-eslint/no-unused-vars` 检查，并关闭基础 `no-unused-vars`。
-- 允许以下划线 `_` 开头的变量、参数、捕获错误或解构占位符作为有意未使用。
+- 允许以下划线 `_` 开头的变量、参数、捕获错误或解构占位符作为有意未使用,变量名要贴切语义。
 - 类型导入优先使用 `import type`。
 - 基础一致性规则至少保持 `curly` 与 `eqeqeq`。
 - 修改 ESLint 规则、脚本或相关依赖后，必须重新执行 `bun run lint`。
@@ -41,7 +41,7 @@ bun run check
 ## 依赖与脚本
 
 - 新增生产依赖前必须确认是否已有本地实现、浏览器 API、Next.js 或 Supabase 官方能力可满足需求。
-- 不引入与当前 Node-only 约束冲突的 Python、`child_process` 或第三方 Bilibili wrapper。
+- 不引入与当前 Node-only 约束冲突的 Python、`child_process` 或第三方 Bilibili/youtube wrapper。
 - 修改 `package.json` scripts、依赖、ESLint、TypeScript、Next 或 Tailwind 配置后，至少运行 `bun run lint` 和 `bun run type-check`。
 
 ## 最终回复
