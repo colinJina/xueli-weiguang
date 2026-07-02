@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 
 import { Chip } from "@/components/ui/chip";
@@ -72,10 +72,6 @@ export function VideoDetailEngagement({ favoriteState, video }: VideoDetailEngag
       console.error("Failed to record video view", error);
     }
   }, [video.id, video.storageProvider]);
-
-  useEffect(() => {
-    void handleCosView();
-  }, [handleCosView]);
 
   return (
     <>
