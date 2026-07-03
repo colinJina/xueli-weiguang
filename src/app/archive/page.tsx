@@ -9,6 +9,7 @@ import ChevronRightIcon from "@/components/icons/archive/chevron-right.svg";
 import { buttonVariants } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
 import { getArchivePageHref } from "@/lib/videos/archive-href";
+import { buildArchivePaginationItems } from "@/lib/videos/archive-pagination";
 import { getArchiveVideos } from "@/lib/videos/get-videos";
 import { formatCompactNumber } from "@/lib/videos/serialize-video";
 import type { ArchiveFilters } from "@/lib/videos/types";
@@ -57,6 +58,10 @@ function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pa
 
   const previousPage = Math.max(1, filters.page - 1);
   const nextPage = Math.min(pageCount, filters.page + 1);
+  const paginationItems = buildArchivePaginationItems({
+    currentPage: filters.page,
+    pageCount,
+  });
 
   return (
     <nav
@@ -68,23 +73,19 @@ function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pa
         <span>上一页</span>
       </PageLink>
 
-      <div className="flex items-center gap-2">
-        {Array.from({ length: pageCount }).map((_, index) => {
-          const page = index + 1;
-          const isActive = filters.page === page;
+      <div className="flex flex-wrap items-center justify-center gap-2 max-sm:order-3 max-sm:w-full">
+        {paginationItems.map((item) => {
+          if (item.type === "gap") {
+            return <PaginationGap key={item.key} />;
+          }
 
           return (
-            <Link
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                chipVariants({ size: "sm", variant: isActive ? "selected" : "default" }),
-                "h-9 w-9 px-0 py-0 font-sans text-[0.78rem]",
-              )}
-              href={getArchivePageHref(filters, page)}
-              key={page}
-            >
-              {page}
-            </Link>
+            <PageNumberLink
+              filters={filters}
+              isActive={filters.page === item.page}
+              key={item.page}
+              page={item.page}
+            />
           );
         })}
       </div>
@@ -94,6 +95,40 @@ function ArchivePagination({ filters, pageCount }: { filters: ArchiveFilters; pa
         <ChevronRightIcon aria-hidden="true" className="h-4 w-4" />
       </PageLink>
     </nav>
+  );
+}
+
+function PageNumberLink({
+  filters,
+  isActive,
+  page,
+}: {
+  filters: ArchiveFilters;
+  isActive: boolean;
+  page: number;
+}) {
+  return (
+    <Link
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        chipVariants({ size: "sm", variant: isActive ? "selected" : "default" }),
+        "h-9 w-9 px-0 py-0 font-sans text-[0.78rem]",
+      )}
+      href={getArchivePageHref(filters, page)}
+    >
+      {page}
+    </Link>
+  );
+}
+
+function PaginationGap() {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center text-[0.78rem] font-semibold text-muted"
+    >
+      …
+    </span>
   );
 }
 
