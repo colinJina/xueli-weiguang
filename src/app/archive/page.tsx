@@ -4,7 +4,9 @@ import Link from "next/link";
 import { ArchiveClientShell } from "@/components/archive/archive-client-shell";
 import { ArchiveFilterBar } from "@/components/archive/archive-filter-bar";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
+import { ArchiveGridSkeleton } from "@/components/archive/archive-grid-skeleton";
 import ChevronLeftIcon from "@/components/icons/archive/chevron-left.svg";
+import { ArchiveTransitionBoundary } from "@/components/archive/archive-transition-boundary";
 import ChevronRightIcon from "@/components/icons/archive/chevron-right.svg";
 import { buttonVariants } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
@@ -35,18 +37,27 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
       channelCount={formatCompactNumber(totalCount)}
       supportCount={String(dictionaries.tags.length).padStart(2, "0")}
     >
-      <section className="page-container">
-        <ArchiveFilterBar
-          categories={dictionaries.categories}
-          filters={filters}
-          toneFamilies={dictionaries.toneFamilies}
-        />
-      </section>
-
-      <section className="page-container pb-16 pt-[22px] max-md:pt-[18px]">
-        <ArchiveGrid items={items} />
-        <ArchivePagination filters={filters} pageCount={pageCount} />
-      </section>
+      <ArchiveTransitionBoundary
+        controls={
+          <section className="page-container">
+            <ArchiveFilterBar
+              categories={dictionaries.categories}
+              filters={filters}
+              toneFamilies={dictionaries.toneFamilies}
+            />
+          </section>
+        }
+        fallback={
+          <section className="page-container pb-16 pt-[22px] max-md:pt-[18px]">
+            <ArchiveGridSkeleton />
+          </section>
+        }
+      >
+        <section className="page-container pb-16 pt-[22px] max-md:pt-[18px]">
+          <ArchiveGrid items={items} />
+          <ArchivePagination filters={filters} pageCount={pageCount} />
+        </section>
+      </ArchiveTransitionBoundary>
     </ArchiveClientShell>
   );
 }
