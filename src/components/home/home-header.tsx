@@ -71,7 +71,7 @@ export function HomeHeader({
           <SiteBrand
             className="min-w-0 shrink"
             markClassName="max-sm:h-5 max-sm:w-5"
-            subtitle="VIDEO ARCHIVE"
+            subtitle="PV WORKS ARCHIVE"
             subtitleClassName="hidden"
             titleClassName="max-w-[7ch] truncate text-[1.2rem] tracking-[-0.04em] sm:max-w-none sm:text-[1.45rem] md:text-[1.85rem]"
           />

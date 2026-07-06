@@ -22,7 +22,7 @@ export function HomeFeaturedGrid({ items, motionReady = true }: HomeFeaturedGrid
         id="featured-grid"
       >
         <p className="font-sans text-[0.72rem] uppercase tracking-[0.18em] text-black/45">
-          ARCHIVE STREAM
+          PV WORKS STREAM
         </p>
         <h2 className="mt-4 text-2xl font-black tracking-[-0.04em]">公开视频正在整理</h2>
         <p className="mt-3 max-w-[520px] text-sm leading-6 text-black/60">
