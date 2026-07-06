@@ -90,7 +90,8 @@ export function ArchiveFilterBar({ categories, filters, toneFamilies }: ArchiveF
               <span
                 className={cn(
                   "h-3.5 w-3.5 rounded-full transition duration-200 group-hover:scale-110",
-                  isActive && "h-4 w-4",
+                  isActive &&
+                    "h-4 w-4 ring-2 ring-white/85 shadow-[0_0_0_5px_rgba(255,255,255,0.1),0_0_18px_rgba(255,255,255,0.32)]",
                   isPending && "scale-75 opacity-25 group-hover:scale-75",
                 )}
                 style={{ backgroundColor: tone.colorHex }}
