@@ -6,7 +6,7 @@ const siteConfig = {
   name: "雪笠微光",
   navigation: [
     { href: "/", icon: "explore", label: "探索" },
-    { href: "/archive", icon: "library", label: "库" },
+    { href: "/archive", icon: "library", label: "收录作品" },
     { href: "/user", icon: "profile", label: "档案" },
   ],
 } as const;

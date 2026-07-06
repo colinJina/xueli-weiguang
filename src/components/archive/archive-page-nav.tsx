@@ -46,7 +46,7 @@ export function ArchivePageNav({
           <SiteBrand
             badge="BETA"
             className="gap-3"
-            subtitle="VIDEO ARCHIVE"
+            subtitle="PV WORKS ARCHIVE"
             titleClassName="max-md:text-[1.45rem]"
           />
 

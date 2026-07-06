@@ -33,8 +33,8 @@ export function PageTopMessage({
                 : { opacity: 1, y: 0, scale: 1 }
             }
             className={cn(
-              "pointer-events-auto inline-flex min-h-[60px] items-center gap-3 rounded-[22px] border border-white/[0.08] bg-[#232323] px-6 py-4 text-left text-[0.95rem] font-semibold text-foreground shadow-[0_14px_36px_rgba(0,0,0,0.28)] backdrop-blur-md",
-              "transition hover:border-white/[0.14] hover:bg-[#272727]",
+              "pointer-events-auto inline-flex min-h-[44px] items-center gap-3 rounded-full border border-white/20 bg-black/55 px-4 py-2.5 text-left text-[0.95rem] font-semibold text-foreground backdrop-blur-sm",
+              "transition hover:border-white/30 hover:bg-black/65",
             )}
             exit={
               prefersReducedMotion
@@ -52,7 +52,9 @@ export function PageTopMessage({
             type="button"
           >
             {message.icon ? (
-              <span className="shrink-0 text-foreground">{message.icon}</span>
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center text-[#78EC9F] [&>svg]:h-4 [&>svg]:w-4">
+                {message.icon}
+              </span>
             ) : null}
             <span className="whitespace-nowrap">{message.text}</span>
           </motion.button>

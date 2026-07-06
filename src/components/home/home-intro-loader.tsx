@@ -62,25 +62,25 @@ export function HomeIntroLoader({ visible }: HomeIntroLoaderProps) {
               ))}
             </motion.div>
 
-            <motion.div className="flex items-center justify-center gap-4 text-[#8b8e97] overflow-hidden">
+            <motion.div className="flex items-center justify-center gap-3 overflow-hidden text-[#8b8e97] sm:gap-4">
               <motion.span
-                className="h-px bg-white/20"
-                initial={{ width: 0 }}
-                animate={{ width: 40 }}
+                className="h-px w-7 bg-white/20 sm:w-10"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
                 transition={{ duration: 1, ease: homeEase, delay: 2.25 }}
               />
               <motion.span
-                className="font-sans text-[0.75rem] tracking-[0.3em] text-[#8b8e97]"
+                className="font-sans text-[0.68rem] tracking-[0.2em] text-[#8b8e97] sm:text-[0.75rem] sm:tracking-[0.3em]"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.75, ease: homeEase, delay: 2.45 }}
               >
-                VIDEO ARCHIVE
+                PV WORKS ARCHIVE
               </motion.span>
               <motion.span
-                className="h-px bg-white/20"
-                initial={{ width: 0 }}
-                animate={{ width: 40 }}
+                className="h-px w-7 bg-white/20 sm:w-10"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
                 transition={{ duration: 1, ease: homeEase, delay: 2.25 }}
               />
             </motion.div>
