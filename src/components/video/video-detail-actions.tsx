@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -11,11 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
+import { LikeBurstIcon } from "@/components/video/like-burst-icon";
 import StatusAlertIcon from "@/components/icons/shared/alert-circle.svg";
 import VideoBookmarkIcon from "@/components/icons/video/bookmark.svg";
 import VideoHeartIcon from "@/components/icons/video/heart.svg";
-import VideoHeartFilledIcon from "@/components/icons/video/heart-filled.svg";
-import VideoActionLoadingIcon from "@/components/icons/video/loading-spinner.svg";
 import VideoShareIcon from "@/components/icons/video/share.svg";
 import { useAuth } from "@/lib/auth/use-auth";
 import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
@@ -71,8 +70,10 @@ export function VideoDetailActions({
     closeDialog,
     switchMode,
   } = useAuth();
+  const interactionVersionRef = useRef(0);
   const [liked, setLiked] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [likeBurstKey, setLikeBurstKey] = useState(0);
   const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
   const [continueToFavorite, setContinueToFavorite] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -86,6 +87,7 @@ export function VideoDetailActions({
       return;
     }
 
+    const requestedAtVersion = interactionVersionRef.current;
     const response = await fetch(`/api/videos/${videoId}/like`, {
       method: "GET",
       headers: {
@@ -93,6 +95,10 @@ export function VideoDetailActions({
       },
     });
     const payload = await readLikeResponse(response);
+
+    if (requestedAtVersion !== interactionVersionRef.current) {
+      return;
+    }
 
     setLiked(payload.liked);
     onLikeCountChange(payload.likeCount, payload.likeCountLabel);
@@ -115,7 +121,7 @@ export function VideoDetailActions({
       return;
     }
 
-    if (!isReady) {
+    if (!isReady || isPending) {
       return;
     }
 
@@ -130,9 +136,14 @@ export function VideoDetailActions({
     const optimisticCount = nextLiked ? likeCount + 1 : Math.max(0, likeCount - 1);
     const optimisticLabel = formatCompactNumber(optimisticCount);
 
+    interactionVersionRef.current += 1;
     setIsPending(true);
     setLiked(nextLiked);
     onLikeCountChange(optimisticCount, optimisticLabel);
+
+    if (nextLiked) {
+      setLikeBurstKey((currentKey) => currentKey + 1);
+    }
 
     try {
       const response = await fetch(`/api/videos/${videoId}/like`, {
@@ -172,23 +183,16 @@ export function VideoDetailActions({
 
   const likeButton = canUseLocalLikes ? (
     <Button
+      aria-busy={isPending}
       aria-pressed={liked}
-      className="gap-2 font-medium"
+      className="gap-2 font-medium disabled:opacity-100"
       disabled={!isReady || isPending}
       onClick={handleLikeClick}
       size="md"
       type="button"
       variant={liked ? "pillActive" : "pill"}
     >
-      {isPending ? (
-        <VideoActionLoadingIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem] animate-spin" />
-      ) : (
-        liked ? (
-          <VideoHeartFilledIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
-        ) : (
-          <VideoHeartIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
-        )
-      )}
+      <LikeBurstIcon burstKey={likeBurstKey} liked={liked} />
       <span>{likeCountLabel}</span>
     </Button>
   ) : (
