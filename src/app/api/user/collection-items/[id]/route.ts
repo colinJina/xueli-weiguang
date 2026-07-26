@@ -19,9 +19,9 @@ type RouteContext = {
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
-    const { supabase } = await createAuthenticatedUserArchiveContext();
+    const { supabase, user } = await createAuthenticatedUserArchiveContext();
     const payload = await readJsonObject(request);
-    const result = await updateCollectionItem(supabase, id, payload);
+    const result = await updateCollectionItem(supabase, user.id, id, payload);
 
     return NextResponse.json(result);
   } catch (error) {

@@ -63,9 +63,10 @@ export type UserArchiveItem = {
   viewCountLabel: string;
   likeCountLabel: string;
   sourceLabel: string;
-  storageProvider: VideoStorageProvider;
+  storageProvider: VideoStorageProvider | null;
   tags: UserArchiveTagSummary[];
-  href: string;
+  href: string | null;
+  isAvailable: boolean;
   sortOrder: number;
   createdAt: string;
 };

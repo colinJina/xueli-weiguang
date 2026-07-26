@@ -60,7 +60,7 @@ type MutationResult = {
   id: string;
 };
 
-function getVideoSourceIcon(platform: string) {
+function getVideoSourceIcon(platform: string | null) {
   if (platform === "bilibili") {
     return BilibiliSourceIcon;
   }
@@ -106,6 +106,7 @@ function createVideoSummary(item: UserArchiveItem): FavoriteEditorVideo {
     coverUrl: item.coverUrl,
     sourceLabel: item.sourceLabel,
     storageProvider: item.storageProvider,
+    isAvailable: item.isAvailable,
   };
 }
 
@@ -1010,6 +1011,48 @@ function ArchiveCard({
 }) {
   const listView = view === "list";
   const SourceIcon = getVideoSourceIcon(item.storageProvider);
+  const mediaClassName = cn(
+    "relative block overflow-hidden bg-surface",
+    listView ? "h-full min-h-[144px]" : "aspect-video",
+  );
+  const mediaContent = (
+    <>
+      {item.coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt=""
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          src={item.coverUrl}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-surface">
+          <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
+        </div>
+      )}
+
+      <div className="absolute bottom-2 right-2 flex min-w-0 items-end justify-end sm:bottom-3 sm:right-3">
+        <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
+          <SourceIcon
+            aria-hidden="true"
+            className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
+          />
+          <span className="min-w-0 truncate">{item.sourceLabel}</span>
+        </span>
+      </div>
+    </>
+  );
+  const title = (
+    <h2
+      className={cn(
+        "line-clamp-2 font-bold leading-snug tracking-[-0.03em] text-foreground",
+        listView ? "text-lg" : "min-h-[3.35rem] text-xl",
+      )}
+    >
+      {item.title}
+    </h2>
+  );
 
   return (
     <article
@@ -1020,66 +1063,42 @@ function ArchiveCard({
           : "flex min-h-[352px] flex-col",
       )}
     >
-      <Link
-        className={cn(
-          "relative block overflow-hidden bg-surface",
-          listView ? "h-full min-h-[144px]" : "aspect-video",
-        )}
-        style={{
-          WebkitBackfaceVisibility: "hidden",
-          WebkitTransform: "translate3d(0, 0, 0)",
-        }}
-        href={item.href}
-      >
-        {item.coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt=""
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            src={item.coverUrl}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface">
-            <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
-          </div>
-        )}
-
-        <div className="absolute bottom-2 right-2 flex min-w-0 items-end justify-end sm:bottom-3 sm:right-3">
-          <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
-            <SourceIcon
-              aria-hidden="true"
-              className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
-            />
-            <span className="min-w-0 truncate">{item.sourceLabel}</span>
-          </span>
+      {item.href ? (
+        <Link
+          className={mediaClassName}
+          href={item.href}
+          style={{
+            WebkitBackfaceVisibility: "hidden",
+            WebkitTransform: "translate3d(0, 0, 0)",
+          }}
+        >
+          {mediaContent}
+        </Link>
+      ) : (
+        <div aria-label="视频已下架" className={mediaClassName} role="img">
+          {mediaContent}
         </div>
-        {/* --------------------------------------------- */}
-      </Link>
+      )}
 
       <div
         className={cn("flex flex-1 flex-col", listView ? "p-4 sm:p-5" : "p-5")}
       >
         <div className="flex items-start justify-between gap-3">
-          <Link className="min-w-0 flex-1" href={item.href}>
-            <h2
-              className={cn(
-                "line-clamp-2 font-bold leading-snug tracking-[-0.03em] text-foreground",
-                listView ? "text-lg" : "min-h-[3.35rem] text-xl",
-              )}
-            >
-              {item.title}
-            </h2>
-          </Link>
+          {item.href ? (
+            <Link className="min-w-0 flex-1" href={item.href}>
+              {title}
+            </Link>
+          ) : (
+            <div className="min-w-0 flex-1">{title}</div>
+          )}
 
           <IconButton
-            aria-label="编辑收藏记录"
+            aria-label={item.isAvailable ? "编辑收藏记录" : "管理下架收藏记录"}
             onClick={onEdit}
             size="sm"
             variant="surface"
           >
-            <EditIcon />
+            <EditIcon aria-hidden="true" />
           </IconButton>
         </div>
 
