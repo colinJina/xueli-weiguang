@@ -4,17 +4,54 @@ import { useReducedMotion, motion } from "motion/react";
 import Marquee from "react-fast-marquee"; 
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
 import { createFadeUp, createStagger } from "@/components/home/home-motion";
+import { Button } from "@/components/ui/button";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
 type HomeFeaturedGridProps = {
+  dataUnavailable?: boolean;
   items: ArchiveVideoItem[];
   motionReady?: boolean;
 };
 const gridVariants = createStagger(0.06, 0.1);
 const gridItemVariants = createFadeUp(18, 0, 0.34);
 
-export function HomeFeaturedGrid({ items, motionReady = true }: HomeFeaturedGridProps) {
+export function HomeFeaturedGrid({
+  dataUnavailable = false,
+  items,
+  motionReady = true,
+}: HomeFeaturedGridProps) {
   const prefersReducedMotion = useReducedMotion();
   const shouldAnimateInView = motionReady && !prefersReducedMotion;
+
+  function handleReload() {
+    window.location.reload();
+  }
+
+  if (dataUnavailable) {
+    return (
+      <div
+        className="flex min-h-[280px] flex-col justify-center rounded-3xl border border-white/10 bg-white/[0.03] px-8 py-8 text-white"
+        id="featured-grid"
+        role="status"
+      >
+        <p className="font-sans text-[0.72rem] uppercase tracking-[0.18em] text-white/45">
+          PV WORKS STREAM
+        </p>
+        <h2 className="mt-4 text-2xl font-black tracking-[-0.04em]">作品流暂时不可用</h2>
+        <p className="mt-3 max-w-[520px] text-sm leading-6 text-white/60">
+          数据服务暂时没有响应，请稍后重新加载。已有作品没有被清空。
+        </p>
+        <Button
+          className="mt-6 w-fit"
+          onClick={handleReload}
+          type="button"
+          variant="pill"
+        >
+          重新加载
+        </Button>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div
@@ -44,6 +81,7 @@ export function HomeFeaturedGrid({ items, motionReady = true }: HomeFeaturedGrid
       <div className="-mx-4 sm:-mx-6 lg:-mx-6">
         <div className="relative overflow-hidden">
           <Marquee 
+            play={!prefersReducedMotion}
             pauseOnHover={true} 
             speed={40} 
             gradient={false} 

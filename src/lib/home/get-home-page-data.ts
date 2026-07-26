@@ -1,7 +1,8 @@
 import { createPublicClient } from "@/lib/supabase/public";
-import { getVideoById } from "@/lib/videos/get-video-by-id";
 import { getArchiveVideos } from "@/lib/videos/get-videos";
+import { serializeVideoDetail } from "@/lib/videos/serialize-video";
 import type { HomeHeroFeature, HomePageData, HomeSiteStatItem } from "@/lib/home/types";
+import type { VideoBaseRow } from "@/lib/videos/types";
 
 type HomeHeroFeatureRow = {
   focal_x: number | string | null;
@@ -15,6 +16,9 @@ type HomeSiteStatsRow = {
   published_category_count: number | string | null;
   published_video_count: number | string | null;
 };
+
+const homeHeroVideoSelect =
+  "id,platform,storage_provider,source_url,embed_url,playback_ref,title,cover_url,description,author_name,author_avatar,view_count,like_count,category_id,published_at,created_at";
 
 function toNumber(value: number | string | null | undefined, fallback: number) {
   const nextValue = typeof value === "string" ? Number(value) : value;
@@ -51,12 +55,12 @@ function createFallbackStats(totalCount: number): HomeSiteStatItem[] {
   ];
 }
 
-async function getHomeSiteStats(totalCount: number): Promise<HomeSiteStatItem[]> {
+async function getHomeSiteStats(): Promise<HomeSiteStatItem[] | null> {
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("get_home_site_stats").maybeSingle();
 
   if (error || !data) {
-    return createFallbackStats(totalCount);
+    return null;
   }
 
   const row = data as HomeSiteStatsRow;
@@ -83,11 +87,22 @@ async function getHomeHeroFeature(): Promise<HomeHeroFeature | null> {
   }
 
   const row = data as HomeHeroFeatureRow;
-  const video = await getVideoById(row.video_id);
+  const videoResult = await supabase
+    .from("videos")
+    .select(homeHeroVideoSelect)
+    .eq("id", row.video_id)
+    .not("published_at", "is", null)
+    .maybeSingle();
 
-  if (!video) {
+  if (videoResult.error || !videoResult.data) {
     return null;
   }
+
+  const video = serializeVideoDetail(videoResult.data as VideoBaseRow, {
+    category: null,
+    tags: [],
+    tones: [],
+  });
 
   return {
     authorName: video.authorName,
@@ -105,15 +120,15 @@ async function getHomeHeroFeature(): Promise<HomeHeroFeature | null> {
 }
 
 export async function getHomePageData(): Promise<HomePageData> {
-  const archiveData = await getArchiveVideos({});
-  const [hero, metaItems] = await Promise.all([
+  const [archiveData, hero, siteStats] = await Promise.all([
+    getArchiveVideos({}),
     getHomeHeroFeature(),
-    getHomeSiteStats(archiveData.totalCount),
+    getHomeSiteStats(),
   ]);
 
   return {
     featuredItems: archiveData.items,
     hero,
-    metaItems,
+    metaItems: siteStats ?? createFallbackStats(archiveData.totalCount),
   };
 }
