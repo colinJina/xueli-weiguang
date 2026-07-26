@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { chipVariants } from "@/components/ui/chip";
@@ -39,7 +39,8 @@ export type FavoriteEditorVideo = {
   title: string;
   coverUrl: string | null;
   sourceLabel: string;
-  storageProvider: VideoStorageProvider;
+  storageProvider: VideoStorageProvider | null;
+  isAvailable?: boolean;
 };
 
 type FavoriteEditorDialogProps = {
@@ -58,7 +59,7 @@ type NoticeState = {
   message: string;
 };
 
-function getVideoSourceIcon(platform: string) {
+function getVideoSourceIcon(platform: string | null) {
   if (platform === "bilibili") {
     return BilibiliSourceIcon;
   }
@@ -73,9 +74,9 @@ function getVideoSourceIcon(platform: string) {
 function Notice({ notice }: { notice: NoticeState }) {
   const icon =
     notice.variant === "loading" ? (
-      <SpinnerIcon />
+      <SpinnerIcon aria-hidden="true" />
     ) : (
-      <AlertIcon />
+      <AlertIcon aria-hidden="true" />
     );
 
   return (
@@ -105,13 +106,24 @@ export function FavoriteEditorDialog({
   const [newTagName, setNewTagName] = useState("");
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const wasOpenRef = useRef(false);
+  const hydratedCollectionIdRef = useRef<string | null>(null);
   const SourceIcon = getVideoSourceIcon(video.storageProvider);
+  const isVideoAvailable = video.isAvailable !== false;
 
   useEffect(() => {
     if (!open) {
+      wasOpenRef.current = false;
+      hydratedCollectionIdRef.current = null;
       return;
     }
 
+    if (wasOpenRef.current) {
+      return;
+    }
+
+    wasOpenRef.current = true;
+    hydratedCollectionIdRef.current = null;
     setLocalCollections(collections);
     setLocalTags(tags);
     setSelectedCollectionId(
@@ -132,13 +144,14 @@ export function FavoriteEditorDialog({
   );
 
   useEffect(() => {
-    if (!open) {
+    if (!open || hydratedCollectionIdRef.current === selectedCollectionId) {
       return;
     }
 
+    hydratedCollectionIdRef.current = selectedCollectionId;
     setNote(selectedMembership?.note ?? "");
     setSelectedTagIds(selectedMembership?.tagIds ?? []);
-  }, [open, selectedMembership]);
+  }, [open, selectedCollectionId, selectedMembership]);
 
   if (!open) {
     return null;
@@ -166,6 +179,12 @@ export function FavoriteEditorDialog({
 
   async function handleCreateCollection(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!isVideoAvailable) {
+      setError("视频已下架，仅可移除现有收藏记录。");
+      return;
+    }
+
     const name = newCollectionName.trim();
 
     if (!name) {
@@ -201,7 +220,7 @@ export function FavoriteEditorDialog({
       setNewCollectionName("");
       setNotice(null);
       showMessage({
-        icon: <CheckIcon />,
+        icon: <CheckIcon aria-hidden="true" />,
         text: "收藏夹已创建",
       });
       onChanged();
@@ -214,6 +233,12 @@ export function FavoriteEditorDialog({
 
   async function handleCreateTag(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!isVideoAvailable) {
+      setError("视频已下架，仅可移除现有收藏记录。");
+      return;
+    }
+
     const name = newTagName.trim();
 
     if (!name) {
@@ -253,7 +278,7 @@ export function FavoriteEditorDialog({
       setNewTagName("");
       setNotice(null);
       showMessage({
-        icon: <CheckIcon />,
+        icon: <CheckIcon aria-hidden="true" />,
         text: "标签已创建并加入当前收藏",
       });
       onChanged();
@@ -265,6 +290,11 @@ export function FavoriteEditorDialog({
   }
 
   async function handleSave() {
+    if (!isVideoAvailable) {
+      setError("视频已下架，仅可移除现有收藏记录。");
+      return;
+    }
+
     if (!selectedCollectionId) {
       setError("请先选择或创建一个收藏夹。");
       return;
@@ -279,17 +309,9 @@ export function FavoriteEditorDialog({
           `/api/user/collection-items/${selectedMembership.collectionItemId}`,
           {
             method: "PATCH",
-            body: JSON.stringify({ note }),
+            body: JSON.stringify({ note, tagIds: selectedTagIds }),
           },
           "收藏记录保存失败，请稍后重试。",
-        );
-        await requestUserArchiveMutation<MutationResult>(
-          `/api/user/collection-items/${selectedMembership.collectionItemId}/tags`,
-          {
-            method: "PUT",
-            body: JSON.stringify({ tagIds: selectedTagIds }),
-          },
-          "标签保存失败，请稍后重试。",
         );
       } else {
         await requestUserArchiveMutation<MutationResult>(
@@ -308,7 +330,7 @@ export function FavoriteEditorDialog({
 
       setNotice(null);
       showMessage({
-        icon: <CheckIcon />,
+        icon: <CheckIcon aria-hidden="true" />,
         text: "收藏记录已保存",
       });
       onChanged();
@@ -338,7 +360,7 @@ export function FavoriteEditorDialog({
       );
       setNotice(null);
       showMessage({
-        icon: <CheckIcon />,
+        icon: <CheckIcon aria-hidden="true" />,
         text: "已移出当前收藏夹",
       });
       onChanged();
@@ -354,10 +376,20 @@ export function FavoriteEditorDialog({
     <DialogShell
       className="max-h-[calc(100vh-2rem)] overflow-y-auto"
       closeLabel="关闭收藏编辑"
-      description="选择收藏夹，并维护这条收藏记录的私有标签。"
+      description={
+        isVideoAvailable
+          ? "选择收藏夹，并维护这条收藏记录的私有标签。"
+          : "视频已下架，只能从已有收藏夹中移除这条记录。"
+      }
       maxWidthClassName="max-w-[840px]"
       onClose={onClose}
-      title={selectedMembership ? "编辑收藏记录" : "收藏到档案"}
+      title={
+        isVideoAvailable
+          ? selectedMembership
+            ? "编辑收藏记录"
+            : "收藏到档案"
+          : "管理下架收藏记录"
+      }
     >
       <div className="mt-6 grid gap-5 lg:grid-cols-[250px,1fr]">
         <div className="space-y-4">
@@ -424,7 +456,7 @@ export function FavoriteEditorDialog({
           <form className="flex gap-2" onSubmit={handleCreateCollection}>
             <TextField
               className="h-10"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isVideoAvailable}
               label="新建收藏夹"
               maxLength={COLLECTION_NAME_MAX_LENGTH}
               onChange={(event) => setNewCollectionName(event.target.value)}
@@ -432,8 +464,8 @@ export function FavoriteEditorDialog({
               value={newCollectionName}
               wrapperClassName="flex-1 space-y-1.5"
             />
-            <Button className="mt-[26px] shrink-0 gap-2" disabled={isSubmitting} size="sm" type="submit">
-              <PlusIcon />
+            <Button className="mt-[26px] shrink-0 gap-2" disabled={isSubmitting || !isVideoAvailable} size="sm" type="submit">
+              <PlusIcon aria-hidden="true" />
               新建
             </Button>
           </form>
@@ -461,7 +493,7 @@ export function FavoriteEditorDialog({
               </span>
               <textarea
                 className="min-h-20 w-full resize-none rounded-md border border-border bg-panel px-4 py-3 text-sm leading-6 text-foreground outline-none transition placeholder:text-subtle focus:border-borderStrong"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isVideoAvailable}
                 maxLength={500}
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="给这条收藏写一个私人备注"
@@ -490,7 +522,7 @@ export function FavoriteEditorDialog({
                       size: "sm",
                       variant: selected ? "selected" : "default",
                     })}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isVideoAvailable}
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
                     type="button"
@@ -508,7 +540,7 @@ export function FavoriteEditorDialog({
             <form className="flex gap-2" onSubmit={handleCreateTag}>
               <TextField
                 className="h-10"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isVideoAvailable}
                 label="新建标签"
                 maxLength={TAG_NAME_MAX_LENGTH}
                 onChange={(event) => setNewTagName(event.target.value)}
@@ -516,12 +548,18 @@ export function FavoriteEditorDialog({
                 value={newTagName}
                 wrapperClassName="flex-1 space-y-1.5"
               />
-              <Button className="mt-[26px] shrink-0 gap-2" disabled={isSubmitting} size="sm" type="submit">
-                <PlusIcon />
+              <Button className="mt-[26px] shrink-0 gap-2" disabled={isSubmitting || !isVideoAvailable} size="sm" type="submit">
+                <PlusIcon aria-hidden="true" />
                 添加
               </Button>
             </form>
           </div>
+
+          {!isVideoAvailable ? (
+            <FormMessage icon={<AlertIcon aria-hidden="true" />} variant="error">
+              视频已下架。收藏记录仍计入数量与配额，你可以切换收藏夹并逐条移除。
+            </FormMessage>
+          ) : null}
 
           {notice ? <Notice notice={notice} /> : null}
 
@@ -533,17 +571,25 @@ export function FavoriteEditorDialog({
               type="button"
               variant="pill"
             >
-              <TrashIcon />
-              移出当前收藏夹
+              {isSubmitting ? (
+                <SpinnerIcon aria-hidden="true" />
+              ) : (
+                <TrashIcon aria-hidden="true" />
+              )}
+              {isSubmitting ? "正在移出" : "移出当前收藏夹"}
             </Button>
 
             <Button
               className="gap-2"
-              disabled={!selectedCollectionId || isSubmitting}
+              disabled={!selectedCollectionId || isSubmitting || !isVideoAvailable}
               onClick={handleSave}
               type="button"
             >
-              {isSubmitting ? <SpinnerIcon /> : <SaveIcon />}
+              {isSubmitting ? (
+                <SpinnerIcon aria-hidden="true" />
+              ) : (
+                <SaveIcon aria-hidden="true" />
+              )}
               {selectedMembership ? "保存修改" : "加入收藏"}
             </Button>
           </div>

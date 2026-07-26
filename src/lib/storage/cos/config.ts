@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   NATIVE_COVER_MAX_BYTES,
   NATIVE_VIDEO_MAX_BYTES,

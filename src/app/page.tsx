@@ -24,15 +24,20 @@ const fallbackHomeData: HomePageData = {
 };
 
 export default async function HomePage() {
-  const homeData = await getHomePageData().catch((error) => {
-    console.error("Failed to load home page data", error);
-    return fallbackHomeData;
-  });
+  const homeResult = await getHomePageData().then(
+    (data) => ({ data, unavailable: false }),
+    (error: unknown) => {
+      console.error("Failed to load home page data", error);
+      return { data: fallbackHomeData, unavailable: true };
+    },
+  );
+
   return (
     <HomePageShell
-      featuredItems={homeData.featuredItems}
-      hero={homeData.hero}
-      metaItems={homeData.metaItems}
+      dataUnavailable={homeResult.unavailable}
+      featuredItems={homeResult.data.featuredItems}
+      hero={homeResult.data.hero}
+      metaItems={homeResult.data.metaItems}
       navigation={siteConfig.navigation}
     />
   );

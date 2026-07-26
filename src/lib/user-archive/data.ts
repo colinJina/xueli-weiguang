@@ -192,6 +192,32 @@ function serializeItem(input: {
     storageProvider,
     tags: input.tags,
     href: `/video/${input.video.id}`,
+    isAvailable: true,
+    sortOrder: toNumber(input.row.sort_order),
+    createdAt: input.row.created_at,
+  };
+}
+
+function serializeUnavailableItem(input: {
+  row: CollectionItemRow;
+  collectionName: string;
+  tags: UserArchiveTagSummary[];
+}): UserArchiveItem {
+  return {
+    id: input.row.id,
+    collectionId: input.row.collection_id,
+    collectionName: input.collectionName,
+    videoId: input.row.video_id,
+    title: "视频已下架",
+    note: input.row.note ?? "",
+    coverUrl: null,
+    viewCountLabel: "—",
+    likeCountLabel: "—",
+    sourceLabel: "不可用",
+    storageProvider: null,
+    tags: input.tags,
+    href: null,
+    isAvailable: false,
     sortOrder: toNumber(input.row.sort_order),
     createdAt: input.row.created_at,
   };
@@ -382,22 +408,21 @@ export async function getUserArchivePageData(
     ((videosResult.data ?? []) as UserArchiveVideoRow[]).map((video) => [video.id, video]),
   );
   const allItems = sortByOrderAndCreatedAt(
-    itemRows
-      .map((row) => {
-        const video = videoMap.get(row.video_id);
+    itemRows.map((row) => {
+      const video = videoMap.get(row.video_id);
+      const itemInput = {
+        row,
+        collectionName: collectionNameMap.get(row.collection_id) ?? "未命名收藏夹",
+        tags: createItemTags(itemTagIdMap.get(row.id) ?? [], baseTagMap),
+      };
 
-        if (!video) {
-          return null;
-        }
-
-        return serializeItem({
-          row,
-          collectionName: collectionNameMap.get(row.collection_id) ?? "未命名收藏夹",
-          video,
-          tags: createItemTags(itemTagIdMap.get(row.id) ?? [], baseTagMap),
-        });
-      })
-      .filter((item): item is UserArchiveItem => Boolean(item)),
+      return video
+        ? serializeItem({
+            ...itemInput,
+            video,
+          })
+        : serializeUnavailableItem(itemInput);
+    }),
   );
   const collectionCounts = createCollectionCounts(allItems);
   const allTagCounts = createTagCounts(allItems);

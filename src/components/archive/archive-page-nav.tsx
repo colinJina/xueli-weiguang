@@ -3,16 +3,12 @@ import type { User } from "@supabase/supabase-js";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
 import { UserMenu } from "@/components/auth/user-menu";
-import ArchiveBellIcon from "@/components/icons/archive/bell.svg";
 import ArchiveHeartIcon from "@/components/icons/archive/nav-heart.svg";
 import ArchivePlayIcon from "@/components/icons/archive/nav-play.svg";
-import ArchiveSearchIcon from "@/components/icons/archive/search.svg";
-import ArchiveSettingsIcon from "@/components/icons/archive/settings.svg";
 import ArchiveUserIcon from "@/components/icons/archive/user.svg";
 import ArchiveUserPlusIcon from "@/components/icons/archive/user-plus.svg";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
-import { IconButton } from "@/components/ui/icon-button";
 
 type ArchivePageNavProps = {
   activeChannel: string;
@@ -78,21 +74,6 @@ export function ArchivePageNav({
         </div>
 
         <div className="flex items-center justify-end gap-3 max-xl:w-full max-xl:justify-start">
-          <div
-            className="flex items-center gap-2.5 max-md:flex-wrap"
-            aria-label="工具栏"
-          >
-            <IconButton aria-label="搜索">
-              <ArchiveSearchIcon aria-hidden="true" className="h-[17px] w-[17px]" />
-            </IconButton>
-            <IconButton aria-label="通知">
-              <ArchiveBellIcon aria-hidden="true" className="h-[17px] w-[17px]" />
-            </IconButton>
-            <IconButton aria-label="设置">
-              <ArchiveSettingsIcon aria-hidden="true" className="h-[17px] w-[17px]" />
-            </IconButton>
-          </div>
-
           <div
             className="flex items-center gap-2.5 max-md:flex-wrap"
             aria-label="账户操作"

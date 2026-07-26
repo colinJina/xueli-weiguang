@@ -13,6 +13,7 @@ import type {
 
 export const ARCHIVE_PAGE_SIZE = 24;
 export const ARCHIVE_MAX_PAGE = 500;
+export const ARCHIVE_MAX_TAG_FILTERS = 10;
 
 type SearchParamValue = string | string[] | undefined;
 type SearchParamsInput = Record<string, SearchParamValue>;
@@ -70,7 +71,7 @@ function parseIdList(value: SearchParamValue) {
         .map((item) => item.trim())
         .filter((item) => UUID_PATTERN.test(item)),
     ),
-  );
+  ).slice(0, ARCHIVE_MAX_TAG_FILTERS);
 }
 
 function parseArchivePage(value: SearchParamValue) {
