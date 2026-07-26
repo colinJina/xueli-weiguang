@@ -18,6 +18,11 @@ type VideoRow = {
   like_count: number | string;
 };
 
+type VideoLikeMutationRow = {
+  liked: boolean;
+  like_count: number | string;
+};
+
 function interactionError(
   code: VideoInteractionErrorCode,
   message: string,
@@ -151,13 +156,15 @@ export async function PUT(_request: Request, { params }: RouteContext) {
       );
     }
 
-    const { error } = await supabase.from("video_likes").insert({
-      user_id: user.id,
-      video_id: id,
-    });
+    const { data: mutation, error: mutationError } = await supabase
+      .rpc("set_cos_video_like", {
+        p_video_id: id,
+        p_liked: true,
+      })
+      .maybeSingle();
 
-    if (error && error.code !== "23505") {
-      console.error("Failed to like video", error);
+    if (mutationError || !mutation) {
+      console.error("Failed to like video atomically", mutationError);
       return interactionError(
         "METRICS_UNAVAILABLE",
         "点赞暂时无法保存，请稍后再试。",
@@ -165,24 +172,8 @@ export async function PUT(_request: Request, { params }: RouteContext) {
       );
     }
 
-    const { data: nextVideo, error: nextVideoError } = await supabase
-      .from("videos")
-      .select("like_count")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (nextVideoError) {
-      console.error("Failed to reload like count", nextVideoError);
-      return interactionError(
-        "METRICS_UNAVAILABLE",
-        "点赞已提交，但计数暂时无法刷新。",
-        503,
-      );
-    }
-
-    return NextResponse.json(
-      createLikeResponse(true, (nextVideo as Pick<VideoRow, "like_count"> | null)?.like_count),
-    );
+    const result = mutation as VideoLikeMutationRow;
+    return NextResponse.json(createLikeResponse(result.liked, result.like_count));
   } catch (error) {
     console.error("Failed to like video", error);
     return interactionError(
@@ -226,14 +217,15 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       );
     }
 
-    const { error } = await supabase
-      .from("video_likes")
-      .delete()
-      .eq("video_id", id)
-      .eq("user_id", user.id);
+    const { data: mutation, error: mutationError } = await supabase
+      .rpc("set_cos_video_like", {
+        p_video_id: id,
+        p_liked: false,
+      })
+      .maybeSingle();
 
-    if (error) {
-      console.error("Failed to unlike video", error);
+    if (mutationError || !mutation) {
+      console.error("Failed to unlike video atomically", mutationError);
       return interactionError(
         "METRICS_UNAVAILABLE",
         "取消点赞暂时无法保存，请稍后再试。",
@@ -241,24 +233,8 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       );
     }
 
-    const { data: nextVideo, error: nextVideoError } = await supabase
-      .from("videos")
-      .select("like_count")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (nextVideoError) {
-      console.error("Failed to reload like count", nextVideoError);
-      return interactionError(
-        "METRICS_UNAVAILABLE",
-        "点赞状态已更新，但计数暂时无法刷新。",
-        503,
-      );
-    }
-
-    return NextResponse.json(
-      createLikeResponse(false, (nextVideo as Pick<VideoRow, "like_count"> | null)?.like_count),
-    );
+    const result = mutation as VideoLikeMutationRow;
+    return NextResponse.json(createLikeResponse(result.liked, result.like_count));
   } catch (error) {
     console.error("Failed to unlike video", error);
     return interactionError(
