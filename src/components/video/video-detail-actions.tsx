@@ -11,8 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
+import { usePageTopMessage } from "@/components/ui/page-top-message-provider";
 import { LikeBurstIcon } from "@/components/video/like-burst-icon";
 import StatusAlertIcon from "@/components/icons/shared/alert-circle.svg";
+import CheckIcon from "@/components/icons/shared/check-circle.svg";
 import VideoBookmarkIcon from "@/components/icons/video/bookmark.svg";
 import VideoHeartIcon from "@/components/icons/video/heart.svg";
 import VideoShareIcon from "@/components/icons/video/share.svg";
@@ -62,6 +64,7 @@ export function VideoDetailActions({
   videoId,
 }: VideoDetailActionsProps) {
   const router = useRouter();
+  const { showMessage } = usePageTopMessage();
   const {
     isReady,
     isAuthenticated,
@@ -181,6 +184,29 @@ export function VideoDetailActions({
     setFavoriteDialogOpen(true);
   }
 
+  async function handleShareClick() {
+    setErrorMessage(null);
+    const url = window.location.href;
+
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: favoriteVideo.title, url });
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      showMessage({ icon: <CheckIcon aria-hidden="true" />, text: "视频链接已复制" });
+    } catch {
+      setErrorMessage("分享暂时不可用，请复制浏览器地址后重试。");
+    }
+  }
+
   const likeButton = canUseLocalLikes ? (
     <Button
       aria-busy={isPending}
@@ -197,8 +223,8 @@ export function VideoDetailActions({
     </Button>
   ) : (
     <Button
-      aria-disabled="true"
       className="gap-2 font-medium"
+      disabled
       size="md"
       title="外站视频保留原始点赞数据"
       type="button"
@@ -219,7 +245,7 @@ export function VideoDetailActions({
           <span>收藏与标签</span>
         </Button>
 
-        <IconButton aria-label="分享" type="button">
+        <IconButton aria-label="分享" onClick={handleShareClick} type="button">
           <VideoShareIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
         </IconButton>
       </div>

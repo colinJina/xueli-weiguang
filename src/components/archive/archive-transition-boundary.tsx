@@ -26,6 +26,7 @@ type ArchiveTransitionClick = {
 };
 
 const archivePathname = "/archive";
+const transitionFallbackTimeoutMs = 10_000;
 
 export function ArchiveTransitionBoundary({
   children,
@@ -40,6 +41,20 @@ export function ArchiveTransitionBoundary({
   useEffect(() => {
     setIsPending(false);
   }, [pathname, search]);
+
+  useEffect(() => {
+    if (!isPending) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsPending(false);
+    }, transitionFallbackTimeoutMs);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isPending]);
 
   function handleClick(event: MouseEvent<HTMLDivElement>) {
     const target = event.target;
@@ -75,7 +90,7 @@ export function ArchiveTransitionBoundary({
   }
 
   return (
-    <div onClickCapture={handleClick}>
+    <div aria-busy={isPending} onClickCapture={handleClick}>
       {controls}
       {isPending ? fallback : children}
     </div>
