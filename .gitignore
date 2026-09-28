@@ -24,3 +24,5 @@ CLAUDE.md
 .superpowers
 .agents
 supabase/.temp
+public/sw.js
+public/icons/*.png
