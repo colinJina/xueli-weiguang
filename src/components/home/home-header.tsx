@@ -12,6 +12,7 @@ import HomeLoginIcon from "@/components/icons/home/login.svg";
 import HomeProfileIcon from "@/components/icons/home/profile.svg";
 import HomeUploadIcon from "@/components/icons/home/upload.svg";
 import { SiteBrand } from "@/components/layout/site-brand";
+import { PushNotificationButton } from "@/components/push/push-notification-button";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,7 @@ export function HomeHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:gap-2">
+          <PushNotificationButton className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11" />
           <IconButton
             aria-label="上传"
             className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11"

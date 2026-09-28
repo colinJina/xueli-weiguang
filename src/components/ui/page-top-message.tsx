@@ -6,8 +6,10 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type PageTopMessagePayload = {
+  actionLabel?: string;
   icon?: ReactNode;
   id: number;
+  onClick?: () => void;
   text: string;
 };
 
@@ -27,6 +29,7 @@ export function PageTopMessage({
       <AnimatePresence initial={false}>
         {message ? (
           <motion.button
+            aria-label={message.actionLabel}
             animate={
               prefersReducedMotion
                 ? { opacity: 1 }
@@ -47,7 +50,10 @@ export function PageTopMessage({
                 : { opacity: 0, y: -12, scale: 0.96 }
             }
             key={message.id}
-            onClick={onDismiss}
+            onClick={() => {
+              message.onClick?.();
+              onDismiss();
+            }}
             transition={{ duration: prefersReducedMotion ? 0.16 : 0.22, ease: "easeOut" }}
             type="button"
           >
