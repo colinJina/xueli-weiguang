@@ -3,7 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
 import { UserMenu } from "@/components/auth/user-menu";
-import ArchiveBellIcon from "@/components/icons/archive/bell.svg";
+import { PushNotificationButton } from "@/components/push/push-notification-button";
 import ArchiveHeartIcon from "@/components/icons/archive/nav-heart.svg";
 import ArchivePlayIcon from "@/components/icons/archive/nav-play.svg";
 import ArchiveSearchIcon from "@/components/icons/archive/search.svg";
@@ -85,9 +85,7 @@ export function ArchivePageNav({
             <IconButton aria-label="搜索">
               <ArchiveSearchIcon aria-hidden="true" className="h-[17px] w-[17px]" />
             </IconButton>
-            <IconButton aria-label="通知">
-              <ArchiveBellIcon aria-hidden="true" className="h-[17px] w-[17px]" />
-            </IconButton>
+            <PushNotificationButton />
             <IconButton aria-label="设置">
               <ArchiveSettingsIcon aria-hidden="true" className="h-[17px] w-[17px]" />
             </IconButton>
