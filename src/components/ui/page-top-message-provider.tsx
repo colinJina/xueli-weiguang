@@ -17,8 +17,10 @@ import {
 } from "@/components/ui/page-top-message";
 
 type ShowPageTopMessageInput = {
-  durationMs?: number;
+  actionLabel?: string;
+  durationMs?: number | null;
   icon?: ReactNode;
+  onClick?: () => void;
   text: string;
 };
 
@@ -62,18 +64,26 @@ export function PageTopMessageProvider({
   const showMessage = useCallback(
     ({
       durationMs = PAGE_TOP_MESSAGE_DURATION_MS,
+      actionLabel,
       icon,
+      onClick,
       text,
     }: ShowPageTopMessageInput) => {
       dismissMessage();
 
       const nextMessage = {
+        actionLabel,
         id: nextIdRef.current++,
         icon,
+        onClick,
         text,
       };
 
       setMessage(nextMessage);
+      if (durationMs === null) {
+        return;
+      }
+
       timeoutRef.current = window.setTimeout(() => {
         setMessage((current) =>
           current?.id === nextMessage.id ? null : current,

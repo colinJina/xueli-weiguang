@@ -3,6 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { ArchiveSubmitTrigger } from "@/components/archive/archive-submit-trigger";
 import { UserMenu } from "@/components/auth/user-menu";
+import { PushNotificationButton } from "@/components/push/push-notification-button";
 import ArchiveHeartIcon from "@/components/icons/archive/nav-heart.svg";
 import ArchivePlayIcon from "@/components/icons/archive/nav-play.svg";
 import ArchiveUserIcon from "@/components/icons/archive/user.svg";
@@ -74,6 +75,13 @@ export function ArchivePageNav({
         </div>
 
         <div className="flex items-center justify-end gap-3 max-xl:w-full max-xl:justify-start">
+          <div
+            className="flex items-center gap-2.5 max-md:flex-wrap"
+            aria-label="工具栏"
+          >
+            <PushNotificationButton />
+          </div>
+
           <div
             className="flex items-center gap-2.5 max-md:flex-wrap"
             aria-label="账户操作"
