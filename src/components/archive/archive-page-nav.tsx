@@ -6,13 +6,10 @@ import { UserMenu } from "@/components/auth/user-menu";
 import { PushNotificationButton } from "@/components/push/push-notification-button";
 import ArchiveHeartIcon from "@/components/icons/archive/nav-heart.svg";
 import ArchivePlayIcon from "@/components/icons/archive/nav-play.svg";
-import ArchiveSearchIcon from "@/components/icons/archive/search.svg";
-import ArchiveSettingsIcon from "@/components/icons/archive/settings.svg";
 import ArchiveUserIcon from "@/components/icons/archive/user.svg";
 import ArchiveUserPlusIcon from "@/components/icons/archive/user-plus.svg";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
-import { IconButton } from "@/components/ui/icon-button";
 
 type ArchivePageNavProps = {
   activeChannel: string;
@@ -82,13 +79,7 @@ export function ArchivePageNav({
             className="flex items-center gap-2.5 max-md:flex-wrap"
             aria-label="工具栏"
           >
-            <IconButton aria-label="搜索">
-              <ArchiveSearchIcon aria-hidden="true" className="h-[17px] w-[17px]" />
-            </IconButton>
             <PushNotificationButton />
-            <IconButton aria-label="设置">
-              <ArchiveSettingsIcon aria-hidden="true" className="h-[17px] w-[17px]" />
-            </IconButton>
           </div>
 
           <div

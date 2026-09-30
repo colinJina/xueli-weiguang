@@ -453,75 +453,59 @@ export async function createCollectionItem(
   await ensureTagIdsBelongToUser(client, userId, tagIds);
   await ensureCollectionItemQuota(client, collectionId);
 
-  const { data, error } = await client
-    .from("collection_items")
-    .insert({
-      collection_id: collectionId,
-      video_id: videoId,
-      note,
-      ...(sortOrder === undefined ? {} : { sort_order: sortOrder }),
-    })
-    .select("id")
-    .single();
+  const { data, error } = await client.rpc("create_collection_item_with_tags", {
+    p_collection_id: collectionId,
+    p_video_id: videoId,
+    p_note: note,
+    p_sort_order: sortOrder ?? null,
+    p_tag_ids: tagIds ?? [],
+  });
 
   if (error) {
     throw mapDatabaseError(error);
   }
 
-  const result = data as MutationResult;
-
-  if (tagIds && tagIds.length > 0) {
-    try {
-      await setCollectionItemTags(client, userId, result.id, tagIds);
-    } catch (error) {
-      await client.from("collection_items").delete().eq("id", result.id);
-      throw error;
-    }
+  if (typeof data !== "string") {
+    throw notFoundError("收藏记录保存失败，请刷新后重试。");
   }
 
-  return result;
+  return { id: data };
 }
 
 export async function updateCollectionItem(
   client: SupabaseClient,
+  userId: string,
   collectionItemId: string,
   input: Record<string, unknown>,
 ): Promise<MutationResult> {
   assertUuid(collectionItemId, "id", "收藏记录");
 
-  const patch: Record<string, string | number> = {};
   const note = normalizeOptionalText(input.note, "note", "收藏备注", COLLECTION_ITEM_NOTE_MAX_LENGTH);
-
-  if (note !== undefined) {
-    patch.note = note;
-  }
-
   const sortOrder = normalizeSortOrder(input.sortOrder);
+  const tagIds = normalizeTagIds(input.tagIds);
 
-  if (sortOrder !== undefined) {
-    patch.sort_order = sortOrder;
-  }
-
-  if (Object.keys(patch).length === 0) {
+  if (note === undefined && sortOrder === undefined && tagIds === undefined) {
     throw validationError("没有可保存的收藏记录变更。");
   }
 
-  const { data, error } = await client
-    .from("collection_items")
-    .update(patch)
-    .eq("id", collectionItemId)
-    .select("id")
-    .maybeSingle();
+  await ensureTagIdsBelongToUser(client, userId, tagIds);
+
+  const { data, error } = await client.rpc("update_collection_item_with_tags", {
+    p_collection_item_id: collectionItemId,
+    p_note: note ?? null,
+    p_sort_order: sortOrder ?? null,
+    p_tag_ids: tagIds ?? null,
+  });
 
   if (error) {
     throw mapDatabaseError(error);
   }
 
-  if (!data) {
+  if (typeof data !== "string") {
     throw notFoundError("收藏记录不存在或已被移除。");
   }
 
-  return { id: (data as MutationResult).id };
+  return { id: data };
 }
 
 export async function deleteCollectionItem(

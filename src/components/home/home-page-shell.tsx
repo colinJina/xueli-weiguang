@@ -28,6 +28,7 @@ type HomeNavigationItem = {
 };
 
 type HomePageShellProps = {
+  dataUnavailable?: boolean;
   featuredItems: ArchiveVideoItem[];
   hero: HomeHeroFeature | null;
   metaItems: readonly HomeSiteStatItem[];
@@ -35,6 +36,7 @@ type HomePageShellProps = {
 };
 
 export function HomePageShell({
+  dataUnavailable = false,
   featuredItems,
   hero,
   navigation,
@@ -112,7 +114,11 @@ export function HomePageShell({
         <HomeHero hero={hero} />
         <HomeMetaStrip items={metaItems} motionReady={motionReady} />
         <div className="mx-auto w-full max-w-[1520px] px-4 pt-12 sm:px-6 sm:pt-10 lg:px-6 xl:px-8">
-          <HomeFeaturedGrid items={featuredItems} motionReady={motionReady} />
+          <HomeFeaturedGrid
+            dataUnavailable={dataUnavailable}
+            items={featuredItems}
+            motionReady={motionReady}
+          />
         </div>
       </main>
 

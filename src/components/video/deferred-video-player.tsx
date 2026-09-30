@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 import type { VideoDetail } from "@/lib/videos/types";
@@ -9,6 +9,7 @@ import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
 import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
 import VideoPlayIcon from "@/components/icons/video/play.svg";
 import VideoUnavailableIcon from "@/components/icons/video/unavailable.svg";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type DeferredVideoPlayerProps = {
@@ -58,14 +59,14 @@ export function DeferredVideoPlayer({
   showSourceBadge = true,
   video,
 }: DeferredVideoPlayerProps) {
-  const hasReportedPlayRef = useRef(false);
   const [isPlayerActive, setIsPlayerActive] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
   const canRenderExternalEmbed =
     (video.storageProvider === "bilibili" || video.storageProvider === "youtube") &&
     Boolean(video.embedUrl);
   const canRenderCosVideo = video.storageProvider === "cos" && Boolean(video.playbackUrl);
-  const shouldRenderExternalEmbed = isPlayerActive && canRenderExternalEmbed;
+  const shouldRenderExternalEmbed =
+    isPlayerActive && canRenderExternalEmbed && !hasVideoError;
   const shouldRenderCosVideo =
     isPlayerActive && canRenderCosVideo && !hasVideoError;
   const shouldRenderCover = !isPlayerActive && (canRenderExternalEmbed || canRenderCosVideo);
@@ -78,12 +79,11 @@ export function DeferredVideoPlayer({
   }
 
   function handleCosPlay() {
-    if (hasReportedPlayRef.current) {
-      return;
-    }
-
-    hasReportedPlayRef.current = true;
     onCosPlay?.();
+  }
+
+  function handleRetryPlayback() {
+    setHasVideoError(false);
   }
 
   return (
@@ -145,6 +145,7 @@ export function DeferredVideoPlayer({
             allowFullScreen
             className="h-full w-full bg-black"
             loading="lazy"
+            onError={() => setHasVideoError(true)}
             referrerPolicy="no-referrer-when-downgrade"
             src={getAutoplayEmbedUrl(video.embedUrl)}
             title={video.title}
@@ -166,15 +167,20 @@ export function DeferredVideoPlayer({
           </video>
         ) : null}
 
-        {shouldRenderUnavailable ? <VideoUnavailableState /> : null}
+        {shouldRenderUnavailable ? (
+          <VideoUnavailableState onRetry={hasVideoError ? handleRetryPlayback : undefined} />
+        ) : null}
       </div>
     </section>
   );
 }
 
-function VideoUnavailableState() {
+function VideoUnavailableState({ onRetry }: { onRetry?: () => void }) {
   return (
-    <div className="flex h-full w-full items-center justify-center px-6 text-center">
+    <div
+      aria-live="polite"
+      className="flex h-full w-full items-center justify-center px-6 text-center"
+    >
       <div className="flex max-w-[22rem] flex-col items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.03] text-subtle">
           <VideoUnavailableIcon aria-hidden="true" className="h-6 w-6" />
@@ -183,8 +189,15 @@ function VideoUnavailableState() {
           <p className="text-sm font-semibold tracking-[0.02em] text-foreground">
             视频暂不可用
           </p>
-          <p className="text-sm leading-6 text-subtle">请稍后再试。</p>
+          <p className="text-sm leading-6 text-subtle">
+            {onRetry ? "加载失败，请重新尝试。" : "请稍后再试。"}
+          </p>
         </div>
+        {onRetry ? (
+          <Button onClick={onRetry} size="sm" type="button" variant="pill">
+            重新加载
+          </Button>
+        ) : null}
       </div>
     </div>
   );

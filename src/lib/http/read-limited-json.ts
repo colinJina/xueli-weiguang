@@ -31,16 +31,40 @@ export async function readLimitedJsonObject(
     throw new JsonRequestError("请求内容过大，请减少内容后重试。", 413);
   }
 
-  let rawBody: string;
+  const reader = request.body?.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let rawBody = "";
+  let receivedBytes = 0;
 
   try {
-    rawBody = await request.text();
-  } catch {
-    throw new JsonRequestError("请求内容无效，请重新提交。");
-  }
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
 
-  if (new TextEncoder().encode(rawBody).byteLength > maxBytes) {
-    throw new JsonRequestError("请求内容过大，请减少内容后重试。", 413);
+        if (done) {
+          break;
+        }
+
+        receivedBytes += value.byteLength;
+
+        if (receivedBytes > maxBytes) {
+          await reader.cancel().catch(() => undefined);
+          throw new JsonRequestError("请求内容过大，请减少内容后重试。", 413);
+        }
+
+        rawBody += decoder.decode(value, { stream: true });
+      }
+
+      rawBody += decoder.decode();
+    }
+  } catch (error) {
+    if (error instanceof JsonRequestError) {
+      throw error;
+    }
+
+    throw new JsonRequestError("请求内容无效，请重新提交。");
+  } finally {
+    reader?.releaseLock();
   }
 
   let payload: unknown;

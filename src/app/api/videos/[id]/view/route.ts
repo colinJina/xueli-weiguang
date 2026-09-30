@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "crypto";
+import { isIP } from "node:net";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -50,6 +51,7 @@ const VIEWER_COOKIE_NAME = "xlwg_viewer_id";
 const VIEWER_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 const VIEWER_ID_PATTERN = /^[A-Za-z0-9_-]{32,}$/;
 const DEVELOPMENT_VIEW_METRICS_HASH_SALT = "development-view-metrics-salt";
+const MISSING_FORWARDED_FOR_BUCKET_SOURCE = "missing-x-forwarded-for";
 
 function interactionError(
   code: VideoInteractionErrorCode,
@@ -104,13 +106,11 @@ function getViewMetricsHashSalt() {
 
 function getClientBucketSource(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");
-  const ip =
-    forwardedFor?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
-    "unknown";
-  const userAgent = request.headers.get("user-agent")?.trim() || "unknown";
+  const clientIp = forwardedFor?.split(",")[0]?.trim();
 
-  return `${ip}:${userAgent}`;
+  return clientIp && isIP(clientIp)
+    ? clientIp
+    : MISSING_FORWARDED_FOR_BUCKET_SOURCE;
 }
 
 function createViewerBucketHash(request: Request) {

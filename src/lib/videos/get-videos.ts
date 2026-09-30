@@ -12,6 +12,8 @@ import type {
 } from "@/lib/videos/types";
 
 export const ARCHIVE_PAGE_SIZE = 24;
+export const ARCHIVE_MAX_PAGE = 500;
+export const ARCHIVE_MAX_TAG_FILTERS = 10;
 
 type SearchParamValue = string | string[] | undefined;
 type SearchParamsInput = Record<string, SearchParamValue>;
@@ -41,6 +43,12 @@ type ArchiveVideosRpcClient = {
     error: { message: string } | null;
   }>;
 };
+type ArchivePageRequest = {
+  offset: number;
+  page: number;
+  pageCount: number;
+  shouldRefetch: boolean;
+};
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -63,7 +71,47 @@ function parseIdList(value: SearchParamValue) {
         .map((item) => item.trim())
         .filter((item) => UUID_PATTERN.test(item)),
     ),
-  );
+  ).slice(0, ARCHIVE_MAX_TAG_FILTERS);
+}
+
+function parseArchivePage(value: SearchParamValue) {
+  const rawValue = getSingleParam(value)?.trim();
+
+  if (!rawValue || !/^\d+$/.test(rawValue)) {
+    return 1;
+  }
+
+  const pageValue = Number(rawValue);
+
+  if (!Number.isSafeInteger(pageValue)) {
+    return ARCHIVE_MAX_PAGE;
+  }
+
+  return Math.min(Math.max(1, pageValue), ARCHIVE_MAX_PAGE);
+}
+
+function getArchivePageOffset(page: number) {
+  return (page - 1) * ARCHIVE_PAGE_SIZE;
+}
+
+export function resolveArchivePageRequest(
+  requestedPage: number,
+  totalCount: number,
+): ArchivePageRequest {
+  const safeTotalCount = Number.isFinite(totalCount) && totalCount > 0 ? Math.floor(totalCount) : 0;
+  const pageCount = Math.max(1, Math.ceil(safeTotalCount / ARCHIVE_PAGE_SIZE));
+  const safeRequestedPage =
+    Number.isSafeInteger(requestedPage) && requestedPage > 0
+      ? Math.min(requestedPage, ARCHIVE_MAX_PAGE)
+      : 1;
+  const page = Math.min(safeRequestedPage, pageCount);
+
+  return {
+    offset: getArchivePageOffset(page),
+    page,
+    pageCount,
+    shouldRefetch: page !== safeRequestedPage,
+  };
 }
 
 export function parseArchiveFilters(
@@ -71,14 +119,12 @@ export function parseArchiveFilters(
   toneFamilies: readonly ToneFamilyItem[] = [],
 ): ArchiveFilters {
   const categoryValue = getSingleParam(searchParams.category);
-  const pageValue = Number(getSingleParam(searchParams.page) ?? "1");
-  const safePage = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1;
 
   return {
     categoryId: categoryValue && UUID_PATTERN.test(categoryValue) ? categoryValue : null,
     tagIds: parseIdList(searchParams.tags),
     toneKeys: parseToneFamilyKeyList(searchParams.tones, toneFamilies),
-    page: safePage,
+    page: parseArchivePage(searchParams.page),
   };
 }
 
@@ -146,28 +192,58 @@ async function listVideoRelations(
   return { tagsByVideoId, tonesByVideoId };
 }
 
-export async function getArchiveVideos(
-  rawSearchParams: SearchParamsInput,
-): Promise<ArchiveVideosResult> {
-  const supabase = createPublicClient();
-  const dictionaries = await getVideoDictionaries();
-  const filters = parseArchiveFilters(rawSearchParams, dictionaries.toneFamilies);
-
-  const from = (filters.page - 1) * ARCHIVE_PAGE_SIZE;
-  const archiveRpcClient = supabase as unknown as ArchiveVideosRpcClient;
+async function fetchArchiveVideosPage(
+  archiveRpcClient: ArchiveVideosRpcClient,
+  filters: ArchiveFilters,
+  offset: number,
+) {
   const { data, error } = await archiveRpcClient.rpc("get_archive_videos", {
     p_category_id: filters.categoryId,
     p_tag_ids: filters.tagIds,
     p_tone_family_keys: filters.toneKeys,
     p_limit: ARCHIVE_PAGE_SIZE,
-    p_offset: from,
+    p_offset: offset,
   });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  const { rows, totalCount } = parseArchiveVideosRpcPayload(data);
+  return parseArchiveVideosRpcPayload(data);
+}
+
+export async function getArchiveVideos(
+  rawSearchParams: SearchParamsInput,
+): Promise<ArchiveVideosResult> {
+  const supabase = createPublicClient();
+  const dictionaries = await getVideoDictionaries();
+  const filters = parseArchiveFilters(rawSearchParams, dictionaries.toneFamilies);
+  const archiveRpcClient = supabase as unknown as ArchiveVideosRpcClient;
+  let requestedPage = filters.page;
+  let pageRequest: ArchivePageRequest;
+  let rows: VideoBaseRow[] = [];
+  let totalCount = 0;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const pageResult = await fetchArchiveVideosPage(
+      archiveRpcClient,
+      filters,
+      getArchivePageOffset(requestedPage),
+    );
+
+    rows = pageResult.rows;
+    totalCount = pageResult.totalCount;
+    pageRequest = resolveArchivePageRequest(requestedPage, totalCount);
+
+    if (!pageRequest.shouldRefetch) {
+      break;
+    }
+
+    requestedPage = pageRequest.page;
+  }
+
+  pageRequest = resolveArchivePageRequest(requestedPage, totalCount);
+
   const categoryMap = createDictionaryMap(dictionaries.categories);
   const { tagsByVideoId, tonesByVideoId } = await listVideoRelations(
     supabase,
@@ -184,12 +260,12 @@ export async function getArchiveVideos(
           tags: tagsByVideoId.get(row.id) ?? [],
           tones: tonesByVideoId.get(row.id) ?? [],
         },
-        from + index,
+        pageRequest.offset + index,
       ),
     ),
     dictionaries,
-    filters,
+    filters: pageRequest.page === filters.page ? filters : { ...filters, page: pageRequest.page },
     totalCount,
-    pageCount: Math.max(1, Math.ceil(totalCount / ARCHIVE_PAGE_SIZE)),
+    pageCount: pageRequest.pageCount,
   };
 }
