@@ -1,6 +1,7 @@
 import type { VideoToneItem } from "@/lib/videos/types";
 
 const MAX_VISIBLE_TONES = 5;
+const DEFAULT_SWATCH_DIAMETER = 12;
 const MIN_SWATCH_DIAMETER = 7;
 const MAX_SWATCH_DIAMETER = 14;
 const SWATCH_DIAMETER_SCALE = 45;
@@ -27,12 +28,16 @@ export function getVisibleVideoTones(tones: readonly VideoToneItem[]) {
 }
 
 export function getToneSwatchDiameter(percentage: number | null) {
+  if (percentage === null) {
+    return DEFAULT_SWATCH_DIAMETER;
+  }
+
   // Match PVDex's compact palette sizing, including its upper size limit.
   return Math.max(
     MIN_SWATCH_DIAMETER,
     Math.min(
       MAX_SWATCH_DIAMETER,
-      Math.round(MIN_SWATCH_DIAMETER + (percentage ?? 0) * SWATCH_DIAMETER_SCALE),
+      Math.round(MIN_SWATCH_DIAMETER + percentage * SWATCH_DIAMETER_SCALE),
     ),
   );
 }
