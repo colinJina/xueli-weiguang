@@ -42,7 +42,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
 
   return (
     <Link
-      className="group isolate flex h-full w-full min-w-0 flex-col rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:z-10 hover:-translate-y-0.5 focus-within:z-10"
+      className="group relative isolate flex h-full w-full min-w-0 flex-col rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:z-10 hover:-translate-y-0.5 focus-within:z-10"
       href={`/video/${item.id}`}
     >
       <div
