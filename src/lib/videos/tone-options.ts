@@ -1,57 +1,25 @@
-import type { ToneFamilyItem, VideoDictionaryItem } from "@/lib/videos/types";
-
-const TONE_HEX_PATTERN = /^#[0-9A-F]{6}$/;
+// Preserve the original public presets. HEX membership is computed by the database.
+export const TONE_PRESETS = [
+  { key: "red", name: "红", colorHex: "#EF4444" },
+  { key: "orange", name: "橙", colorHex: "#F97316" },
+  { key: "yellow", name: "黄", colorHex: "#EAB308" },
+  { key: "green", name: "绿", colorHex: "#22C55E" },
+  { key: "cyan", name: "青", colorHex: "#06B6D4" },
+  { key: "blue", name: "蓝", colorHex: "#3B82F6" },
+  { key: "purple", name: "紫", colorHex: "#8B5CF6" },
+  { key: "pink", name: "粉", colorHex: "#EC4899" },
+  { key: "brown", name: "棕", colorHex: "#92400E" },
+  { key: "neutral", name: "中性", colorHex: "#737373" },
+] as const;
 
 export function normalizeToneColorHex(value: string | null | undefined) {
-  const normalizedValue = value?.trim().toUpperCase();
-
-  if (!normalizedValue || !TONE_HEX_PATTERN.test(normalizedValue)) {
-    return null;
-  }
-
-  return normalizedValue;
+  const normalized = value?.trim().toUpperCase();
+  return normalized && /^#[0-9A-F]{6}$/.test(normalized) ? normalized : null;
 }
 
-export function parseToneFamilyKeyList(
-  value: string | string[] | undefined,
-  toneFamilies: readonly ToneFamilyItem[],
-) {
-  const rawValue = Array.isArray(value) ? value[0] : value;
-
-  if (!rawValue) {
-    return [];
-  }
-
-  const activeFamilyKeys = new Set(
-    toneFamilies.filter((family) => family.isActive).map((family) => family.key),
+export function parseToneKeyList(value: string | undefined) {
+  const validKeys = new Set<string>(TONE_PRESETS.map((tone) => tone.key));
+  return [...new Set((value ?? "").split(",").map((key) => key.trim()))].filter(
+    (key) => validKeys.has(key),
   );
-
-  return Array.from(
-    new Set(
-      rawValue
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => activeFamilyKeys.has(item)),
-    ),
-  );
-}
-
-export function getToneIdsForFamilyKeys(
-  tones: readonly VideoDictionaryItem[],
-  toneFamilies: readonly ToneFamilyItem[],
-  toneKeys: readonly string[],
-) {
-  const selectedFamilyIds = new Set(
-    toneFamilies
-      .filter((family) => family.isActive && toneKeys.includes(family.key))
-      .map((family) => family.id),
-  );
-
-  if (selectedFamilyIds.size === 0) {
-    return [];
-  }
-
-  return tones
-    .filter((tone) => tone.familyId && selectedFamilyIds.has(tone.familyId))
-    .map((tone) => tone.id);
 }
