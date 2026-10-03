@@ -1,10 +1,10 @@
 import { ArchiveRealtimeView } from "@/components/archive/archive-realtime-view";
 import { parseArchiveFilters } from "@/lib/videos/archive-filters";
 import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
-import { getArchiveVideos } from "@/lib/videos/get-videos";
+import { getArchiveVideoFeed } from "@/lib/videos/get-video-feed";
 import type {
   ArchiveDictionaries,
-  ArchiveVideosPage,
+  ArchiveVideoFeed,
 } from "@/lib/videos/types";
 
 export const dynamic = "force-dynamic";
@@ -16,22 +16,16 @@ type ArchivePageProps = {
 export default async function ArchivePage({ searchParams }: ArchivePageProps) {
   const raw = await searchParams;
   let dictionaries: ArchiveDictionaries = { categories: [], tags: [] };
-  let initialPage: ArchiveVideosPage = {
+  let initialPage: ArchiveVideoFeed = {
     items: [],
-    totalCount: 0,
-    pageCount: 1,
-    filters: parseArchiveFilters(raw),
+    nextCursor: null,
+    hasMore: false,
+    filters: { ...parseArchiveFilters(raw), page: 1 },
   };
   let initialError = false;
   try {
     dictionaries = await getVideoDictionaries();
-    const result = await getArchiveVideos(raw, dictionaries);
-    initialPage = {
-      items: result.items,
-      totalCount: result.totalCount,
-      pageCount: result.pageCount,
-      filters: result.filters,
-    };
+    initialPage = await getArchiveVideoFeed(raw, null, dictionaries);
   } catch (error) {
     console.error("Archive initial query failed", error);
     initialError = true;

@@ -3,7 +3,7 @@
 import { ArchiveClientShell } from "@/components/archive/archive-client-shell";
 import { ArchiveFilterBar } from "@/components/archive/archive-filter-bar";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
-import { ArchivePagination } from "@/components/archive/archive-pagination";
+import { ArchiveLoadMore } from "@/components/archive/archive-load-more";
 import { useArchiveVideos } from "@/components/archive/use-archive-videos";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
@@ -11,12 +11,12 @@ import { InlineLoadingMark } from "@/components/ui/inline-loading-mark";
 import { formatCompactNumber } from "@/lib/videos/metrics";
 import type {
   ArchiveDictionaries,
-  ArchiveVideosPage,
+  ArchiveVideoFeed,
 } from "@/lib/videos/types";
 
 type Props = {
   dictionaries: ArchiveDictionaries;
-  initialPage: ArchiveVideosPage;
+  initialPage: ArchiveVideoFeed;
   initialError?: boolean;
 };
 
@@ -25,7 +25,7 @@ export function ArchiveRealtimeView({
   initialPage,
   initialError = false,
 }: Props) {
-  const { filters, page, status, changeFilters, retry } = useArchiveVideos(
+  const { filters, page, hasResult, status, moreStatus, changeFilters, retry, loadMore } = useArchiveVideos(
     initialPage,
     initialError,
   );
@@ -33,11 +33,10 @@ export function ArchiveRealtimeView({
     dictionaries.categories.find(
       (category) => category.id === filters.categoryId,
     )?.name ?? "全部作品";
-  const hasResult = !initialError || page !== initialPage;
   return (
     <ArchiveClientShell
       activeChannel={activeCategory}
-      channelCount={formatCompactNumber(page.totalCount)}
+      channelCount={`${formatCompactNumber(page.items.length)}${page.hasMore ? "+" : ""}`}
       supportCount={String(dictionaries.tags.length).padStart(2, "0")}
     >
       <section className="page-container">
@@ -49,7 +48,7 @@ export function ArchiveRealtimeView({
       </section>
       <section
         aria-busy={status === "loading"}
-        className="page-container pb-16 pt-5"
+        className="page-container pb-16 pt-5 [overflow-anchor:none]"
       >
         <div
           aria-live="polite"
@@ -65,7 +64,7 @@ export function ArchiveRealtimeView({
             </>
           ) : status === "ready" ? (
             <span>
-              共 {page.totalCount} 部作品 · 第 {page.filters.page} 页
+              已显示 {page.items.length} 部作品
             </span>
           ) : null}
         </div>
@@ -101,12 +100,8 @@ export function ArchiveRealtimeView({
         ) : null}
         {hasResult ? (
           <>
-            <ArchiveGrid items={page.items} />
-            <ArchivePagination
-              page={page.filters.page}
-              pageCount={page.pageCount}
-              onChange={(next) => changeFilters({ page: next })}
-            />
+            <ArchiveGrid items={page.items} hasMore={page.hasMore} />
+            {page.items.length > 0 ? <ArchiveLoadMore hasMore={page.hasMore} enabled={status === "ready"} status={moreStatus} onLoadMore={loadMore} /> : null}
           </>
         ) : null}
       </section>

@@ -1,12 +1,14 @@
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
+import { ArchiveVirtualGrid } from "@/components/archive/archive-virtual-grid";
 import EmptyArchiveIcon from "@/components/icons/archive/empty-archive.svg";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type ArchiveGridProps = {
   items: ArchiveVideoItem[];
+  hasMore?: boolean;
 };
 
-export function ArchiveGrid({ items }: ArchiveGridProps) {
+export function ArchiveGrid({ items, hasMore = false }: ArchiveGridProps) {
   if (items.length === 0) {
     return (
       <div className="flex min-h-[420px] flex-col justify-center rounded-3xl border border-white/[0.06] bg-white/[0.02] px-11 py-10 max-md:min-h-[320px] max-md:px-6 max-md:py-7">
@@ -20,6 +22,10 @@ export function ArchiveGrid({ items }: ArchiveGridProps) {
         </p>
       </div>
     );
+  }
+
+  if (items.length > 72) {
+    return <ArchiveVirtualGrid items={items} hasMore={hasMore} />;
   }
 
   return (

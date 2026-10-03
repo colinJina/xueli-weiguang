@@ -1,26 +1,26 @@
 import type { ArchiveFilters, ArchiveVideosPage } from "@/lib/videos/types";
 
 export const COLOR_QUERY_INTERVAL_MS = 150;
-type QueryCallbacks = {
+type QueryCallbacks<Result> = {
   load: (
     filters: ArchiveFilters,
     signal: AbortSignal,
-  ) => Promise<ArchiveVideosPage>;
-  onResult: (page: ArchiveVideosPage) => void;
+  ) => Promise<Result>;
+  onResult: (page: Result) => void;
   onError: () => void;
   onPending: () => void;
 };
 
 // A trailing throttle, with immediate first/final requests. Every input invalidates
 // the previous response immediately, including the time before the next request.
-export class ArchiveQuery {
+export class ArchiveQuery<Result = ArchiveVideosPage> {
   private revision = 0;
   private controller?: AbortController;
   private timer?: ReturnType<typeof setTimeout>;
   private lastStarted = -Infinity;
   private latest?: ArchiveFilters;
 
-  constructor(private callbacks: QueryCallbacks) {}
+  constructor(private callbacks: QueryCallbacks<Result>) {}
 
   schedule(filters: ArchiveFilters, immediate = false) {
     this.revision += 1;
