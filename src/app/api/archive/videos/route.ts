@@ -3,13 +3,18 @@ import {
   validateArchiveSearchParams,
 } from "@/lib/videos/archive-filters";
 import { getArchiveVideos } from "@/lib/videos/get-videos";
+import { parseArchiveCursor } from "@/lib/videos/archive-cursor";
+import { getArchiveVideoFeed } from "@/lib/videos/get-video-feed";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
-  if (!validateArchiveSearchParams(params)) {
+  const stream = params.get("stream");
+  const cursorValue = params.get("cursor");
+  const cursor = parseArchiveCursor(cursorValue);
+  if (!validateArchiveSearchParams(params) || params.getAll("stream").length > 1 || params.getAll("cursor").length > 1 || (stream !== null && stream !== "1") || (cursorValue !== null && (stream !== "1" || !cursor))) {
     return Response.json(
       {
         code: "VALIDATION_FAILED",
@@ -20,6 +25,10 @@ export async function GET(request: Request) {
   }
   const raw = Object.fromEntries(params);
   try {
+    if (stream === "1") {
+      const feed = await getArchiveVideoFeed(raw, cursor, undefined, request.signal);
+      return Response.json(feed, { headers });
+    }
     const { items, totalCount, pageCount, filters } = await getArchiveVideos(
       raw,
       undefined,

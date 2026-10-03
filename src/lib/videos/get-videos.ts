@@ -121,6 +121,22 @@ export async function getArchiveVideos(
     totalCount = result.totalCount;
     pageRequest = resolveArchivePageRequest(requestedPage, totalCount);
   }
+  return {
+    items: await hydrateArchiveRows(supabase, rows, dictionaries, pageRequest.offset, signal),
+    dictionaries,
+    filters: { ...filters, page: pageRequest.page },
+    totalCount,
+    pageCount: pageRequest.pageCount,
+  };
+}
+
+export async function hydrateArchiveRows(
+  supabase: ReturnType<typeof createPublicClient>,
+  rows: VideoBaseRow[],
+  dictionaries: ArchiveDictionaries,
+  offset = 0,
+  signal?: AbortSignal,
+) {
   const videoIds = rows.map((row) => row.id);
   const categoryMap = new Map(
     dictionaries.categories.map((item) => [item.id, item]),
@@ -152,21 +168,15 @@ export async function getArchiveVideos(
       ]);
     }
   }
-  return {
-    items: rows.map((row, index) =>
-      serializeArchiveVideo(
-        row,
-        {
-          category: categoryMap.get(row.category_id) ?? null,
-          tags: tagsByVideoId.get(row.id) ?? [],
-          tones: tonesByVideoId.get(row.id) ?? [],
-        },
-        pageRequest.offset + index,
-      ),
+  return rows.map((row, index) =>
+    serializeArchiveVideo(
+      row,
+      {
+        category: categoryMap.get(row.category_id) ?? null,
+        tags: tagsByVideoId.get(row.id) ?? [],
+        tones: tonesByVideoId.get(row.id) ?? [],
+      },
+      offset + index,
     ),
-    dictionaries,
-    filters: { ...filters, page: pageRequest.page },
-    totalCount,
-    pageCount: pageRequest.pageCount,
-  };
+  );
 }

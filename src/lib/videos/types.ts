@@ -107,6 +107,13 @@ export type ArchiveVideosResult = {
 
 export type ArchiveVideosPage = Omit<ArchiveVideosResult, "dictionaries">;
 
+export type ArchiveVideoFeed = {
+  items: ArchiveVideoItem[];
+  filters: ArchiveFilters;
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
 export type VideoInteractionErrorCode =
   | "VALIDATION_FAILED"
   | "UNAUTHENTICATED"
