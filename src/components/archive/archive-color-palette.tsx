@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ArchiveColorPicker } from "@/components/archive/archive-color-picker";
 import type { ArchiveChangeOptions } from "@/components/archive/use-archive-videos";
+import PaletteBrushIcon from "@/components/icons/archive/palette-brush.svg";
 import CloseIcon from "@/components/icons/shared/close-16.svg";
 import { Button } from "@/components/ui/button";
 import { FilterButton } from "@/components/ui/filter-button";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/videos/archive-filters";
 import type { FilterPatch } from "@/lib/videos/archive-href";
 import type { ArchiveFilters, ColorTarget } from "@/lib/videos/types";
+import { cn } from "@/lib/utils";
 
 type Props = {
   filters: ArchiveFilters;
@@ -86,19 +88,32 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
     onChange({ colors }, { immediate: final, replace: true });
   }
 
+  function clearAndClose() {
+    onChange({ colors: [], colorMode: "any" }, { immediate: true });
+    setActiveIndex(0);
+    setOpen(false);
+  }
+
   return (
     <div className="relative shrink-0">
-      <Button
+      <IconButton
         aria-controls={id}
         aria-expanded={open}
         aria-haspopup="dialog"
+        aria-label={
+          filters.colors.length ? `色盘，已选 ${filters.colors.length} 色` : "色盘"
+        }
+        className={cn(
+          (open || filters.colors.length > 0) && "bg-white/[0.08] text-foreground",
+        )}
         onClick={() => setOpen(!open)}
         ref={triggerRef}
         size="sm"
-        variant={filters.colors.length ? "pillActive" : "pill"}
+        title="色盘"
+        variant="ghost"
       >
-        自定义颜色{filters.colors.length ? ` · ${filters.colors.length}` : ""}
-      </Button>
+        <PaletteBrushIcon aria-hidden="true" className="h-5 w-5" />
+      </IconButton>
       {open ? (
         <>
           <div
@@ -116,11 +131,12 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
           >
             <div className="mb-4 flex items-center justify-between gap-4">
               <h2 className="font-semibold text-foreground" id={`${id}-title`}>
-                自定义颜色
+                <PaletteBrushIcon aria-hidden="true" className="h-6 w-6" />
+                <span className="sr-only">色盘</span>
               </h2>
               <IconButton
-                aria-label="关闭自定义颜色"
-                onClick={() => setOpen(false)}
+                aria-label="清除颜色并关闭色盘"
+                onClick={clearAndClose}
                 size="sm"
                 variant="ghost"
               >
