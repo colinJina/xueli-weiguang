@@ -36,13 +36,13 @@ function getVideoSourceIcon(platform: string) {
 
 export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
   const visibleTags = item.tags.slice(0, 4);
-  const visibleTones = item.tones.filter((tone) => tone.colorHex).slice(0, 5);
+  const hasVisibleTones = item.tones.some((tone) => tone.colorHex);
   const SourceIcon = getVideoSourceIcon(item.storageProvider);
-  const hasMetaGroup = visibleTags.length > 0 || visibleTones.length > 0;
+  const hasMetaGroup = visibleTags.length > 0 || hasVisibleTones;
 
   return (
     <Link
-      className="group isolate flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:-translate-y-0.5"
+      className="group isolate flex h-full w-full min-w-0 flex-col rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:z-10 hover:-translate-y-0.5 focus-within:z-10"
       href={`/video/${item.id}`}
     >
       <div
@@ -82,7 +82,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-[18px] bg-[#141415] p-[18px] pb-4 max-md:p-4">
+      <div className="flex flex-1 flex-col gap-[18px] rounded-b-[22px] bg-[#141415] p-[18px] pb-4 max-md:p-4">
         <div className="space-y-3">
           <h2 className="min-h-[2.6rem] line-clamp-2 text-[1.1rem] font-bold leading-[1.18] tracking-[-0.04em] text-foreground transition duration-200 group-hover:text-white">
             {item.title}
@@ -104,10 +104,10 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
               </div>
             ) : null}
 
-            {visibleTones.length > 0 ? (
+            {hasVisibleTones ? (
               <VideoToneSwatches
-                className="w-full justify-end pt-0.5"
-                tones={visibleTones}
+                className="w-full pt-0.5"
+                tones={item.tones}
               />
             ) : null}
           </div>
