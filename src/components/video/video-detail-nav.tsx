@@ -1,6 +1,7 @@
 import HomeCogIcon from "@/components/icons/home/cog.svg";
 import VideoUserIcon from "@/components/icons/video/user.svg";
 import { SiteBrand } from "@/components/layout/site-brand";
+import { PushNotificationButton } from "@/components/push/push-notification-button";
 import { IconButton } from "@/components/ui/icon-button";
 
 export function VideoDetailNav() {
@@ -14,6 +15,7 @@ export function VideoDetailNav() {
         />
 
         <div className="flex shrink-0 items-center gap-2">
+          <PushNotificationButton />
           <IconButton aria-label="设置" variant="ghost">
             <HomeCogIcon aria-hidden="true" className="h-[1.1rem] w-[1.1rem]" />
           </IconButton>
