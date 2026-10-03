@@ -59,8 +59,8 @@ describe("video tone swatches", () => {
 
   it("keeps circles bounded and nondecreasing as the share increases", () => {
     const diameters = [0, 0.03, 0.08, 0.12, 0.5, 1].map(getToneSwatchDiameter);
-    expect(getToneSwatchDiameter(null)).toBe(diameters[0]);
-    expect(diameters[0]).toBeGreaterThanOrEqual(7);
+    expect(getToneSwatchDiameter(null)).toBe(12);
+    expect(diameters[0]).toBe(7);
     expect(diameters.at(-1)).toBeLessThanOrEqual(14);
     expect(diameters[3]).toBeGreaterThan(diameters[0]);
     for (let index = 1; index < diameters.length; index += 1) {
@@ -72,6 +72,6 @@ describe("video tone swatches", () => {
     expect(formatTonePercentage(0.2671)).toBe("27%");
     expect(formatTonePercentage(0.5)).toBe("50%");
     expect(formatTonePercentage(0)).toBe("0%");
-    expect(formatTonePercentage(null)).toBe("占比未记录");
+    expect(formatTonePercentage(null)).toBeNull();
   });
 });

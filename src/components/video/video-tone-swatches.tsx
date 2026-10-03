@@ -35,7 +35,9 @@ function ToneSwatch({ tone }: { tone: VideoToneItem }) {
   }
 
   const diameter = getToneSwatchDiameter(tone.percentage);
-  const label = `${tone.colorHex.toLowerCase()} · ${formatTonePercentage(tone.percentage)}`;
+  const colorLabel = tone.colorHex.toLowerCase();
+  const percentageLabel = formatTonePercentage(tone.percentage);
+  const label = percentageLabel === null ? colorLabel : `${colorLabel} · ${percentageLabel}`;
 
   return (
     <span

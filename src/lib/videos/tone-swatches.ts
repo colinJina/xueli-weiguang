@@ -43,5 +43,5 @@ export function getToneSwatchDiameter(percentage: number | null) {
 }
 
 export function formatTonePercentage(percentage: number | null) {
-  return percentage === null ? "占比未记录" : percentageFormatter.format(percentage);
+  return percentage === null ? null : percentageFormatter.format(percentage);
 }
