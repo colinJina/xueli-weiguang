@@ -12,6 +12,8 @@
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix --max-warnings=0",
     "test": "vitest run",
+    "build:browser": "bun --env-file=tests/browser/build.env run build",
+    "test:browser": "bun run build:browser && playwright test",
     "type-check": "tsc --noEmit",
     "check": "bun run lint && bun run type-check",
     "prepare": "husky"
