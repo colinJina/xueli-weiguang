@@ -1,8 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 import CloseIcon from "@/components/icons/shared/close-16.svg";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 
@@ -27,41 +35,55 @@ export function DialogShell({
   title,
   titleAside,
 }: DialogShellProps) {
-  return (
-    <div
-      aria-modal="true"
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/82 px-5 py-8 backdrop-blur-sm"
-      role="dialog"
-    >
-      <div aria-hidden="true" className="absolute inset-0" onClick={onClose} />
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
-      <div
-        className={cn(
-          "relative z-[1] w-full rounded-xl border border-border bg-background px-6 py-6 shadow-overlay sm:px-7",
-          maxWidthClassName,
-          className,
-        )}
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        className={cn(maxWidthClassName, className)}
+        onOpenAutoFocus={() => {
+          // These shells are opened by parent state, without a DialogTrigger.
+          returnFocusRef.current =
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          const target = returnFocusRef.current;
+          if (target?.isConnected) {
+            target.focus({ preventScroll: true });
+          }
+        }}
+        showCloseButton={false}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
+        <DialogHeader className="flex-row shrink-0 items-start justify-between gap-4 border-b border-border pb-5">
           <div className="min-w-0 space-y-2">
             <div className="space-y-1">
-              <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-                {title}
-              </h2>
-              <p className="text-sm leading-6 text-muted">{description}</p>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
             </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
             {titleAside}
-            <IconButton aria-label={closeLabel} onClick={onClose} variant="surface">
-              <CloseIcon aria-hidden="true" className="h-3.5 w-3.5" />
-            </IconButton>
+            <DialogClose asChild>
+              <IconButton aria-label={closeLabel} variant="surface">
+                <CloseIcon aria-hidden="true" className="h-3.5 w-3.5" />
+              </IconButton>
+            </DialogClose>
           </div>
-        </div>
+        </DialogHeader>
 
         {children}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

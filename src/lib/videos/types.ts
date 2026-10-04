@@ -4,33 +4,17 @@ export type VideoDictionaryItem = {
   id: string;
   name: string;
   colorHex?: string;
-  familyId?: string;
 };
 
 export type VideoDictionaryRow = {
   id: string;
   name: string;
   color_hex?: string | null;
-  family_id?: string | null;
 };
 
-export type ToneFamilyItem = {
-  id: string;
-  key: string;
-  name: string;
-  colorHex: string;
-  sortOrder: number;
-  isActive: boolean;
-};
-
-export type ToneFamilyRow = {
-  id: string;
-  key: string;
-  name: string;
-  color_hex: string;
-  sort_order: number;
-  is_active: boolean;
-};
+export type VideoToneItem = VideoDictionaryItem & { percentage: number | null };
+export type ColorTarget = { hex: string; precision: number };
+export type ColorMatchMode = "any" | "all";
 
 export type VideoStorageProvider = StorageProvider;
 
@@ -63,7 +47,7 @@ export type ArchiveVideoItem = {
   sourceLabel: string;
   category: VideoDictionaryItem;
   tags: VideoDictionaryItem[];
-  tones: VideoDictionaryItem[];
+  tones: VideoToneItem[];
   metricLabel: string;
   viewCountLabel: string;
   likeCountLabel: string;
@@ -91,7 +75,7 @@ export type VideoDetail = {
   description: string;
   category: VideoDictionaryItem;
   tags: VideoDictionaryItem[];
-  tones: VideoDictionaryItem[];
+  tones: VideoToneItem[];
   coverImageUrl: string | null;
   embedUrl: string;
   playbackRef: string | null;
@@ -103,14 +87,14 @@ export type ArchiveFilters = {
   categoryId: string | null;
   tagIds: string[];
   toneKeys: string[];
+  colors: ColorTarget[];
+  colorMode: ColorMatchMode;
   page: number;
 };
 
 export type ArchiveDictionaries = {
   categories: VideoDictionaryItem[];
   tags: VideoDictionaryItem[];
-  toneFamilies: ToneFamilyItem[];
-  tones: VideoDictionaryItem[];
 };
 
 export type ArchiveVideosResult = {
@@ -119,6 +103,15 @@ export type ArchiveVideosResult = {
   filters: ArchiveFilters;
   totalCount: number;
   pageCount: number;
+};
+
+export type ArchiveVideosPage = Omit<ArchiveVideosResult, "dictionaries">;
+
+export type ArchiveVideoFeed = {
+  items: ArchiveVideoItem[];
+  filters: ArchiveFilters;
+  nextCursor: string | null;
+  hasMore: boolean;
 };
 
 export type VideoInteractionErrorCode =

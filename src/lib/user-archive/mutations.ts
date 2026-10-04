@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { isUuid } from "@/lib/user-archive/filters";
+import type { UserArchiveFavoriteSelectionResult } from "@/lib/user-archive/types";
 import {
+  databaseUnavailableError,
   limitExceededError,
   mapDatabaseError,
   notFoundError,
@@ -22,6 +24,33 @@ import {
 type MutationResult = {
   id: string;
 };
+
+export function normalizeCollectionIds(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > USER_COLLECTION_LIMIT || !value.every(isUuid)) {
+    throw validationError("请选择有效的收藏夹。", { collectionIds: "收藏夹列表无效" });
+  }
+  return Array.from(new Set(value));
+}
+
+export async function setVideoCollections(
+  client: SupabaseClient,
+  videoId: string,
+  input: Record<string, unknown>,
+): Promise<UserArchiveFavoriteSelectionResult> {
+  assertUuid(videoId, "videoId", "视频");
+  const collectionIds = normalizeCollectionIds(input.collectionIds);
+  const { data, error } = await client.rpc("set_video_collections", {
+    p_video_id: videoId,
+    p_collection_ids: collectionIds,
+  });
+  if (error) {
+    throw mapDatabaseError(error);
+  }
+  if (!Array.isArray(data) || !data.every(isUuid)) {
+    throw databaseUnavailableError("收藏状态暂时无法确认，请重试。");
+  }
+  return { videoId, collectionIds: data, isFavorited: data.length > 0 };
+}
 
 function assertUuid(value: string, field: string, label: string) {
   if (!isUuid(value)) {

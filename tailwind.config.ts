@@ -19,6 +19,33 @@ const config: Config = {
         reverse: "var(--white-soft)",
         "white-soft": "var(--white-soft)",
         "black-soft": "var(--black-soft)",
+        card: {
+          DEFAULT: "var(--bg-2)",
+          foreground: "var(--text-1)",
+        },
+        popover: {
+          DEFAULT: "var(--bg-0)",
+          foreground: "var(--text-1)",
+        },
+        primary: {
+          DEFAULT: "var(--white-soft)",
+          foreground: "var(--black-soft)",
+        },
+        secondary: {
+          DEFAULT: "var(--bg-1)",
+          foreground: "var(--text-1)",
+        },
+        accent: {
+          DEFAULT: "var(--bg-1)",
+          foreground: "var(--text-1)",
+        },
+        "muted-foreground": "var(--text-2)",
+        destructive: {
+          DEFAULT: "var(--white-soft)",
+          foreground: "var(--black-soft)",
+        },
+        input: "var(--line-1)",
+        ring: "rgb(255 255 255 / 0.2)",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "Noto Sans SC", "sans-serif"],

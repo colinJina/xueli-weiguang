@@ -1,5 +1,6 @@
 node_modules
 .next
+.next-browser
 out
 dist
 coverage
@@ -20,6 +21,8 @@ CLAUDE.md
 .codex
 .claude
 .playwright-mcp
+playwright-report/
+test-results/
 .vercel
 .superpowers
 .agents

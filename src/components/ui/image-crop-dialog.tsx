@@ -9,6 +9,7 @@ import ReactCrop, {
   type PixelCrop,
 } from "react-image-crop";
 
+import { Chip } from "@/components/ui/chip";
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
@@ -113,7 +114,12 @@ async function createCroppedImageFile(input: {
   });
 }
 
-export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDialogProps) {
+export function ImageCropDialog({
+  file,
+  onClose,
+  onConfirm,
+  open,
+}: ImageCropDialogProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const sourceUrlRef = useRef<string | null>(null);
   const [sourceUrl, setSourceUrl] = useState("");
@@ -168,7 +174,11 @@ export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDia
         objectUrl,
       });
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "封面裁切失败，请重试。");
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : "封面裁切失败，请重试。",
+      );
     } finally {
       setIsCropping(false);
     }
@@ -183,9 +193,9 @@ export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDia
       onClose={isCropping ? () => undefined : onClose}
       title="裁切封面"
       titleAside={
-        <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-sans text-[11px] uppercase tracking-[0.18em] text-subtle">
+        <Chip size="xs" className="font-sans uppercase tracking-[0.18em] text-subtle">
           16:9
-        </span>
+        </Chip>
       }
     >
       <div className="mt-6 space-y-5">
@@ -217,11 +227,16 @@ export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDia
                   className="max-h-[58vh] max-w-full"
                   onLoad={(event) => {
                     const { naturalHeight, naturalWidth } = event.currentTarget;
-                    const nextCrop = getCenteredAspectCrop(naturalWidth, naturalHeight);
+                    const nextCrop = getCenteredAspectCrop(
+                      naturalWidth,
+                      naturalHeight,
+                    );
 
                     imageRef.current = event.currentTarget;
                     setCrop(nextCrop);
-                    setCompletedCrop(convertToPixelCrop(nextCrop, naturalWidth, naturalHeight));
+                    setCompletedCrop(
+                      convertToPixelCrop(nextCrop, naturalWidth, naturalHeight),
+                    );
                   }}
                   src={sourceUrl}
                 />
@@ -243,13 +258,23 @@ export function ImageCropDialog({ file, onClose, onConfirm, open }: ImageCropDia
         </div>
 
         {error ? (
-          <FormMessage icon={<WarningIcon aria-hidden="true" className="h-4 w-4 flex-none" />} variant="error">
+          <FormMessage
+            icon={
+              <WarningIcon aria-hidden="true" className="h-4 w-4 flex-none" />
+            }
+            variant="error"
+          >
             {error}
           </FormMessage>
         ) : null}
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button disabled={isCropping} onClick={onClose} type="button" variant="secondary">
+          <Button
+            disabled={isCropping}
+            onClick={onClose}
+            type="button"
+            variant="secondary"
+          >
             重新选择
           </Button>
           <Button disabled={isCropping} onClick={confirmCrop} type="button">

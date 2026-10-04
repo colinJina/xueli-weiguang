@@ -6,6 +6,7 @@ import {
   parseUserArchiveFilters,
 } from "@/lib/user-archive/filters";
 import { databaseUnavailableError } from "@/lib/user-archive/errors";
+import { filterArchiveItems, uniqueVideos } from "@/lib/user-archive/presentation";
 import {
   type UserArchiveActiveCollection,
   type UserArchiveCollectionSummary,
@@ -235,9 +236,15 @@ function createCollectionCounts(items: readonly UserArchiveItem[]) {
 
 function createTagCounts(items: readonly UserArchiveItem[]) {
   const counts = new Map<string, number>();
+  const seen = new Set<string>();
 
   for (const item of items) {
     for (const tag of item.tags) {
+      const key = `${item.videoId}:${tag.id}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
       counts.set(tag.id, (counts.get(tag.id) ?? 0) + 1);
     }
   }
@@ -283,7 +290,7 @@ function createActiveCollection(input: {
 
   return {
     id: null,
-    name: "全部视频",
+    name: "全部收藏",
     description: "当前档案下所有已收藏公开视频。",
     itemCount: input.allItemCount,
     isAll: true,
@@ -455,12 +462,8 @@ export async function getUserArchivePageData(
     selectedTagIds,
   );
   const selectedTagIdSet = new Set(selectedTagIds);
-  const filteredItems =
-    selectedTagIds.length > 0
-      ? collectionScopedItems.filter((item) =>
-          selectedTagIds.every((tagId) => item.tags.some((tag) => tag.id === tagId)),
-        )
-      : collectionScopedItems;
+  const filteredItems = filterArchiveItems(collectionScopedItems, filters.keyword, selectedTagIds);
+  const uniqueItemCount = uniqueVideos(allItems).length;
   const collectionMap = new Map(collections.map((collection) => [collection.id, collection]));
   const activeCollections = collections.map((collection) => ({
     ...collection,
@@ -480,7 +483,7 @@ export async function getUserArchivePageData(
     activeCollection: createActiveCollection({
       activeCollectionId,
       collectionMap,
-      allItemCount: allItems.length,
+      allItemCount: uniqueItemCount,
     }),
     items: filteredItems,
     allItems,
@@ -490,7 +493,7 @@ export async function getUserArchivePageData(
       tagIds: selectedTagIds,
     },
     totalCount: filteredItems.length,
-    allItemCount: allItems.length,
+    allItemCount: uniqueItemCount,
   };
 }
 

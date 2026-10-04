@@ -1,11 +1,15 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
+import { getVideoTones } from "@/lib/videos/get-video-tones";
 import { serializeVideoDetail } from "@/lib/videos/serialize-video";
-import type { VideoBaseRow, VideoDetail, VideoDictionaryItem } from "@/lib/videos/types";
+import type {
+  VideoBaseRow,
+  VideoDetail,
+  VideoDictionaryItem,
+} from "@/lib/videos/types";
 
 type RelationRow = {
   tag_id?: string;
-  tone_id?: string;
 };
 
 const UUID_PATTERN =
@@ -24,7 +28,11 @@ export async function getVideoById(id: string): Promise<VideoDetail | null> {
   }
 
   const supabase = createPublicClient();
-  const { data, error } = await supabase.from("videos").select(videoSelect).eq("id", id).maybeSingle();
+  const { data, error } = await supabase
+    .from("videos")
+    .select(videoSelect)
+    .eq("id", id)
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
@@ -35,33 +43,25 @@ export async function getVideoById(id: string): Promise<VideoDetail | null> {
   }
 
   const row = data as VideoBaseRow;
-  const [dictionaries, tagRowsResult, toneRowsResult] = await Promise.all([
+  const [dictionaries, tagRowsResult, tonesByVideoId] = await Promise.all([
     getVideoDictionaries(),
     supabase.from("video_tags").select("tag_id").eq("video_id", row.id),
-    supabase.from("video_tones").select("tone_id").eq("video_id", row.id),
+    getVideoTones(supabase, [row.id]),
   ]);
 
   if (tagRowsResult.error) {
     throw new Error(tagRowsResult.error.message);
   }
 
-  if (toneRowsResult.error) {
-    throw new Error(toneRowsResult.error.message);
-  }
-
   const categoryMap = createDictionaryMap(dictionaries.categories);
   const tagMap = createDictionaryMap(dictionaries.tags);
-  const toneMap = createDictionaryMap(dictionaries.tones);
   const tags = ((tagRowsResult.data ?? []) as RelationRow[])
     .map((relation) => (relation.tag_id ? tagMap.get(relation.tag_id) : null))
     .filter((tag): tag is VideoDictionaryItem => Boolean(tag));
-  const tones = ((toneRowsResult.data ?? []) as RelationRow[])
-    .map((relation) => (relation.tone_id ? toneMap.get(relation.tone_id) : null))
-    .filter((tone): tone is VideoDictionaryItem => Boolean(tone));
 
   return serializeVideoDetail(row, {
     category: categoryMap.get(row.category_id) ?? null,
     tags,
-    tones,
+    tones: tonesByVideoId.get(row.id) ?? [],
   });
 }

@@ -4,7 +4,8 @@ import ArchiveCoverFallbackIcon from "@/components/icons/archive/cover-image-fal
 import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
 import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
 import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
-import type { ArchiveVideoItem, VideoDictionaryItem } from "@/lib/videos/types";
+import { VideoToneSwatches } from "@/components/video/video-tone-swatches";
+import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type VideoArchiveCardProps = {
   item: ArchiveVideoItem;
@@ -13,7 +14,10 @@ type VideoArchiveCardProps = {
 function CoverFallback() {
   return (
     <div className="flex aspect-[16/9] h-full w-full items-center justify-center bg-[linear-gradient(180deg,#171719_0%,#080808_100%)]">
-      <ArchiveCoverFallbackIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
+      <ArchiveCoverFallbackIcon
+        aria-hidden="true"
+        className="h-12 w-12 text-subtle"
+      />
     </div>
   );
 }
@@ -32,13 +36,13 @@ function getVideoSourceIcon(platform: string) {
 
 export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
   const visibleTags = item.tags.slice(0, 4);
-  const visibleTones = item.tones.filter((tone) => tone.colorHex).slice(0, 4);
+  const hasVisibleTones = item.tones.some((tone) => tone.colorHex);
   const SourceIcon = getVideoSourceIcon(item.storageProvider);
-  const hasMetaGroup = visibleTags.length > 0 || visibleTones.length > 0;
+  const hasMetaGroup = visibleTags.length > 0 || hasVisibleTones;
 
   return (
     <Link
-      className="group isolate flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:-translate-y-0.5"
+      className="group relative isolate flex h-full w-full min-w-0 flex-col rounded-[22px] border border-white/[0.07] bg-[#121214] transition duration-200 hover:z-10 hover:-translate-y-0.5 focus-within:z-10"
       href={`/video/${item.id}`}
     >
       <div
@@ -72,16 +76,13 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
 
         <div className="absolute inset-x-5 bottom-5 flex min-w-0 items-end justify-end gap-4">
           <span className="inline-flex h-[34px] max-w-full items-center gap-2 rounded-full border border-white/20 bg-black/55 px-3 text-[0.72rem] font-medium tracking-[0.04em] text-foreground backdrop-blur-sm">
-            <SourceIcon
-              aria-hidden="true"
-              className="h-[18px] w-[18px]"
-            />
+            <SourceIcon aria-hidden="true" className="h-[18px] w-[18px]" />
             <span className="min-w-0 truncate">{item.sourceLabel}</span>
           </span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-[18px] bg-[#141415] p-[18px] pb-4 max-md:p-4">
+      <div className="flex flex-1 flex-col gap-[18px] rounded-b-[22px] bg-[#141415] p-[18px] pb-4 max-md:p-4">
         <div className="space-y-3">
           <h2 className="min-h-[2.6rem] line-clamp-2 text-[1.1rem] font-bold leading-[1.18] tracking-[-0.04em] text-foreground transition duration-200 group-hover:text-white">
             {item.title}
@@ -103,15 +104,11 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
               </div>
             ) : null}
 
-            {visibleTones.length > 0 ? (
-              <div
-                aria-label="视频色调"
-                className="flex w-full items-center justify-end gap-2 pt-0.5"
-              >
-                {visibleTones.map((tone) => (
-                  <ToneSwatch item={tone} key={`${tone.id}-${tone.name}`} />
-                ))}
-              </div>
+            {hasVisibleTones ? (
+              <VideoToneSwatches
+                className="w-full pt-0.5"
+                tones={item.tones}
+              />
             ) : null}
           </div>
         ) : null}
@@ -132,19 +129,5 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
         </div>
       </div>
     </Link>
-  );
-}
-
-function ToneSwatch({ item }: { item: VideoDictionaryItem }) {
-  if (!item.colorHex) {
-    return null;
-  }
-
-  return (
-    <span
-      aria-hidden="true"
-      className="h-2.5 w-2.5 rounded-full"
-      style={{ backgroundColor: item.colorHex }}
-    />
   );
 }

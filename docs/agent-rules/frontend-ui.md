@@ -8,6 +8,7 @@
 
 - UI 外壳、控件、排版、装饰语言必须保持严格黑白系统。
 - 视频封面、作品缩略图、创作内容素材可以保留原始色彩。
+- Bilibili / YouTube 来源品牌 SVG 保留原始品牌颜色，作为黑白 UI 系统的明确例外；不得改成 currentColor、单色路径或通过滤镜转成黑白。通用控件与其他图标仍沿用既有设计规则。
 - 内容素材不得反向污染 UI token、按钮颜色、边框颜色、图标颜色或文本颜色。
 
 ## 颜色 token
@@ -74,6 +75,28 @@
 - 品牌字样与站点标题优先复用 `src/components/layout/site-brand.tsx`。
 - 视频详情页相关结构优先放入 `src/components/video/*`。
 - 类名合并统一使用 `src/lib/utils.ts` 中的 `cn()`。
+
+## shadcn/ui 接入与维护
+
+- 基础 UI 采用 shadcn/ui 的源码组合方式，交互原语统一选用 `radix-ui`；接入约定与来源见 [shadcn-ui.md](../shadcn-ui.md)。
+- 保持 Tailwind 3、现有 Geist / Noto Sans SC 字体、黑白 token 和项目圆角，新增控件先适配这些约定。
+- 业务居中弹窗复用 `DialogShell`；通用组合使用 `Dialog` 的 `Trigger`、`Content`、`Title`、`Description` 和 `Close`。焦点限制、Esc、背景隔离和滚动锁定交由 Radix 处理，业务层不得重复添加全局监听。
+- 动作菜单复用 `DropdownMenu`，导航项通过 `DropdownMenuItem asChild` 组合 `Link`。菜单选项使用 `onSelect`，同时支持键盘与指针。
+- 菜单打开弹窗时，先关闭菜单并将焦点返回触发按钮，再打开弹窗；弹窗关闭后回到同一按钮。
+- `Button` 支持 `asChild`，保持单一交互元素，禁止嵌套按钮与链接。`IconButton` 复用 Button，必须提供可访问名称。
+- `TextField` 组合 `Label` 与 `Input`，保留完整 input 属性、ref 和标签关联；不复制输入框骨架。
+- 新组件的次级文字使用 `text-muted-foreground`。旧 `text-muted` 继续兼容；本项目 `muted` 表示文字颜色，导入上游 `bg-muted` 时必须改为 `bg-panel` 或 `bg-surface`，不得覆盖其现有含义。
+- 错误、成功等状态继续通过图标与文字区分，`destructive` 也保持黑白，不复制上游红色默认值。
+- 按需求添加组件；查看源码或 diff 后再合并，禁止使用批量覆盖命令改写已定制组件、全局样式或配置。
+- 修改弹窗、菜单或触发器组合时，除类型检查和 lint 外，还要验证 Tab / Shift+Tab、方向键、Esc、焦点恢复、嵌套层及移动端显示。
+- 标签页使用 Tabs；复选框、选择框、多行输入、一维滑杆分别使用 Checkbox、Select、Textarea、Slider。筛选操作通过 FilterButton / Toggle 组合，静态标签通过 Chip / Badge 展示。
+- 桌面浮层使用 Popover，移动边缘面板使用 Sheet；业务层不得自行重复实现 Esc、焦点循环、背景隔离或 body 滚动锁定。响应式抽屉进入桌面布局时必须关闭。
+- 从 Sheet 打开其他弹窗时，等待 onCloseAutoFocus 完成后启动业务回调；标签页内不要用 autoFocus 覆盖触发器的键盘焦点。
+- DialogShell 内禁止输入框 React autoFocus 抢在 Radix 焦点记录之前执行；默认交由 FocusScope 聚焦，以保证关闭后恢复打开元素。
+- Slider 的 aria-valuetext 等数值属性只放在 Thumb 上，禁止放在无 slider 角色的 Root 容器。RangeField 回调使用数值，连续变化与完成提交分别处理。
+- 提示使用 Tooltip / Toast，通用状态使用 Alert / Skeleton / Progress。Toast 的可朗读文案不得全部放在带朗读排除属性的 Close / Action 内。
+- Toast 关闭回调必须校验消息 id，避免退出动画中的旧提示清除新提示。
+- 运行 `bun run test:browser` 验证跨组件交互。测试组件页面只放在 tests/ui，禁止将测试专用路由、模拟账号或数据写入入口留在公开主站。
 
 ## 组件封装规则
 
