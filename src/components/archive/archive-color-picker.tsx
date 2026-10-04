@@ -160,12 +160,8 @@ export function ArchiveColorPicker({ color, onChange }: Props) {
           background:
             "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)",
         }}
-        onChange={(event) =>
-          emitHsv({ ...hsvRef.current, hue: Number(event.target.value) }, false)
-        }
-        onKeyUp={() => emitHsv(hsvRef.current, true)}
-        onPointerUp={() => emitHsv(hsvRef.current, true)}
-        onPointerCancel={() => emitHsv(hsvRef.current, true)}
+        onValueChange={(hue) => emitHsv({ ...hsvRef.current, hue }, false)}
+        onValueCommit={(hue) => emitHsv({ ...hsvRef.current, hue }, true)}
       />
       <TextField
         aria-describedby={!normalized ? `${id}-hex-error` : undefined}
@@ -213,27 +209,8 @@ export function ArchiveColorPicker({ color, onChange }: Props) {
         max={100}
         value={color.precision}
         valueLabel={`${color.precision} / 100`}
-        onChange={(event) =>
-          onChange({ ...color, precision: Number(event.target.value) }, false)
-        }
-        onKeyUp={(event) =>
-          onChange(
-            { ...color, precision: Number(event.currentTarget.value) },
-            true,
-          )
-        }
-        onPointerUp={(event) =>
-          onChange(
-            { ...color, precision: Number(event.currentTarget.value) },
-            true,
-          )
-        }
-        onPointerCancel={(event) =>
-          onChange(
-            { ...color, precision: Number(event.currentTarget.value) },
-            true,
-          )
-        }
+        onValueChange={(precision) => onChange({ ...color, precision }, false)}
+        onValueCommit={(precision) => onChange({ ...color, precision }, true)}
       />
       <p className="text-xs leading-5 text-subtle">
         精度越高，颜色越接近；调整后作品会实时更新。

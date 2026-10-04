@@ -21,7 +21,10 @@ export function InlineLoadingMark({
   return (
     <span
       aria-label={label}
-      className={cn("inline-flex h-5 w-5 items-center justify-center text-foreground", className)}
+      className={cn(
+        "inline-flex h-5 w-5 items-center justify-center text-foreground",
+        className,
+      )}
       role="status"
     >
       <span

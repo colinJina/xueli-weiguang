@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  useEffect,
   useCallback,
   useContext,
   useMemo,
@@ -35,30 +34,14 @@ const PageTopMessageContext = createContext<PageTopMessageContextValue | null>(
   null,
 );
 
-export function PageTopMessageProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function PageTopMessageProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState<PageTopMessagePayload | null>(null);
-  const timeoutRef = useRef<number | null>(null);
   const nextIdRef = useRef(1);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+  const dismissMessage = useCallback(() => setMessage(null), []);
 
-  const dismissMessage = useCallback(() => {
-    if (timeoutRef.current !== null) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    setMessage(null);
+  const dismissCurrentMessage = useCallback((id: number) => {
+    setMessage((current) => (current?.id === id ? null : current));
   }, []);
 
   const showMessage = useCallback(
@@ -69,10 +52,9 @@ export function PageTopMessageProvider({
       onClick,
       text,
     }: ShowPageTopMessageInput) => {
-      dismissMessage();
-
       const nextMessage = {
         actionLabel,
+        durationMs,
         id: nextIdRef.current++,
         icon,
         onClick,
@@ -80,18 +62,8 @@ export function PageTopMessageProvider({
       };
 
       setMessage(nextMessage);
-      if (durationMs === null) {
-        return;
-      }
-
-      timeoutRef.current = window.setTimeout(() => {
-        setMessage((current) =>
-          current?.id === nextMessage.id ? null : current,
-        );
-        timeoutRef.current = null;
-      }, durationMs);
     },
-    [dismissMessage],
+    [],
   );
 
   const value = useMemo<PageTopMessageContextValue>(
@@ -105,7 +77,7 @@ export function PageTopMessageProvider({
   return (
     <PageTopMessageContext.Provider value={value}>
       {children}
-      <PageTopMessage message={message} onDismiss={dismissMessage} />
+      <PageTopMessage message={message} onDismiss={dismissCurrentMessage} />
     </PageTopMessageContext.Provider>
   );
 }

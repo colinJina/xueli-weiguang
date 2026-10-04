@@ -2,8 +2,11 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { FixedBackButton } from "@/components/layout/fixed-back-button";
 import { VideoDetailNav } from "@/components/video/video-detail-nav";
+
+const MotionSkeleton = motion.create(Skeleton);
 
 const archiveDots = Array.from({ length: 5 }, (_, index) => index);
 
@@ -97,7 +100,7 @@ export function VideoDetailLoadingView() {
 
           <div className="space-y-5">
             {skeletonRows.map((className, index) => (
-              <motion.div
+              <MotionSkeleton
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-[18px] border border-white/[0.06] bg-white/[0.035] ${className}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}

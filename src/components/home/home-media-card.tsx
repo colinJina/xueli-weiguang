@@ -10,6 +10,7 @@ import type {
 } from "@/components/home/home-content";
 import { hoverTransition } from "@/components/home/home-motion";
 import HomeImageIcon from "@/components/icons/home/image.svg";
+import { Chip } from "@/components/ui/chip";
 import { cn } from "@/lib/utils";
 
 type HomeMediaCardProps = {
@@ -105,21 +106,13 @@ export function HomeMediaCard({ item }: HomeMediaCardProps) {
           </motion.div>
 
           <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-            <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
-              {item.source}
-            </span>
-            <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 font-sans text-[11px] tracking-[0.12em] text-muted">
-              {item.duration}
-            </span>
+            <Chip size="xs" variant="overlay" className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{item.source}</Chip>
+            <Chip size="xs" variant="overlay" className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 font-sans text-[11px] tracking-[0.12em] text-muted">{item.duration}</Chip>
           </div>
 
           <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4">
-            <span className="rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-foreground">
-              {item.tag}
-            </span>
-            <span className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
-              {item.metric}
-            </span>
+            <Chip size="xs" variant="overlay" className="rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-foreground">{item.tag}</Chip>
+            <Chip size="xs" variant="overlay" className="rounded-full border border-white/10 bg-black/55 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{item.metric}</Chip>
           </div>
         </div>
 

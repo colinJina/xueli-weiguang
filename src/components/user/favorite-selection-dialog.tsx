@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
@@ -144,7 +146,6 @@ function FavoriteSelectionContent({
       className="max-h-[calc(100dvh-3rem)] overflow-y-auto"
       closeLabel="关闭收藏夹选择"
       description="勾选收藏夹，点击完成保存。"
-      manageFocus
       onClose={close}
       title="收藏到"
     >
@@ -179,15 +180,15 @@ function FavoriteSelectionContent({
                 creating ||
                 (!isAvailable && !savedIds.includes(collection.id));
               return (
-                <label
+                <Label
                   className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-3 text-sm transition hover:bg-surface has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
                   key={collection.id}
                 >
-                  <input
+                  <Checkbox
                     checked={checked}
-                    className="h-4 w-4 shrink-0 accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+
                     disabled={disabled}
-                    onChange={() => {
+                    onCheckedChange={() => {
                       setError(null);
                       setSelectedIds((current) =>
                         checked
@@ -195,7 +196,6 @@ function FavoriteSelectionContent({
                           : [...current, collection.id],
                       );
                     }}
-                    type="checkbox"
                   />
                   <FolderIcon
                     aria-hidden="true"
@@ -207,7 +207,7 @@ function FavoriteSelectionContent({
                   <span className="text-xs text-subtle">
                     {collection.itemCount}
                   </span>
-                </label>
+                </Label>
               );
             })}
             {state.collections.length === 0 ? (

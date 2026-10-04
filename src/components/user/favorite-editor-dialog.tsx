@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { chipVariants } from "@/components/ui/chip";
+import { FilterButton } from "@/components/ui/filter-button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
 import { TextField } from "@/components/ui/text-field";
@@ -178,34 +187,39 @@ function CollectionItemDetails({
       className="max-h-[calc(100dvh-3rem)] overflow-y-auto"
       closeLabel="关闭备注与标签"
       description="备注和标签仅对你可见，分别保存在各收藏夹中。"
-      manageFocus
       onClose={close}
       title={readOnly ? "查看备注与标签" : "备注与标签"}
     >
       <div className="mt-5 space-y-5">
         <p className="line-clamp-2 text-sm text-muted">{video.title}</p>
         {memberships.length > 1 ? (
-          <label className="block space-y-2">
-            <span className="text-sm text-muted">所属收藏夹</span>
-            <select
-              className="h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-foreground"
+          <div className="space-y-2">
+            <Label className="text-sm text-muted" htmlFor="favorite-collection">
+              所属收藏夹
+            </Label>
+            <Select
               disabled={submitting}
-              onChange={(event) => setCollectionId(event.target.value)}
+              onValueChange={setCollectionId}
               value={collectionId}
             >
-              {memberships.map((item) => (
-                <option key={item.collectionId} value={item.collectionId}>
-                  {item.collectionName}
-                </option>
-              ))}
-            </select>
-          </label>
+              <SelectTrigger id="favorite-collection">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {memberships.map((item) => (
+                  <SelectItem key={item.collectionId} value={item.collectionId}>
+                    {item.collectionName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : (
           <p className="text-xs text-subtle">{membership?.collectionName}</p>
         )}
-        <label className="block space-y-2">
+        <Label className="block space-y-2">
           <span className="text-sm text-muted">备注</span>
-          <textarea
+          <Textarea
             className="min-h-24 w-full resize-y rounded-md border border-border bg-surface px-4 py-3 text-sm text-foreground outline-none focus:border-borderStrong"
             disabled={submitting || readOnly}
             maxLength={COLLECTION_ITEM_NOTE_MAX_LENGTH}
@@ -213,7 +227,7 @@ function CollectionItemDetails({
             placeholder="记录想法或收藏理由"
             value={note}
           />
-        </label>
+        </Label>
         <div className="space-y-3">
           <p className="text-sm text-muted">
             私有标签{" "}
@@ -223,19 +237,15 @@ function CollectionItemDetails({
           </p>
           <div className="flex flex-wrap gap-2">
             {localTags.map((tag) => (
-              <button
-                aria-pressed={tagIds.includes(tag.id)}
-                className={chipVariants({
-                  size: "sm",
-                  variant: tagIds.includes(tag.id) ? "selected" : "default",
-                })}
+              <FilterButton
+                active={tagIds.includes(tag.id)}
                 disabled={submitting || readOnly}
                 key={tag.id}
                 onClick={() => toggleTag(tag.id)}
                 type="button"
               >
                 {tag.name}
-              </button>
+              </FilterButton>
             ))}
             {localTags.length === 0 ? (
               <p className="text-sm text-subtle">暂无标签</p>

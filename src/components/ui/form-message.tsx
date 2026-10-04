@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type FormMessageVariant = "error" | "success" | "info" | "loading";
 
@@ -11,13 +11,6 @@ type FormMessageProps = {
   variant?: FormMessageVariant;
 };
 
-const messageClassByVariant: Record<FormMessageVariant, string> = {
-  error: "border-white/15 bg-white/[0.04] text-foreground",
-  success: "border-white/10 bg-white/[0.03] text-muted",
-  info: "border-white/10 bg-white/[0.03] text-muted",
-  loading: "border-white/10 bg-white/[0.03] text-muted",
-};
-
 export function FormMessage({
   children,
   className,
@@ -25,15 +18,13 @@ export function FormMessage({
   variant = "info",
 }: FormMessageProps) {
   return (
-    <p
-      className={cn(
-        "flex items-start gap-2 rounded-md border px-4 py-3 text-sm",
-        messageClassByVariant[variant],
-        className,
-      )}
+    <Alert
+      className={className}
+      role={variant === "error" ? "alert" : "status"}
+      variant={variant === "error" ? "destructive" : "default"}
     >
       <span className="mt-0.5 text-foreground">{icon}</span>
-      <span className="flex-1">{children}</span>
-    </p>
+      <AlertDescription>{children}</AlertDescription>
+    </Alert>
   );
 }

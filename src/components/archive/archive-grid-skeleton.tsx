@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 const tagWidths = ["w-14", "w-20", "w-16"] as const;
@@ -15,13 +16,9 @@ export function ArchiveGridSkeleton({ count = 8 }: { count?: number }) {
   );
 }
 
-export function ArchiveSkeletonBlock({
-  className,
-}: {
-  className?: string;
-}) {
+export function ArchiveSkeletonBlock({ className }: { className?: string }) {
   return (
-    <div
+    <Skeleton
       className={cn(
         "motion-safe:animate-pulse rounded-[18px] border border-white/[0.06] bg-white/[0.03]",
         className,

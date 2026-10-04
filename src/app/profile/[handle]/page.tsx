@@ -1,5 +1,7 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { PlaceholderPanel } from "@/components/layout/placeholder-panel";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ProfilePageProps = {
   params: Promise<{
@@ -32,7 +34,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
           <div className="grid gap-5 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="surface-panel h-56 p-5">
+              <Card key={index} className="h-56 p-5">
                 <div className="flex h-full flex-col justify-between">
                   <div className="space-y-2">
                     <p className="eyebrow">个人模块</p>
@@ -43,11 +45,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                       公开展示区的内容与卡片节奏已保留。
                     </p>
                   </div>
+                  <Skeleton className="h-2 w-1/2" />
                   <span className="font-sans text-xs uppercase tracking-[0.24em] text-subtle">
                     模块结构
                   </span>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>

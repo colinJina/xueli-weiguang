@@ -1,21 +1,14 @@
-import type { ButtonHTMLAttributes } from "react";
-import { chipVariants } from "@/components/ui/chip";
-import { cn } from "@/lib/utils";
+"use client";
+
+import type { ComponentProps } from "react";
+import { Toggle } from "@/components/ui/toggle";
 
 export function FilterButton({
   active = false,
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
+}: Omit<ComponentProps<typeof Toggle>, "pressed"> & { active?: boolean }) {
   return (
-    <button
-      aria-pressed={active}
-      className={cn(
-        chipVariants({ variant: active ? "selected" : "default", size: "sm" }),
-        className,
-      )}
-      type="button"
-      {...props}
-    />
+    <Toggle pressed={active} className={className} type="button" {...props} />
   );
 }

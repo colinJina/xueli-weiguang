@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -16,8 +16,17 @@ import { CreateCollectionForm } from "@/components/user/create-collection-form";
 import { FavoriteSelectionDialog } from "@/components/user/favorite-selection-dialog";
 import { TextField } from "@/components/ui/text-field";
 import { UserTagManagerDialog } from "@/components/user/user-tag-manager-dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { chipVariants } from "@/components/ui/chip";
+import { FilterButton } from "@/components/ui/filter-button";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { IconButton } from "@/components/ui/icon-button";
 import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
 import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
@@ -155,6 +164,8 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   const [continueToSubmit, setContinueToSubmit] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const uploadAfterSidebarClose = useRef(false);
+  const desktopSidebar = useMediaQuery("(min-width: 1024px)");
   const canSubmit = data.isAuthenticated || (isReady && isAuthenticated);
   const allowNativeUpload = data.isAdmin || isAdmin;
 
@@ -164,26 +175,10 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   }, [data.filters.tagQuery, data.filters.keyword]);
 
   useEffect(() => {
-    if (!mobileSidebarOpen) {
-      return;
+    if (desktopSidebar) {
+      setMobileSidebarOpen(false);
     }
-
-    const previousOverflow = document.body.style.overflow;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMobileSidebarOpen(false);
-      }
-    }
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [mobileSidebarOpen]);
+  }, [desktopSidebar]);
 
   const replaceParams = useCallback(
     (mutator: (params: URLSearchParams) => void) => {
@@ -338,8 +333,8 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   }
 
   function handleMobileUploadClick() {
+    uploadAfterSidebarClose.current = true;
     setMobileSidebarOpen(false);
-    handleUploadClick();
   }
 
   return (
@@ -376,20 +371,50 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
         )}
       >
         <main className="px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pt-10">
-          <div className="mb-5 flex items-center pl-14 lg:hidden">
-            <Button
-              aria-controls="user-profile-mobile-sidebar"
-              aria-expanded={mobileSidebarOpen}
-              className="gap-2"
-              onClick={() => setMobileSidebarOpen(true)}
-              size="sm"
-              type="button"
-              variant="secondary"
+          <Sheet
+            open={mobileSidebarOpen && !desktopSidebar}
+            onOpenChange={setMobileSidebarOpen}
+          >
+            <div className="mb-5 flex items-center pl-14 lg:hidden">
+              <SheetTrigger asChild>
+                <Button
+                  aria-controls="user-profile-mobile-sidebar"
+                  aria-expanded={mobileSidebarOpen}
+                  className="gap-2"
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  <ListIcon />
+                  收藏夹
+                </Button>
+              </SheetTrigger>
+            </div>
+            <SheetContent
+              className="px-4 py-5"
+              id="user-profile-mobile-sidebar"
+              side="left"
+              onCloseAutoFocus={() => {
+                if (uploadAfterSidebarClose.current) {
+                  uploadAfterSidebarClose.current = false;
+                  // Let Radix restore the sheet trigger before opening the next dialog.
+                  queueMicrotask(handleUploadClick);
+                }
+              }}
             >
-              <ListIcon />
-              收藏夹
-            </Button>
-          </div>
+              <SheetTitle className="sr-only">收藏夹菜单</SheetTitle>
+              <SheetDescription className="sr-only">
+                选择收藏夹，或推荐你喜欢的视频。
+              </SheetDescription>
+              <SidebarContent
+                data={data}
+                onCollectionSelect={handleMobileCollectionSelect}
+                onRequestClose={() => setMobileSidebarOpen(false)}
+                onUploadClick={handleMobileUploadClick}
+                onUserCollectionCreated={refreshAfterMutation}
+              />
+            </SheetContent>
+          </Sheet>
           <FilterRow
             data={data}
             draftKeyword={draftKeyword}
@@ -414,34 +439,6 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
           />
         </main>
       </div>
-
-      {mobileSidebarOpen ? (
-        <div
-          aria-label="收藏夹菜单"
-          aria-modal="true"
-          className="fixed inset-0 z-50 lg:hidden"
-          role="dialog"
-        >
-          <button
-            aria-label="关闭收藏夹菜单"
-            className="absolute inset-0 bg-black/65"
-            onClick={() => setMobileSidebarOpen(false)}
-            type="button"
-          />
-          <aside
-            className="relative z-10 flex h-full w-[min(88vw,320px)] flex-col border-r border-border bg-panel px-4 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.28)]"
-            id="user-profile-mobile-sidebar"
-          >
-            <SidebarContent
-              data={data}
-              onCollectionSelect={handleMobileCollectionSelect}
-              onRequestClose={() => setMobileSidebarOpen(false)}
-              onUploadClick={handleMobileUploadClick}
-              onUserCollectionCreated={refreshAfterMutation}
-            />
-          </aside>
-        </div>
-      ) : null}
 
       {favoriteTarget ? (
         <FavoriteSelectionDialog
@@ -614,21 +611,18 @@ function SidebarContent({
         onRequestSubmit={onUploadClick}
       />
       <nav className="mt-8 flex min-h-0 flex-1 flex-col gap-5">
-        <button
+        <Button
+          size="md"
+          variant="sidebar"
           aria-pressed={data.activeCollection.isAll}
-          className={cn(
-            "flex w-full items-center gap-4 rounded-lg border px-5 py-3 text-left text-base font-medium",
-            data.activeCollection.isAll
-              ? "border-white/10 bg-white/[0.07] text-foreground"
-              : "border-transparent text-muted hover:bg-white/[0.035] hover:text-foreground",
-          )}
+          className="w-full px-5 py-3 text-left text-base font-medium"
           onClick={() => onCollectionSelect(null)}
           type="button"
         >
           <GridIcon />
           <span className="min-w-0 flex-1 truncate">全部收藏</span>
           <span className="text-xs text-subtle">{data.allItemCount}</span>
-        </button>
+        </Button>
 
         <div className="flex min-h-0 flex-1 flex-col">
           <p className="px-3 font-sans text-xs uppercase tracking-[0.18em] text-subtle">
@@ -636,14 +630,11 @@ function SidebarContent({
           </p>
           <div className="mt-4 min-h-[140px] flex-1 space-y-2 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {data.collections.map((collection) => (
-              <button
+              <Button
+                size="md"
+                variant="sidebar"
                 aria-pressed={collection.active}
-                className={cn(
-                  "flex w-full items-center gap-4 rounded-lg border px-4 py-3 text-left text-base font-semibold transition",
-                  collection.active
-                    ? "border-white/10 bg-white/[0.07] text-foreground"
-                    : "border-transparent text-muted hover:bg-white/[0.035] hover:text-foreground",
-                )}
+                className="w-full px-4 py-3 text-left text-base"
                 key={collection.id}
                 onClick={() => onCollectionSelect(collection.id)}
                 type="button"
@@ -655,7 +646,7 @@ function SidebarContent({
                 <span className="text-xs text-subtle">
                   {collection.itemCount}
                 </span>
-              </button>
+              </Button>
             ))}
 
             {data.collections.length === 0 ? (
@@ -674,24 +665,23 @@ function SidebarContent({
   );
 }
 
-function CompactProfileSummary({ data }: { data: UserArchivePageData }) {
-  const profile = data.profile;
+function ProfileAvatar({ data }: { data: UserArchivePageData }) {
+  return (
+    <Avatar aria-hidden="true">
+      <AvatarImage
+        alt=""
+        referrerPolicy="no-referrer"
+        src={data.profile?.avatarUrl ?? undefined}
+      />
+      <AvatarFallback>{data.profile?.initial ?? "U"}</AvatarFallback>
+    </Avatar>
+  );
+}
 
+function CompactProfileSummary({ data }: { data: UserArchivePageData }) {
   return (
     <div className="mt-5 flex justify-center">
-      {profile?.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          className="h-11 w-11 rounded-full border border-white/10 object-cover"
-          referrerPolicy="no-referrer"
-          src={profile.avatarUrl}
-        />
-      ) : (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-foreground text-base font-black text-background">
-          {profile?.initial ?? "U"}
-        </span>
-      )}
+      <ProfileAvatar data={data} />
     </div>
   );
 }
@@ -701,19 +691,7 @@ function ProfileSummary({ data }: { data: UserArchivePageData }) {
 
   return (
     <div className="flex items-center gap-4 px-3 mb-4">
-      {profile?.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          className="h-11 w-11 rounded-full border border-white/10 object-cover"
-          referrerPolicy="no-referrer"
-          src={profile.avatarUrl}
-        />
-      ) : (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-foreground text-base font-black text-background">
-          {profile?.initial ?? "U"}
-        </span>
-      )}
+      <ProfileAvatar data={data} />
       <div className="min-w-0">
         <p className="truncate text-base font-bold text-foreground">
           {profile?.displayName ?? "未登录档案"}
@@ -957,19 +935,15 @@ function FilterRow({
           </div>
           <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto">
             {data.tags.map((tag) => (
-              <button
-                aria-pressed={tag.active}
-                className={chipVariants({
-                  size: "sm",
-                  variant: tag.active ? "selected" : "default",
-                })}
+              <FilterButton
+                active={tag.active}
                 key={tag.id}
                 onClick={() => onTagToggle(tag.id)}
                 type="button"
               >
                 {tag.name}
                 <span className="text-xs opacity-70">{tag.itemCount}</span>
-              </button>
+              </FilterButton>
             ))}
             {data.tags.length === 0 ? (
               <p className="text-sm text-subtle">暂无匹配的标签</p>

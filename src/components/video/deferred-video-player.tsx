@@ -62,16 +62,22 @@ export function DeferredVideoPlayer({
   const [isPlayerActive, setIsPlayerActive] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
   const canRenderExternalEmbed =
-    (video.storageProvider === "bilibili" || video.storageProvider === "youtube") &&
+    (video.storageProvider === "bilibili" ||
+      video.storageProvider === "youtube") &&
     Boolean(video.embedUrl);
-  const canRenderCosVideo = video.storageProvider === "cos" && Boolean(video.playbackUrl);
+  const canRenderCosVideo =
+    video.storageProvider === "cos" && Boolean(video.playbackUrl);
   const shouldRenderExternalEmbed =
     isPlayerActive && canRenderExternalEmbed && !hasVideoError;
   const shouldRenderCosVideo =
     isPlayerActive && canRenderCosVideo && !hasVideoError;
-  const shouldRenderCover = !isPlayerActive && (canRenderExternalEmbed || canRenderCosVideo);
+  const shouldRenderCover =
+    !isPlayerActive && (canRenderExternalEmbed || canRenderCosVideo);
   const shouldRenderUnavailable =
-    (!shouldRenderCover && !shouldRenderExternalEmbed && !shouldRenderCosVideo) || hasVideoError;
+    (!shouldRenderCover &&
+      !shouldRenderExternalEmbed &&
+      !shouldRenderCosVideo) ||
+    hasVideoError;
   const SourceIcon = getVideoSourceIcon(video.storageProvider);
 
   function handleActivatePlayer() {
@@ -97,15 +103,25 @@ export function DeferredVideoPlayer({
       {showSourceBadge ? (
         <div className="absolute left-4 top-4 z-30 sm:left-5 sm:top-5">
           <div className="inline-flex items-center gap-2 rounded-[12px] border border-white/10 bg-[rgba(10,10,11,0.86)] px-3 py-2 text-[0.78rem] font-medium tracking-[0.06em] text-foreground shadow-panel">
-            <SourceIcon aria-hidden="true" className="h-[0.95rem] w-[0.95rem]" />
+            <SourceIcon
+              aria-hidden="true"
+              className="h-[0.95rem] w-[0.95rem]"
+            />
             <span>{video.sourceLabel}</span>
           </div>
         </div>
       ) : null}
 
-      <div className={cn("aspect-video w-full min-w-0 overflow-hidden bg-black", mediaClassName)}>
+      <div
+        className={cn(
+          "aspect-video w-full min-w-0 overflow-hidden bg-black",
+          mediaClassName,
+        )}
+      >
         {shouldRenderCover ? (
-          <button
+          <Button
+            size="default"
+            variant="unstyled"
             aria-label={`播放 ${video.title}`}
             className="group relative h-full w-full cursor-pointer overflow-hidden bg-black text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
             onClick={handleActivatePlayer}
@@ -133,10 +149,13 @@ export function DeferredVideoPlayer({
               className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[length:76px_76px] opacity-[0.10]"
             />
             <span className="absolute left-1/2 top-1/2 z-30 inline-flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm transition duration-200 group-hover:scale-105 group-hover:border-white/45 group-hover:bg-white group-hover:text-black max-sm:h-12 max-sm:w-12">
-              <VideoPlayIcon aria-hidden="true" className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5" />
+              <VideoPlayIcon
+                aria-hidden="true"
+                className="ml-0.5 h-7 w-7 max-sm:h-5 max-sm:w-5"
+              />
             </span>
             {coverOverlayContent}
-          </button>
+          </Button>
         ) : null}
 
         {shouldRenderExternalEmbed ? (
@@ -168,7 +187,9 @@ export function DeferredVideoPlayer({
         ) : null}
 
         {shouldRenderUnavailable ? (
-          <VideoUnavailableState onRetry={hasVideoError ? handleRetryPlayback : undefined} />
+          <VideoUnavailableState
+            onRetry={hasVideoError ? handleRetryPlayback : undefined}
+          />
         ) : null}
       </div>
     </section>
