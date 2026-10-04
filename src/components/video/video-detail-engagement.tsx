@@ -152,6 +152,20 @@ export function VideoDetailEngagement({
                   } satisfies FavoriteEditorVideo
                 }
                 onLikeCountChange={handleLikeCountChange}
+                shareVideo={{
+                  id: video.id,
+                  title: video.title,
+                  storageProvider: video.storageProvider,
+                  sourceUrl: video.sourceUrl,
+                  playbackUrl: video.playbackUrl,
+                  coverImageUrl: video.coverImageUrl,
+                  description: video.description,
+                  publishedAtLabel: video.publishedAtLabel,
+                  viewCountLabel,
+                  category: video.category,
+                  tags: video.tags,
+                  tones: video.tones,
+                }}
                 storageProvider={video.storageProvider}
                 videoId={video.id}
               />
