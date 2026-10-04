@@ -44,7 +44,6 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
   const queryRef = useRef<ArchiveFeedQuery | null>(null);
   const cacheKeyRef = useRef(buildArchiveHref(initialPage.filters, {}));
   const restoringPositionRef = useRef(false);
-  const restoreFrameRef = useRef<number | undefined>(undefined);
 
   const savePosition = useCallback(() => {
     // Next can reset scroll after changing the route but before effect cleanup.
@@ -86,13 +85,13 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
     });
     queryRef.current = query;
     let frame: number | undefined;
+    let restoreFrame: number | undefined;
     function restoreFromUrl() {
       if (window.location.pathname !== "/archive") {
         return;
       }
-      if (restoreFrameRef.current !== undefined) {
-        cancelAnimationFrame(restoreFrameRef.current);
-        restoreFrameRef.current = undefined;
+      if (restoreFrame !== undefined) {
+        cancelAnimationFrame(restoreFrame);
       }
       restoringPositionRef.current = false;
       const next = { ...parseArchiveFilters(Object.fromEntries(new URLSearchParams(window.location.search))), page: 1 };
@@ -104,9 +103,8 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
         // cached position with 0 while the restored grid is still being mounted.
         restoringPositionRef.current = true;
         query.restore(cached.feed);
-        restoreFrameRef.current = requestAnimationFrame(() => {
-          restoreFrameRef.current = requestAnimationFrame(() => {
-            restoreFrameRef.current = undefined;
+        restoreFrame = requestAnimationFrame(() => {
+          restoreFrame = requestAnimationFrame(() => {
             window.scrollTo(0, cached.scrollY);
             restoringPositionRef.current = false;
             savePosition();
@@ -144,9 +142,8 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
       if (frame !== undefined) {
         cancelAnimationFrame(frame);
       }
-      if (restoreFrameRef.current !== undefined) {
-        cancelAnimationFrame(restoreFrameRef.current);
-        restoreFrameRef.current = undefined;
+      if (restoreFrame !== undefined) {
+        cancelAnimationFrame(restoreFrame);
       }
       query.dispose();
       queryRef.current = null;
@@ -154,11 +151,6 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
   }, [initialPage, initialError, savePosition]);
 
   const changeFilters = useCallback((patch: FilterPatch, options: ArchiveChangeOptions = {}) => {
-    if (restoreFrameRef.current !== undefined) {
-      cancelAnimationFrame(restoreFrameRef.current);
-      restoreFrameRef.current = undefined;
-    }
-    restoringPositionRef.current = false;
     savePosition();
     const next = { ...filtersRef.current, ...patch, page: 1 };
     filtersRef.current = next;
