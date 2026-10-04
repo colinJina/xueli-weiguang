@@ -438,6 +438,84 @@ test("profile sidebar and opening login from the sheet", async ({
   }
 });
 
+test("compact collections search, selection and focus recovery", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await page.goto("http://127.0.0.1:4173?scenario=profile-collections&keyword=品牌");
+  await page.getByRole("button", { name: "折叠侧栏" }).click();
+  const trigger = page.getByRole("button", { name: "切换收藏夹", exact: false });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const menu = page.getByRole("dialog", { name: "收藏夹", exact: true });
+  const search = menu.getByRole("textbox", { name: "搜索收藏夹" });
+  await expect(search).toBeFocused();
+  await expect(menu.getByRole("button", { name: "条收藏", exact: false })).toHaveCount(20);
+  await expect(menu.getByText("同名开头影像收藏夹", { exact: true })).toBeVisible();
+  await expect(menu.getByText("同名开头音乐收藏夹", { exact: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("compact-collections.png") });
+  await search.fill("不存在");
+  await expect(menu.getByRole("status")).toContainText("未找到匹配的收藏夹");
+  await menu.getByRole("button", { name: "清除搜索" }).click();
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
+  await search.fill(" 音乐 ");
+  await expect(menu.getByRole("button", { name: "条收藏", exact: false })).toHaveCount(1);
+  await page.keyboard.press("Tab");
+  await expect(menu.getByRole("button", { name: "同名开头音乐收藏夹", exact: false })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("同名开头音乐收藏夹");
+  await expect(page.getByRole("searchbox", { name: "搜索收藏的视频" })).toHaveValue("品牌");
+  await trigger.click();
+  await expect(search).toHaveValue("");
+  await expect(menu.getByRole("button", { name: "当前收藏夹", exact: false })).toHaveAttribute("aria-pressed", "true");
+  await menu.getByRole("button", { name: "收藏夹20，0 条收藏" }).scrollIntoViewIfNeeded();
+  await expect(menu.getByRole("button", { name: "收藏夹20，0 条收藏" })).toBeVisible();
+  await search.focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(menu.getByRole("button", { name: "关闭收藏夹列表" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await menu.getByRole("button", { name: "关闭收藏夹列表" }).click();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.mouse.click(700, 700);
+  await expect(menu).toHaveCount(0);
+  await trigger.click();
+  await page.setViewportSize({ width: 1024, height: 480 });
+  await expect(menu).toBeVisible();
+  const bounds = await menu.boundingBox();
+  expect(bounds).not.toBeNull();
+  if (bounds) {
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.y).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(1024);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(480);
+  }
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(menu).toHaveCount(0);
+  await page.getByRole("button", { name: "收藏夹", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "收藏夹菜单" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "收藏夹", exact: true })).toBeFocused();
+});
+
+test("favorite source icons retain brand fills in grid and list", async ({ page }) => {
+  for (const view of ["grid", "list"]) {
+    await page.goto(`http://127.0.0.1:4173?scenario=profile-collections&view=${view}`);
+    const bilibili = page.locator("article").filter({ hasText: "Bilibili 品牌图标" }).locator('svg[fill="#00A1D6"]');
+    const youtube = page.locator("article").filter({ hasText: "YouTube 品牌图标" }).locator('svg:has(path[fill="#FF0033"])');
+    await expect(bilibili).toBeVisible();
+    await expect(youtube).toBeVisible();
+    expect(await bilibili.evaluate((element) => getComputedStyle(element).filter)).toBe("none");
+    expect(await youtube.evaluate((element) => getComputedStyle(element).filter)).toBe("none");
+    await expect(youtube.locator('path[fill="#FFFFFF"]')).toHaveCount(1);
+  }
+});
+
 test("dialogs and color palette meet WCAG accessibility checks", async ({
   page,
 }) => {

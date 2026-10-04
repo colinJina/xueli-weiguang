@@ -30,6 +30,7 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   favorites,
+  getCollectionProfile,
   filters as initialFilters,
   profile,
   video,
@@ -81,7 +82,9 @@ function Fixture() {
     <AppRouterContext.Provider value={router}>
       <PathnameContext.Provider value="/user">
         <SearchParamsContext.Provider value={searchParams}>
-          {searchParams.get("scenario") === "profile" ? (
+          {searchParams.get("scenario") === "profile-collections" ? (
+            <UserProfileShell data={getCollectionProfile(searchParams)} />
+          ) : searchParams.get("scenario") === "profile" ? (
             <UserProfileShell data={profile} />
           ) : (
             <main className="mx-auto max-w-3xl space-y-6 px-5 py-8">

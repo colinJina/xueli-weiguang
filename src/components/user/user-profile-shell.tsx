@@ -13,6 +13,7 @@ import {
 } from "@/components/user/favorite-editor-dialog";
 import { ArchiveItemMenu } from "@/components/user/archive-item-menu";
 import { CreateCollectionForm } from "@/components/user/create-collection-form";
+import { CompactCollectionMenu } from "@/components/user/compact-collection-menu";
 import { FavoriteSelectionDialog } from "@/components/user/favorite-selection-dialog";
 import { TextField } from "@/components/ui/text-field";
 import { UserTagManagerDialog } from "@/components/user/user-tag-manager-dialog";
@@ -28,6 +29,11 @@ import {
 } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { IconButton } from "@/components/ui/icon-button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
 import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
 import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
@@ -540,41 +546,31 @@ function SidebarContent({
         </IconButton>
 
         <nav className="mt-5 flex min-h-0 w-full flex-1 flex-col items-center gap-3">
-          <IconButton
-            aria-label={`全部收藏，${data.allItemCount} 个视频`}
-            aria-pressed={data.activeCollection.isAll}
-            className={cn(
-              data.activeCollection.isAll &&
-                "border-white/10 bg-white/[0.08] text-foreground",
-            )}
-            onClick={() => onCollectionSelect(null)}
-            size="lg"
-            variant="ghost"
-          >
-            <GridIcon />
-          </IconButton>
-
-          <div className="min-h-0 w-full flex-1 overflow-y-auto px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <div className="space-y-2">
-              {data.collections.map((collection) => (
-                <IconButton
-                  aria-label={`${collection.name}，${collection.itemCount} 条收藏`}
-                  aria-pressed={collection.active}
-                  className={cn(
-                    "w-full",
-                    collection.active &&
-                      "border-white/10 bg-white/[0.08] text-foreground",
-                  )}
-                  key={collection.id}
-                  onClick={() => onCollectionSelect(collection.id)}
-                  size="lg"
-                  variant="ghost"
-                >
-                  <FolderIcon active={collection.active} />
-                </IconButton>
-              ))}
-            </div>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                aria-label={`全部收藏，${data.allItemCount} 个视频`}
+                aria-pressed={data.activeCollection.isAll}
+                className={cn(
+                  data.activeCollection.isAll &&
+                    "border-white/10 bg-white/[0.08] text-foreground",
+                )}
+                onClick={() => onCollectionSelect(null)}
+                size="lg"
+                variant="ghost"
+              >
+                <GridIcon />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              全部收藏 · {data.allItemCount} 个视频
+            </TooltipContent>
+          </Tooltip>
+          <CompactCollectionMenu
+            activeCollection={data.activeCollection}
+            collections={data.collections}
+            onCollectionSelect={onCollectionSelect}
+          />
         </nav>
       </div>
     );
@@ -1055,7 +1051,7 @@ function ArchiveCard({
         <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
           <SourceIcon
             aria-hidden="true"
-            className="h-[14px] w-[14px] grayscale sm:h-[16px] sm:w-[16px]"
+            className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
           />
           <span className="min-w-0 truncate">{item.sourceLabel}</span>
         </span>

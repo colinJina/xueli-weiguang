@@ -1,5 +1,6 @@
 import type {
   UserArchivePageData,
+  UserArchiveItem,
   UserArchiveVideoFavoriteState,
 } from "@/lib/user-archive/types";
 import type { VideoDetail, ArchiveFilters } from "@/lib/videos/types";
@@ -105,3 +106,65 @@ export const profile: UserArchivePageData = {
   totalCount: 0,
   allItemCount: 0,
 };
+
+export function getCollectionProfile(params: URLSearchParams): UserArchivePageData {
+  const collectionId = params.get("collectionId");
+  const collections = Array.from({ length: 20 }, (_, index) => ({
+    id: `collection-${index + 1}`,
+    name:
+      index === 0
+        ? "同名开头影像收藏夹"
+        : index === 1
+          ? "同名开头音乐收藏夹"
+          : `收藏夹${String(index + 1).padStart(2, "0")}`,
+    description: "",
+    itemCount: index < 2 ? 1 : 0,
+    sortOrder: index,
+    active: collectionId === `collection-${index + 1}`,
+  }));
+  const allItems: UserArchiveItem[] = collections.slice(0, 2).map((collection, index) => ({
+    id: `item-${index}`,
+    collectionId: collection.id,
+    collectionName: collection.name,
+    videoId: `video-${index}`,
+    title: index === 0 ? "Bilibili 品牌图标" : "YouTube 品牌图标",
+    note: "",
+    coverUrl: null,
+    viewCountLabel: "10",
+    likeCountLabel: "2",
+    sourceLabel: index === 0 ? "Bilibili" : "YouTube",
+    storageProvider: index === 0 ? "bilibili" : "youtube",
+    tags: [],
+    href: null,
+    isAvailable: true,
+    sortOrder: index,
+    createdAt: "2026-10-05",
+  }));
+  const selected = collections.find((collection) => collection.active);
+  const items = selected
+    ? allItems.filter((item) => item.collectionId === selected.id)
+    : allItems;
+
+  return {
+    ...profile,
+    isAuthenticated: true,
+    collections,
+    activeCollection: {
+      id: selected?.id ?? null,
+      name: selected?.name ?? "全部收藏",
+      description: "",
+      itemCount: selected?.itemCount ?? allItems.length,
+      isAll: !selected,
+    },
+    items,
+    allItems,
+    filters: {
+      ...profile.filters,
+      collectionId: selected?.id ?? null,
+      keyword: params.get("keyword") ?? "",
+      view: params.get("view") === "list" ? "list" : "grid",
+    },
+    totalCount: items.length,
+    allItemCount: allItems.length,
+  };
+}
