@@ -4,10 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
-import {
-  FavoriteEditorDialog,
-  type FavoriteEditorVideo,
-} from "@/components/user/favorite-editor-dialog";
+import type { FavoriteEditorVideo } from "@/components/user/favorite-editor-dialog";
+import { FavoriteSelectionDialog } from "@/components/user/favorite-selection-dialog";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { IconButton } from "@/components/ui/icon-button";
@@ -78,11 +76,13 @@ export function VideoDetailActions({
   const [isPending, setIsPending] = useState(false);
   const [likeBurstKey, setLikeBurstKey] = useState(0);
   const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
+  const [localIsFavorited, setLocalIsFavorited] = useState<boolean | null>(null);
   const [continueToFavorite, setContinueToFavorite] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const canUseLocalLikes = storageProvider === "cos";
-  const collectionState: UserArchiveVideoFavoriteState =
-    favoriteState ?? { collections: [], tags: [], memberships: [] };
+  const isFavorited = isAuthenticated && (localIsFavorited ?? Boolean(favoriteState?.memberships.length));
+
+  useEffect(() => { setLocalIsFavorited(null); }, [videoId, isAuthenticated]);
 
   const refreshLikeState = useCallback(async () => {
     if (!canUseLocalLikes) {
@@ -240,9 +240,9 @@ export function VideoDetailActions({
       <div className="flex flex-wrap gap-3 lg:justify-end">
         {likeButton}
 
-        <Button className="gap-2 font-medium" onClick={handleFavoriteClick} size="md" type="button" variant="pill">
+        <Button aria-pressed={isFavorited} className="gap-2 font-medium" disabled={!isReady} onClick={handleFavoriteClick} size="md" type="button" variant={isFavorited ? "pillActive" : "pill"}>
           <VideoBookmarkIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
-          <span>收藏与标签</span>
+          <span>{isFavorited ? "已收藏" : "收藏"}</span>
         </Button>
 
         <IconButton aria-label="分享" onClick={handleShareClick} type="button">
@@ -279,16 +279,14 @@ export function VideoDetailActions({
         />
       ) : null}
 
-      <FavoriteEditorDialog
-        collections={collectionState.collections}
-        initialCollectionId={collectionState.memberships[0]?.collectionId ?? null}
-        memberships={collectionState.memberships}
-        onChanged={() => {
+      <FavoriteSelectionDialog
+        onLoaded={(state) => setLocalIsFavorited(state.memberships.length > 0)}
+        onSaved={(result) => {
+          setLocalIsFavorited(result.isFavorited);
           router.refresh();
         }}
         onClose={() => setFavoriteDialogOpen(false)}
         open={favoriteDialogOpen}
-        tags={collectionState.tags}
         video={favoriteVideo}
       />
     </div>
