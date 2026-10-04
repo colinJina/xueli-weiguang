@@ -74,7 +74,7 @@ describe("收藏展示与筛选", () => {
   });
   it("also deduplicates unavailable videos by ID", () => {
     const row = {
-      ...item("a", "v1", "视频已下架"),
+      ...item("a", "v1", "PV 已下架"),
       isAvailable: false,
       href: null,
     };

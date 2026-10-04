@@ -9,8 +9,8 @@ describe("收藏请求错误提示", () => {
       vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
     );
     await expect(
-      requestUserArchiveMutation("/test", {}, "收藏保存失败，请稍后重试。"),
-    ).rejects.toThrow("收藏保存失败，请稍后重试。");
+      requestUserArchiveMutation("/test", {}, "收藏保存失败，请稍后重试"),
+    ).rejects.toThrow("收藏保存失败，请稍后重试");
   });
   it("preserves request cancellation", async () => {
     const controller = new AbortController();
@@ -31,7 +31,7 @@ describe("收藏请求错误提示", () => {
       vi.fn().mockResolvedValue(new Response("invalid", { status: 200 })),
     );
     await expect(
-      requestUserArchiveMutation("/test", {}, "请重新加载"),
-    ).rejects.toThrow("请重新加载");
+      requestUserArchiveMutation("/test", {}, "请重试"),
+    ).rejects.toThrow("请重试");
   });
 });

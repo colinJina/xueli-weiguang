@@ -20,9 +20,9 @@ export function HomeMetaStrip({ items, motionReady = true }: HomeMetaStripProps)
 
   return (
     <motion.section
-      className="border-y border-white/6 bg-[#111112]"
+      className="border-y border-white/[0.06] bg-surface"
       initial={prefersReducedMotion ? false : "hidden"}
-      animate={shouldAnimateEntrance ? "visible" : prefersReducedMotion ? undefined : "hidden"}
+      animate={prefersReducedMotion || shouldAnimateEntrance ? "visible" : "hidden"}
       variants={metaStripVariants}
     >
       <motion.div
@@ -38,7 +38,7 @@ export function HomeMetaStrip({ items, motionReady = true }: HomeMetaStripProps)
             <span className="font-sans uppercase tracking-[0.18em] text-subtle">{item.label}</span>
             <span className="text-sm font-medium text-foreground">{item.value}</span>
             {index < items.length - 1 ? (
-              <span aria-hidden="true" className="h-3 w-px bg-white/12" />
+              <span aria-hidden="true" className="h-3 w-px bg-white/[0.12]" />
             ) : null}
           </motion.div>
         ))}

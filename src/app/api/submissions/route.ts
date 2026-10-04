@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return badRequest("请先登录后再投稿。", 401);
+    return badRequest("请先登录后再投稿", 401);
   }
 
   let body: SubmissionRequestBody;
@@ -49,17 +49,17 @@ export async function POST(request: Request) {
       return badRequest(error.message, error.status);
     }
 
-    return badRequest("请求内容无效，请重新提交。");
+    return badRequest("请求内容无效，请重新提交");
   }
 
   const url = typeof body.url === "string" ? body.url.trim() : "";
 
   if (!url) {
-    return badRequest("请提供有效的 Bilibili 或 YouTube 视频链接。");
+    return badRequest("请提供有效的 Bilibili 或 YouTube PV 链接");
   }
 
   if (url.length > SUBMISSION_SOURCE_URL_MAX_LENGTH) {
-    return badRequest(`视频链接不能超过 ${SUBMISSION_SOURCE_URL_MAX_LENGTH} 个字符。`);
+    return badRequest(`PV 链接不能超过 ${SUBMISSION_SOURCE_URL_MAX_LENGTH} 个字符`);
   }
 
   try {
@@ -86,6 +86,6 @@ export async function POST(request: Request) {
     }
 
     console.error("Failed to create submission", error);
-    return badRequest("投稿失败，请稍后重试。", 500);
+    return badRequest("投稿失败，请稍后重试", 500);
   }
 }

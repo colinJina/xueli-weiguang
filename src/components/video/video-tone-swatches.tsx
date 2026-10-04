@@ -26,7 +26,7 @@ export function VideoToneSwatches({
   }
   return (
     <div
-      aria-label="视频色调"
+      aria-label="PV 色调"
       className={cn("flex items-center gap-1.5", className)}
     >
       {visible.map((tone) => (

@@ -4,8 +4,8 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
 import ChevronDownIcon from "@/components/icons/auth/chevron-down.svg";
-import LogoutIcon from "@/components/icons/auth/logout.svg";
-import ProfileIcon from "@/components/icons/auth/profile.svg";
+import LogoutIcon from "@/components/icons/shared/logout.svg";
+import ProfileIcon from "@/components/icons/shared/user.svg";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -45,8 +45,8 @@ export function UserMenu({ user, onLogout, variant = "compact" }: UserMenuProps)
         <Button
           aria-label="账户菜单"
           className={cn(
-            "gap-2 rounded-full px-1.5 py-1 text-sm hover:border-white/25",
-            variant === "expanded" ? "min-h-11 pr-3" : "min-h-9 pr-2.5",
+            "h-11 gap-2 px-2 py-1 text-sm",
+            variant === "expanded" ? "lg:pr-3" : "pr-2.5",
           )}
           size="sm"
           type="button"
@@ -62,7 +62,7 @@ export function UserMenu({ user, onLogout, variant = "compact" }: UserMenuProps)
             {initial}
           </span>
           {variant === "expanded" ? (
-            <span className="hidden max-w-[120px] truncate sm:inline">{display}</span>
+            <span className="hidden max-w-[120px] truncate lg:inline">{display}</span>
           ) : null}
           <ChevronDownIcon aria-hidden="true" />
         </Button>
@@ -79,12 +79,12 @@ export function UserMenu({ user, onLogout, variant = "compact" }: UserMenuProps)
         <DropdownMenuItem asChild className="rounded-xl">
           <Link href="/user">
             <ProfileIcon aria-hidden="true" />
-            <span>我的档案</span>
+            <span>我的收藏</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem className="rounded-xl" onSelect={() => { void onLogout(); }}>
           <LogoutIcon aria-hidden="true" />
-          <span>登出</span>
+          <span>退出登录</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

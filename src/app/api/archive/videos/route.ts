@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         code: "VALIDATION_FAILED",
-        message: "筛选条件格式有误，请调整后重试。",
+        message: "筛选条件格式有误，请调整后重试",
       },
       { status: 400, headers },
     );
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         code: "ARCHIVE_UNAVAILABLE",
-        message: "暂时无法更新作品，请重试。",
+        message: "暂时无法更新 PV，请重试",
         filters: parseArchiveFilters(raw),
       },
       { status: 503, headers },

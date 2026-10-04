@@ -23,14 +23,12 @@ export const VideoShareCard = forwardRef<HTMLElement, VideoShareCardProps>(
         <div className="border-b border-border px-5 py-5">
           <SiteBrand
             markClassName="h-8 w-8"
-            subtitle="发现值得收藏的影像"
-            subtitleClassName="text-[10px] tracking-normal"
             titleClassName="text-lg"
           />
         </div>
         <div className="space-y-4 p-5">
           {coverUrl ? (
-            <Image alt="作品封面" className="h-auto w-full rounded-lg" height={675} loading="eager" src={coverUrl} unoptimized width={1200} />
+            <Image alt="PV 封面" className="h-auto w-full rounded-lg" height={675} loading="eager" src={coverUrl} unoptimized width={1200} />
           ) : (
             <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-lg bg-surface text-subtle">
               <CoverFallbackIcon aria-hidden="true" className="h-10 w-10" />
@@ -47,7 +45,7 @@ export const VideoShareCard = forwardRef<HTMLElement, VideoShareCardProps>(
           </p>
           {video.tags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {video.tags.slice(0, 5).map((tag) => <Chip key={tag.id} size="sm">{tag.name}</Chip>)}
+              {video.tags.slice(0, 5).map((tag) => <Chip key={tag.id} size="xs">{tag.name}</Chip>)}
             </div>
           ) : null}
           {tones.length > 0 ? (
@@ -65,9 +63,9 @@ export const VideoShareCard = forwardRef<HTMLElement, VideoShareCardProps>(
             <div className="min-w-0 flex-1 space-y-2">
               <p className="text-[11px] text-subtle">{summary.label}</p>
               <p className="text-xs leading-5 text-muted [overflow-wrap:anywhere]">{summary.text}</p>
-              <p className="pt-1 text-[10px] leading-4 text-subtle">扫码查看完整视频<br />雪笠微光 · 影像档案</p>
+              <p className="pt-1 text-[10px] leading-4 text-subtle">扫码查看完整 PV<br />雪笠微光 · PV</p>
             </div>
-            <Image alt="扫码打开作品详情" className="h-24 w-24 shrink-0 rounded-lg" height={96} loading="eager" src={qrCodeUrl} unoptimized width={96} />
+            <Image alt="扫码查看 PV" className="h-24 w-24 shrink-0 rounded-lg" height={96} loading="eager" src={qrCodeUrl} unoptimized width={96} />
           </div>
         </div>
       </article>

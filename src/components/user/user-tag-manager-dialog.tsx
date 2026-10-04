@@ -89,12 +89,12 @@ export function UserTagManagerDialog({
     const name = newTagName.trim();
 
     if (!name) {
-      setError("请输入标签名称。");
+      setError("请输入标签名称");
       return;
     }
 
     setIsSubmitting(true);
-    setNotice({ variant: "loading", message: "正在创建标签。" });
+    setNotice({ variant: "loading", message: "正在创建标签" });
 
     try {
       const result = await requestUserArchiveMutation<MutationResult>(
@@ -103,7 +103,7 @@ export function UserTagManagerDialog({
           method: "POST",
           body: JSON.stringify({ name }),
         },
-        "标签创建失败，请稍后重试。",
+        "标签创建失败，请稍后重试",
       );
 
       setLocalTags((current) => [
@@ -117,11 +117,11 @@ export function UserTagManagerDialog({
         },
       ]);
       setNewTagName("");
-      setNotice({ variant: "success", message: "标签已创建。" });
+      setNotice({ variant: "success", message: "标签已创建" });
       onChanged();
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "标签创建失败，请稍后重试。",
+        error instanceof Error ? error.message : "标签创建失败，请稍后重试",
       );
     } finally {
       setIsSubmitting(false);
@@ -132,12 +132,12 @@ export function UserTagManagerDialog({
     const name = editingName.trim();
 
     if (!name) {
-      setError("请输入标签名称。");
+      setError("请输入标签名称");
       return;
     }
 
     setIsSubmitting(true);
-    setNotice({ variant: "loading", message: "正在更新标签。" });
+    setNotice({ variant: "loading", message: "正在更新标签" });
 
     try {
       await requestUserArchiveMutation<MutationResult>(
@@ -146,7 +146,7 @@ export function UserTagManagerDialog({
           method: "PATCH",
           body: JSON.stringify({ name }),
         },
-        "标签更新失败，请稍后重试。",
+        "标签更新失败，请稍后重试",
       );
 
       setLocalTags((current) =>
@@ -154,11 +154,11 @@ export function UserTagManagerDialog({
       );
       setEditingId(null);
       setEditingName("");
-      setNotice({ variant: "success", message: "标签已更新。" });
+      setNotice({ variant: "success", message: "标签已更新" });
       onChanged();
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "标签更新失败，请稍后重试。",
+        error instanceof Error ? error.message : "标签更新失败，请稍后重试",
       );
     } finally {
       setIsSubmitting(false);
@@ -167,7 +167,7 @@ export function UserTagManagerDialog({
 
   async function handleDelete(tagId: string) {
     setIsSubmitting(true);
-    setNotice({ variant: "loading", message: "正在删除标签并解除绑定。" });
+    setNotice({ variant: "loading", message: "正在删除标签并解除绑定" });
 
     try {
       await requestUserArchiveMutation<MutationResult>(
@@ -175,18 +175,18 @@ export function UserTagManagerDialog({
         {
           method: "DELETE",
         },
-        "标签删除失败，请稍后重试。",
+        "标签删除失败，请稍后重试",
       );
 
       setLocalTags((current) => current.filter((tag) => tag.id !== tagId));
       setNotice({
         variant: "success",
-        message: "标签已删除，并从相关收藏记录解绑。",
+        message: "标签已删除，并从相关收藏记录解绑",
       });
       onChanged();
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "标签删除失败，请稍后重试。",
+        error instanceof Error ? error.message : "标签删除失败，请稍后重试",
       );
     } finally {
       setIsSubmitting(false);
@@ -197,10 +197,10 @@ export function UserTagManagerDialog({
     <DialogShell
       className="max-h-[calc(100vh-2rem)] overflow-y-auto"
       closeLabel="关闭标签管理"
-      description="标签只属于当前登录用户。删除标签会从所有收藏记录中解绑，不会删除视频或收藏夹。"
+      description="标签只属于当前登录用户，删除标签会从所有收藏记录中解绑，不会删除 PV 或收藏夹"
       maxWidthClassName="max-w-[640px]"
       onClose={onClose}
-      title="管理私有标签"
+      title="管理个人标签"
     >
       <form className="mt-6 flex gap-3" onSubmit={handleCreate}>
         <TextField
@@ -288,7 +288,7 @@ export function UserTagManagerDialog({
         })}
 
         {localTags.length === 0 ? (
-          <p className="p-5 text-sm leading-6 text-muted">还没有私有标签。</p>
+          <p className="p-5 text-sm leading-6 text-muted">还没有个人标签</p>
         ) : null}
       </div>
 

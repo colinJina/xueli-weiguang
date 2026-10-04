@@ -5,7 +5,7 @@ import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
-  plugins: [react(), svgr({ include: "**/*.svg" })],
+  plugins: [react(), svgr({ include: "**/*.svg", svgrOptions: { icon: true } })],
   resolve: {
     alias: { "@": fileURLToPath(new URL("../../src", import.meta.url)) },
   },

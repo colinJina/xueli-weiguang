@@ -134,7 +134,7 @@ function readPushPayload(data: PushMessageData | null): PushNotificationPayload 
 
   return {
     badge: NOTIFICATION_BADGE,
-    body: "有新作品公开，点击查看",
+    body: "有新 PV 公开，点击查看",
     broadcastId: "00000000-0000-4000-8000-000000000000",
     icon: NOTIFICATION_ICON,
     tag: "video:new",

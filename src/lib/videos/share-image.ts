@@ -24,7 +24,7 @@ function loadImage(source: string, signal: AbortSignal) {
     function onAbort() {
       cleanUp();
       image.src = "";
-      reject(new Error("图片加载已取消。"));
+      reject(new Error("图片加载已取消"));
     }
     if (signal.aborted) {
       onAbort();
@@ -36,7 +36,7 @@ function loadImage(source: string, signal: AbortSignal) {
     };
     image.onerror = () => {
       cleanUp();
-      reject(new Error("封面暂时无法加载。"));
+      reject(new Error("封面暂时无法加载"));
     };
     signal.addEventListener("abort", onAbort, { once: true });
     image.src = source;
@@ -48,7 +48,7 @@ export async function loadShareCover(coverUrl: string, signal: AbortSignal) {
   // Use Next's existing same-origin image endpoint, then embed pixels in the card.
   const response = await fetch(props.src, { signal });
   if (!response.ok || !response.headers.get("content-type")?.startsWith("image/")) {
-    throw new Error("封面暂时无法加载。");
+    throw new Error("封面暂时无法加载");
   }
   const blob = await response.blob();
   const objectUrl = URL.createObjectURL(blob);
@@ -59,7 +59,7 @@ export async function loadShareCover(coverUrl: string, signal: AbortSignal) {
     canvas.height = COVER_HEIGHT;
     const context = canvas.getContext("2d");
     if (!context) {
-      throw new Error("浏览器暂不支持图片生成。");
+      throw new Error("浏览器暂不支持图片生成");
     }
     // Letterbox the original image rather than stretching or cropping its content.
     const scale = Math.min(SHARE_IMAGE_WIDTH / image.naturalWidth, COVER_HEIGHT / image.naturalHeight);
@@ -82,7 +82,7 @@ export async function exportShareCard(element: HTMLElement) {
   ]);
   const width = element.getBoundingClientRect().width;
   if (width <= 0) {
-    throw new Error("分享图暂时无法生成，请重新打开后再试。");
+    throw new Error("分享图暂时无法生成，请重新打开后再试");
   }
   const renderedCanvas = await html2canvas(element, {
     scale: SHARE_IMAGE_WIDTH / width,
@@ -97,14 +97,14 @@ export async function exportShareCard(element: HTMLElement) {
   canvas.width = SHARE_IMAGE_WIDTH;
   canvas.height = Math.round(renderedCanvas.height * SHARE_IMAGE_WIDTH / renderedCanvas.width);
   const context = canvas.getContext("2d");
-  if (!context) { throw new Error("浏览器暂不支持图片生成。"); }
+  if (!context) { throw new Error("浏览器暂不支持图片生成"); }
   context.drawImage(renderedCanvas, 0, 0, canvas.width, canvas.height);
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((result) => {
       if (result) {
         resolve(result);
       } else {
-        reject(new Error("分享图暂时无法生成，请稍后重试。"));
+        reject(new Error("分享图暂时无法生成，请稍后重试"));
       }
     }, "image/png");
   });

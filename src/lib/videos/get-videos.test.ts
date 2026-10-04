@@ -8,7 +8,7 @@ const state = vi.hoisted(() => ({
     id: "v1",
     platform: "bilibili",
     category_id: "c1",
-    title: "影像",
+    title: "PV",
     source_url: null,
     embed_url: null,
     cover_url: null,
@@ -23,7 +23,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/videos/get-video-dictionaries", () => ({
   getVideoDictionaries: async () => ({
-    categories: [{ id: "c1", name: "影像" }],
+    categories: [{ id: "c1", name: "PV" }],
     tags: [{ id: "t1", name: "风景" }],
   }),
 }));

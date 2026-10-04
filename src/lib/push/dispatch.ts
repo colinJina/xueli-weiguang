@@ -238,7 +238,7 @@ async function sendDelivery(
     broadcastId: broadcast.id,
     icon: "/icons/notification-icon-192.png",
     tag: `video:${broadcast.video_id}`,
-    title: "雪笠微光 · 新作品已收录",
+    title: "雪笠微光 · 新 PV 已收录",
     url: broadcast.target_url,
     version: 1,
     videoId: broadcast.video_id,

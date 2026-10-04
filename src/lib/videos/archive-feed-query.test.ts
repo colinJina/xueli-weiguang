@@ -4,7 +4,7 @@ import { parseArchiveFilters } from "@/lib/videos/archive-filters";
 import type { ArchiveFilters, ArchiveVideoFeed, ArchiveVideoItem } from "@/lib/videos/types";
 
 const filters = parseArchiveFilters({});
-const item = (id: string): ArchiveVideoItem => ({ id, title: id, platform: "bilibili", storageProvider: "bilibili", sourceLabel: "Bilibili", category: { id: "category", name: "影像" }, tags: [], tones: [], metricLabel: "0", viewCountLabel: "0", likeCountLabel: "0", coverUrl: null, description: "", authorName: "作者", publishedAtLabel: "", cardSize: "short" });
+const item = (id: string): ArchiveVideoItem => ({ id, title: id, platform: "bilibili", storageProvider: "bilibili", sourceLabel: "Bilibili", category: { id: "category", name: "PV" }, tags: [], tones: [], metricLabel: "0", viewCountLabel: "0", likeCountLabel: "0", coverUrl: null, description: "", authorName: "作者", publishedAtLabel: "", cardSize: "short" });
 const feed = (ids: string[], nextCursor: string | null = "cursor-1", nextFilters = filters): ArchiveVideoFeed => ({ items: ids.map(item), filters: nextFilters, hasMore: nextCursor !== null, nextCursor });
 function deferred() {
   let resolve!: (value: ArchiveVideoFeed) => void;

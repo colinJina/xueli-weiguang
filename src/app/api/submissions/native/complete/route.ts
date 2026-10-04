@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json(
-      { code: "UNAUTHENTICATED", message: "请先登录后再投稿。" },
+      { code: "UNAUTHENTICATED", message: "请先登录后再投稿" },
       { status: 401 },
     );
   }
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof JsonRequestError
         ? error.message
-        : "请求内容无效，请重新提交。";
+        : "请求内容无效，请重新提交";
     const status = error instanceof JsonRequestError ? error.status : 400;
 
     return NextResponse.json(
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
     console.error("Failed to complete native submission", error);
     return NextResponse.json(
-      { code: "INTERNAL_ERROR", message: "投稿保存失败，请稍后重试。" },
+      { code: "INTERNAL_ERROR", message: "投稿保存失败，请稍后重试" },
       { status: 500 },
     );
   }

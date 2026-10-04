@@ -28,15 +28,15 @@ export function VideoDetailLoadingView() {
       <main className="page-container py-6 sm:py-8 lg:py-10">
         <section
           aria-busy="true"
-          aria-label="视频详情正在加载"
+          aria-label="PV 详情正在加载"
           className="mx-auto flex w-full max-w-[1100px] flex-col gap-7 lg:gap-8"
           role="status"
         >
           <div className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-panel shadow-hero">
             <div className="absolute left-4 top-4 z-10 sm:left-5 sm:top-5">
-              <div className="inline-flex items-center gap-2 rounded-[12px] border border-white/10 bg-[rgba(10,10,11,0.86)] px-3 py-2 text-[0.78rem] font-medium text-foreground shadow-panel">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(10,10,11,0.86)] px-3 py-2 text-[0.78rem] font-medium text-foreground shadow-panel">
                 <span className="h-2 w-2 rounded-full bg-white/70" aria-hidden="true" />
-                <span>正在载入视频档案</span>
+                <span>正在载入 PV</span>
               </div>
             </div>
 
@@ -66,7 +66,7 @@ export function VideoDetailLoadingView() {
             <div className="absolute inset-0 grid place-items-center px-8">
               <div className="flex w-full max-w-[420px] flex-col items-center gap-5">
                 <div className="flex w-full items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-white/12" />
+                  <span className="h-px flex-1 bg-white/[0.12]" />
                   <div className="flex items-center gap-2">
                     {archiveDots.map((dot) => (
                       <motion.span
@@ -86,12 +86,12 @@ export function VideoDetailLoadingView() {
                       />
                     ))}
                   </div>
-                  <span className="h-px flex-1 bg-white/12" />
+                  <span className="h-px flex-1 bg-white/[0.12]" />
                 </div>
 
                 <motion.div
                   animate={prefersReducedMotion ? { opacity: 1 } : { opacity: [0.48, 0.86, 0.48] }}
-                  className="h-2 w-28 rounded-full bg-white/12"
+                  className="h-2 w-28 rounded-full bg-white/[0.12]"
                   transition={{ duration: 1.1, repeat: prefersReducedMotion ? 0 : Infinity }}
                 />
               </div>
@@ -102,7 +102,7 @@ export function VideoDetailLoadingView() {
             {skeletonRows.map((className, index) => (
               <MotionSkeleton
                 animate={{ opacity: 1, y: 0 }}
-                className={`rounded-[18px] border border-white/[0.06] bg-white/[0.035] ${className}`}
+                className={`rounded-lg border border-white/[0.06] bg-white/[0.035] ${className}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
                 key={className}
                 transition={{

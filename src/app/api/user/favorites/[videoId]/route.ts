@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
   try {
     const { videoId } = await params;
     if (!isUuid(videoId)) {
-      throw validationError("视频无效，请刷新后重试。");
+      throw validationError("PV 无效，请刷新后重试");
     }
     const { supabase, user } = await createAuthenticatedUserArchiveContext();
     const result = await getUserVideoFavoriteState(supabase, user.id, videoId);

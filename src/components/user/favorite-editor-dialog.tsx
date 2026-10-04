@@ -103,7 +103,7 @@ function CollectionItemDetails({
   function toggleTag(id: string) {
     setError(null);
     if (!tagIds.includes(id) && tagIds.length >= TAGS_PER_ITEM_LIMIT) {
-      setError("单条收藏最多只能绑定 10 个标签。");
+      setError("单条收藏最多只能绑定 10 个标签");
       return;
     }
     setTagIds((current) =>
@@ -120,11 +120,11 @@ function CollectionItemDetails({
     }
     const name = newTagName.trim();
     if (!name) {
-      setError("请输入标签名称。");
+      setError("请输入标签名称");
       return;
     }
     if (tagIds.length >= TAGS_PER_ITEM_LIMIT) {
-      setError("单条收藏最多只能绑定 10 个标签。");
+      setError("单条收藏最多只能绑定 10 个标签");
       return;
     }
     setSubmitting(true);
@@ -134,7 +134,7 @@ function CollectionItemDetails({
       const result = await requestUserArchiveMutation<{ id: string }>(
         "/api/user/tags",
         { method: "POST", body: JSON.stringify({ name }) },
-        "标签创建失败，请重试。",
+        "标签创建失败，请重试",
       );
       setLocalTags((current) => [
         ...current,
@@ -145,7 +145,7 @@ function CollectionItemDetails({
       onChanged();
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "标签创建失败，请重试。",
+        cause instanceof Error ? cause.message : "标签创建失败，请重试",
       );
     } finally {
       busyRef.current = false;
@@ -164,7 +164,7 @@ function CollectionItemDetails({
       await requestUserArchiveMutation<{ id: string }>(
         "/api/user/collection-items/" + membership.collectionItemId,
         { method: "PATCH", body: JSON.stringify({ note, tagIds }) },
-        "备注和标签保存失败，请重试。",
+        "备注和标签保存失败，请重试",
       );
       showMessage({
         icon: <CheckIcon aria-hidden="true" />,
@@ -174,7 +174,7 @@ function CollectionItemDetails({
       onClose();
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "备注和标签保存失败，请重试。",
+        cause instanceof Error ? cause.message : "备注和标签保存失败，请重试",
       );
     } finally {
       busyRef.current = false;
@@ -186,7 +186,7 @@ function CollectionItemDetails({
     <DialogShell
       className="max-h-[calc(100dvh-3rem)] overflow-y-auto"
       closeLabel="关闭备注与标签"
-      description="备注和标签仅对你可见，分别保存在各收藏夹中。"
+      description="备注和标签仅对你可见，分别保存在各收藏夹中"
       onClose={close}
       title={readOnly ? "查看备注与标签" : "备注与标签"}
     >
@@ -230,7 +230,7 @@ function CollectionItemDetails({
         </Label>
         <div className="space-y-3">
           <p className="text-sm text-muted">
-            私有标签{" "}
+            个人标签{" "}
             <span className="text-xs text-subtle">
               {tagIds.length}/{TAGS_PER_ITEM_LIMIT}
             </span>
@@ -275,7 +275,7 @@ function CollectionItemDetails({
             </form>
           ) : (
             <FormMessage icon={<AlertIcon aria-hidden="true" />} variant="info">
-              视频已下架，已有备注和标签仍可查看。
+              PV 已下架，已有备注和标签仍可查看
             </FormMessage>
           )}
         </div>

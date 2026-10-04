@@ -12,7 +12,7 @@ import { LikeBurstIcon } from "@/components/video/like-burst-icon";
 import { VideoShareTrigger } from "@/components/video/video-share-trigger";
 import StatusAlertIcon from "@/components/icons/shared/alert-circle.svg";
 import VideoBookmarkIcon from "@/components/icons/video/bookmark.svg";
-import VideoHeartIcon from "@/components/icons/video/heart.svg";
+import VideoHeartIcon from "@/components/icons/shared/heart.svg";
 import { useAuth } from "@/lib/auth/use-auth";
 import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import { formatCompactNumber } from "@/lib/videos/metrics";
@@ -44,7 +44,7 @@ async function readLikeResponse(response: Response) {
     const message =
       payload && "message" in payload
         ? payload.message
-        : "点赞状态暂时无法更新，请稍后再试。";
+        : "点赞状态暂时无法更新，请稍后再试";
     throw new Error(message);
   }
 
@@ -161,7 +161,7 @@ export function VideoDetailActions({
     } catch (error) {
       setLiked(previousLiked);
       onLikeCountChange(previousCount, formatCompactNumber(previousCount));
-      setErrorMessage(error instanceof Error ? error.message : "点赞状态暂时无法更新，请稍后再试。");
+      setErrorMessage(error instanceof Error ? error.message : "点赞状态暂时无法更新，请稍后再试");
     } finally {
       setIsPending(false);
     }
@@ -202,7 +202,7 @@ export function VideoDetailActions({
       className="gap-2 font-medium"
       disabled
       size="md"
-      title="外站视频保留原始点赞数据"
+      title="外站 PV 保留原始点赞数据"
       type="button"
       variant="pill"
     >

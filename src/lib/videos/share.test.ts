@@ -12,12 +12,12 @@ describe("video sharing", () => {
 
   it.each(["bilibili", "youtube"] as const)("shares %s's stored original link", (storageProvider) => {
     expect(getVideoShareSource({ storageProvider, sourceUrl: "https://example.com/watch?v=test", playbackUrl: "https://cdn.example.com/other.mp4" }))
-      .toEqual({ label: "原视频链接", url: "https://example.com/watch?v=test" });
+      .toEqual({ label: "原始链接", url: "https://example.com/watch?v=test" });
   });
 
   it("shares a local video's public playback address instead of an unrelated source", () => {
     expect(getVideoShareSource({ storageProvider: "cos", sourceUrl: "https://example.com/old", playbackUrl: "https://cdn.example.com/submissions/video.mp4" }))
-      .toEqual({ label: "视频直链", url: "https://cdn.example.com/submissions/video.mp4" });
+      .toEqual({ label: "PV 文件链接", url: "https://cdn.example.com/submissions/video.mp4" });
     expect(getVideoShareSource({ storageProvider: "cos", sourceUrl: "https://example.com/old", playbackUrl: null })).toBeNull();
   });
 
@@ -29,7 +29,7 @@ describe("video sharing", () => {
 
   it("collapses whitespace while preserving Japanese, Chinese and emoji", () => {
     expect(getVideoShareSummary({ storageProvider: "bilibili", description: "  雪笠\n\t微光　 日本語  🎬  " }))
-      .toEqual({ label: "作品简介", text: "雪笠 微光 日本語 🎬" });
+      .toEqual({ label: "PV 简介", text: "雪笠 微光 日本語 🎬" });
   });
 
   it("truncates after 80 Unicode characters without splitting emoji or adding a needless ellipsis", () => {
@@ -40,8 +40,8 @@ describe("video sharing", () => {
   it.each([
     { storageProvider: "bilibili", text: "Bilibili" },
     { storageProvider: "youtube", text: "YouTube" },
-    { storageProvider: "cos", text: "本站上传" },
+    { storageProvider: "cos", text: "站内 PV" },
   ] as const)("uses an accurate source for empty $storageProvider descriptions", ({ storageProvider, text }) => {
-    expect(getVideoShareSummary({ storageProvider, description: "\n\t " })).toEqual({ label: "视频来源", text });
+    expect(getVideoShareSummary({ storageProvider, description: "\n\t " })).toEqual({ label: "PV 来源", text });
   });
 });

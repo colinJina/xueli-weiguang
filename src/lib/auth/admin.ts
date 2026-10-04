@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-export const ADMIN_REQUIRED_MESSAGE = "只有管理员可以上传本地视频。";
+export const ADMIN_REQUIRED_MESSAGE = "只有管理员可以上传本地 PV";
 export async function isAdminUser(client: SupabaseClient, userId: string): Promise<boolean> {
   const { data, error } = await client
     .from("profiles")

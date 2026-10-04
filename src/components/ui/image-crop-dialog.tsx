@@ -74,7 +74,7 @@ async function createCroppedImageFile(input: {
   canvas.height = OUTPUT_HEIGHT;
 
   if (!context) {
-    throw new Error("浏览器暂不支持图片裁切。");
+    throw new Error("浏览器暂不支持图片裁切");
   }
 
   context.fillStyle = "#000";
@@ -101,7 +101,7 @@ async function createCroppedImageFile(input: {
           return;
         }
 
-        reject(new Error("无法生成裁切后的封面。"));
+        reject(new Error("无法生成裁切后的封面"));
       },
       OUTPUT_MIME_TYPE,
       OUTPUT_QUALITY,
@@ -154,7 +154,7 @@ export function ImageCropDialog({
     const image = imageRef.current;
 
     if (!image || !completedCrop?.width || !completedCrop.height) {
-      setError("请先调整并确认裁切区域。");
+      setError("请先调整并确认裁切区域");
       return;
     }
 
@@ -177,7 +177,7 @@ export function ImageCropDialog({
       setError(
         nextError instanceof Error
           ? nextError.message
-          : "封面裁切失败，请重试。",
+          : "封面裁切失败，请重试",
       );
     } finally {
       setIsCropping(false);
@@ -188,7 +188,7 @@ export function ImageCropDialog({
     <DialogShell
       className="max-h-[calc(100vh-2rem)] overflow-y-auto"
       closeLabel="关闭封面裁切弹窗"
-      description="拖动或缩放裁切框，输出封面会统一保存为 16:9。"
+      description="拖动或缩放裁切框，输出封面会统一保存为 16:9"
       maxWidthClassName="max-w-[860px]"
       onClose={isCropping ? () => undefined : onClose}
       title="裁切封面"

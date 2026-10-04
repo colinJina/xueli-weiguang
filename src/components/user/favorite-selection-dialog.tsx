@@ -67,7 +67,7 @@ function FavoriteSelectionContent({
     void requestUserArchiveMutation<UserArchiveVideoFavoriteState>(
       `/api/user/favorites/${video.id}`,
       { method: "GET", cache: "no-store", signal: controller.signal },
-      "收藏夹暂时无法加载，请重试。",
+      "收藏夹暂时无法加载，请重试",
     )
       .then((result) => {
         if (controller.signal.aborted) {
@@ -84,7 +84,7 @@ function FavoriteSelectionContent({
           setError(
             cause instanceof Error
               ? cause.message
-              : "收藏夹暂时无法加载，请重试。",
+              : "收藏夹暂时无法加载，请重试",
           );
         }
       });
@@ -123,7 +123,7 @@ function FavoriteSelectionContent({
             method: "PUT",
             body: JSON.stringify({ collectionIds: selectedIds }),
           },
-          "收藏保存失败，请稍后重试。",
+          "收藏保存失败，请稍后重试",
         );
       showMessage({
         icon: <CheckIcon aria-hidden="true" />,
@@ -133,7 +133,7 @@ function FavoriteSelectionContent({
       onClose();
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "收藏保存失败，请稍后重试。",
+        cause instanceof Error ? cause.message : "收藏保存失败，请稍后重试",
       );
     } finally {
       submittingRef.current = false;
@@ -145,7 +145,7 @@ function FavoriteSelectionContent({
     <DialogShell
       className="max-h-[calc(100dvh-3rem)] overflow-y-auto"
       closeLabel="关闭收藏夹选择"
-      description="勾选收藏夹，点击完成保存。"
+      description="勾选收藏夹，点击完成保存"
       onClose={close}
       title="收藏到"
     >
@@ -159,7 +159,7 @@ function FavoriteSelectionContent({
             variant="secondary"
           >
             <FolderIcon aria-hidden="true" />
-            重新加载
+            重试
           </Button>
         ) : (
           <FormMessage
@@ -213,7 +213,7 @@ function FavoriteSelectionContent({
             {state.collections.length === 0 ? (
               <div className="flex items-center gap-3 px-3 py-4 text-sm text-muted">
                 <FolderIcon aria-hidden="true" className="h-6 w-6 shrink-0" />
-                新建一个收藏夹，收好喜欢的视频。
+                新建一个收藏夹，收好喜欢的 PV
               </div>
             ) : null}
           </div>
@@ -240,16 +240,16 @@ function FavoriteSelectionContent({
             />
           ) : (
             <FormMessage icon={<AlertIcon aria-hidden="true" />} variant="info">
-              视频已下架，可以移出已有收藏夹。
+              PV 已下架，可以移出已有收藏夹
             </FormMessage>
           )}
           {removed.length > 0 ? (
             <p className="mt-3 text-xs leading-5 text-subtle">
               {selectedIds.length === 0
-                ? "完成后将取消收藏。"
-                : `完成后将移出 ${removed.length} 个收藏夹。`}
+                ? "完成后将取消收藏"
+                : `完成后将移出 ${removed.length} 个收藏夹`}
               {removed.some((item) => item.note || item.tagIds.length > 0)
-                ? "移出记录的备注和标签绑定也会删除。"
+                ? "移出记录的备注和标签绑定也会删除"
                 : ""}
             </p>
           ) : null}

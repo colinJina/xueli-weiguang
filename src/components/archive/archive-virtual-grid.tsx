@@ -101,7 +101,7 @@ export function ArchiveVirtualGrid({ items, hasMore }: { items: ArchiveVideoItem
             </div>
           ))}
         </div>
-      )) : <div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 xl:gap-6">{items.slice(0, 24).map((item) => <div key={item.id} role="listitem"><VideoArchiveCard item={item} /></div>)}</div>}
+      )) : <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 xl:gap-6">{items.slice(0, 24).map((item) => <div key={item.id} role="listitem"><VideoArchiveCard item={item} /></div>)}</div>}
     </div>
   );
 }

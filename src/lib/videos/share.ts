@@ -17,7 +17,7 @@ export type VideoShareData = Pick<
 >;
 
 const SHARE_DESCRIPTION_LENGTH = 80;
-const sourceNames = { bilibili: "Bilibili", youtube: "YouTube", cos: "本站上传" };
+const sourceNames = { bilibili: "Bilibili", youtube: "YouTube", cos: "站内 PV" };
 
 export function getVideoShareUrl(pageUrl: string, videoId: string) {
   return new URL(`/video/${encodeURIComponent(videoId)}`, new URL(pageUrl).origin).href;
@@ -41,18 +41,18 @@ function getPublicHttpUrl(value: string | null) {
 export function getVideoShareSource(video: Pick<VideoShareData, "storageProvider" | "sourceUrl" | "playbackUrl">) {
   const isLocal = video.storageProvider === "cos";
   const url = getPublicHttpUrl(isLocal ? video.playbackUrl : video.sourceUrl);
-  return url ? { label: isLocal ? "视频直链" : "原视频链接", url } : null;
+  return url ? { label: isLocal ? "PV 文件链接" : "原始链接", url } : null;
 }
 
 export function getVideoShareSummary(video: Pick<VideoShareData, "description" | "storageProvider">) {
   const description = video.description.replace(/\s+/gu, " ").trim();
   if (!description) {
-    return { label: "视频来源", text: sourceNames[video.storageProvider] };
+    return { label: "PV 来源", text: sourceNames[video.storageProvider] };
   }
 
   const characters = Array.from(description);
   return {
-    label: "作品简介",
+    label: "PV 简介",
     text: characters.length > SHARE_DESCRIPTION_LENGTH
       ? `${characters.slice(0, SHARE_DESCRIPTION_LENGTH).join("")}…`
       : description,

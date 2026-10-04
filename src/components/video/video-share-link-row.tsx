@@ -40,7 +40,7 @@ export function VideoShareLinkRow({ label, url }: { label: string; url: string }
       </div>
       <p aria-live="polite" className="flex items-start gap-1.5 text-xs leading-5 text-muted" role="status">
         {status === "copied" ? `${label}已复制` : null}
-        {status === "error" ? <><AlertIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />复制失败，请长按或选中地址手动复制。</> : null}
+        {status === "error" ? <><AlertIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />复制失败，请长按或选中地址手动复制</> : null}
       </p>
     </div>
   );

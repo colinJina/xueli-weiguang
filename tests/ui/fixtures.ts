@@ -17,7 +17,7 @@ export const favorites: UserArchiveVideoFavoriteState = {
   collections: [
     {
       id: "folder-a",
-      name: "影像",
+      name: "PV",
       description: "",
       itemCount: 1,
       sortOrder: 0,
@@ -39,7 +39,7 @@ export const favorites: UserArchiveVideoFavoriteState = {
     {
       collectionItemId: "item-a",
       collectionId: "folder-a",
-      collectionName: "影像",
+      collectionName: "PV",
       note: "第一份备注",
       tagIds: ["tag-a"],
       sortOrder: 0,
@@ -70,8 +70,8 @@ export const video: VideoDetail = {
   likeCount: 2,
   viewCountLabel: "10",
   likeCountLabel: "2",
-  description: "一段光影记录。",
-  category: { id: "category-test", name: "影像" },
+  description: "一段光影记录",
+  category: { id: "category-test", name: "PV" },
   tags: [{ id: "tag-test", name: "记录" }],
   tones: [{ id: "tone-test", name: "白", colorHex: "#FFFFFF", percentage: 80 }],
   coverImageUrl: null,
@@ -113,7 +113,7 @@ export function getCollectionProfile(params: URLSearchParams): UserArchivePageDa
     id: `collection-${index + 1}`,
     name:
       index === 0
-        ? "同名开头影像收藏夹"
+        ? "同名开头 PV 收藏夹"
         : index === 1
           ? "同名开头音乐收藏夹"
           : `收藏夹${String(index + 1).padStart(2, "0")}`,

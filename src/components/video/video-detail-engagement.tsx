@@ -8,7 +8,7 @@ import { DeferredVideoPlayer } from "@/components/video/deferred-video-player";
 import { VideoDetailActions } from "@/components/video/video-detail-actions";
 import { VideoToneSwatches } from "@/components/video/video-tone-swatches";
 import VideoArchiveIcon from "@/components/icons/video/archive.svg";
-import VideoUserIcon from "@/components/icons/video/user.svg";
+import VideoUserIcon from "@/components/icons/shared/user.svg";
 import VideoVisibilityIcon from "@/components/icons/video/visibility-dot.svg";
 import type { FavoriteEditorVideo } from "@/components/user/favorite-editor-dialog";
 import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
@@ -96,7 +96,7 @@ export function VideoDetailEngagement({
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 border-b border-white/8 pb-6 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+          <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-6 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base text-muted">
                 <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export function VideoDetailEngagement({
 
                 <span
                   aria-hidden="true"
-                  className="hidden h-1 w-1 rounded-full bg-white/18 sm:inline-block"
+                  className="hidden h-1 w-1 rounded-full bg-white/[0.18] sm:inline-block"
                 />
 
                 <div className="flex items-center gap-2">
@@ -175,15 +175,15 @@ export function VideoDetailEngagement({
 
         <div className="max-w-reading space-y-5">
           <p className="text-base leading-8 text-muted sm:text-[1.05rem]">
-            {video.description || "该作品暂无文字简介。"}
+            {video.description || "该 PV 暂无文字简介"}
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <Chip size="md" variant="strong">
+            <Chip size="xs" variant="strong">
               {video.category.name}
             </Chip>
             {[...video.tags].map((tag) => (
-              <Chip key={tag.id} size="md">
+              <Chip key={tag.id} size="xs">
                 <ToneSwatch item={tag} />
                 {tag.name}
               </Chip>
@@ -192,9 +192,9 @@ export function VideoDetailEngagement({
 
           <VideoToneSwatches tones={video.tones} />
 
-          <div className="flex flex-wrap gap-3 border-t border-white/8 pt-5 text-sm text-subtle">
+          <div className="flex flex-wrap gap-3 border-t border-white/[0.08] pt-5 text-sm text-subtle">
             <span>{viewCountLabel} 播放</span>
-            <span>{likeCountLabel} 喜欢</span>
+            <span>{likeCountLabel} 点赞</span>
             {video.sourceUrl ? (
               <a
                 className="text-muted transition duration-200 hover:text-foreground"
@@ -228,7 +228,7 @@ function ToneSwatch({ item }: { item: VideoDictionaryItem }) {
 
 function VisibilityPill({ label }: { label: string }) {
   return (
-    <Chip size="md">
+    <Chip size="xs">
       <VideoVisibilityIcon
         aria-hidden="true"
         className="h-2.5 w-2.5 text-foreground"

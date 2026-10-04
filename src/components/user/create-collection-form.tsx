@@ -34,7 +34,7 @@ export function CreateCollectionForm({
     }
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError("请输入收藏夹名称。");
+      setError("请输入收藏夹名称");
       return;
     }
     setSubmitting(true);
@@ -44,7 +44,7 @@ export function CreateCollectionForm({
       const result = await requestUserArchiveMutation<{ id: string }>(
         "/api/user/collections",
         { method: "POST", body: JSON.stringify({ name: trimmedName }) },
-        "收藏夹创建失败，请稍后重试。",
+        "收藏夹创建失败，请稍后重试",
       );
       onCreated({
         id: result.id,
@@ -58,7 +58,7 @@ export function CreateCollectionForm({
       setExpanded(false);
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "收藏夹创建失败，请稍后重试。",
+        cause instanceof Error ? cause.message : "收藏夹创建失败，请稍后重试",
       );
     } finally {
       setSubmitting(false);

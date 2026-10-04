@@ -13,13 +13,13 @@ export class PushSubscriptionValidationError extends Error {
 export function parsePushSubscriptionInput(
   payload: Record<string, unknown>,
 ): PushSubscriptionInput {
-  const endpoint = parseEndpoint(payload.endpoint, "订阅地址无效。");
+  const endpoint = parseEndpoint(payload.endpoint, "订阅地址无效");
   const expirationTime = parseExpirationTime(payload.expirationTime);
   const keys = parseKeys(payload.keys);
   const previousEndpoint =
     payload.previousEndpoint === undefined
       ? undefined
-      : parseEndpoint(payload.previousEndpoint, "旧订阅地址无效。");
+      : parseEndpoint(payload.previousEndpoint, "旧订阅地址无效");
 
   return {
     endpoint,
@@ -33,7 +33,7 @@ export function parsePushSubscriptionInput(
 
 export function parsePushUnsubscribeInput(payload: Record<string, unknown>) {
   return {
-    endpoint: parseEndpoint(payload.endpoint, "订阅地址无效。"),
+    endpoint: parseEndpoint(payload.endpoint, "订阅地址无效"),
   };
 }
 
@@ -65,7 +65,7 @@ function parseExpirationTime(value: unknown) {
   }
 
   if (!Number.isSafeInteger(value) || Number(value) < 0) {
-    throw new PushSubscriptionValidationError("订阅过期时间无效。");
+    throw new PushSubscriptionValidationError("订阅过期时间无效");
   }
 
   return Number(value);
@@ -73,7 +73,7 @@ function parseExpirationTime(value: unknown) {
 
 function parseKeys(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new PushSubscriptionValidationError("订阅密钥无效。");
+    throw new PushSubscriptionValidationError("订阅密钥无效");
   }
 
   const keys = value as Record<string, unknown>;
@@ -90,7 +90,7 @@ function parseBase64Url(value: unknown, minLength: number, maxLength: number) {
     value.length > maxLength ||
     !BASE64_URL_PATTERN.test(value)
   ) {
-    throw new PushSubscriptionValidationError("订阅密钥无效。");
+    throw new PushSubscriptionValidationError("订阅密钥无效");
   }
 
   return value;

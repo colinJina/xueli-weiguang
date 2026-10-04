@@ -1,18 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import SubmitPlusIcon from "@/components/icons/shared/plus-16.svg";
+import UploadIcon from "@/components/icons/shared/upload.svg";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type ArchiveSubmitTriggerProps = {
   isAuthenticated: boolean;
   onRequestLogin: () => void;
   onRequestSubmit: () => void;
+  iconOnly?: boolean;
+  className?: string;
 };
 
 export function ArchiveSubmitTrigger({
   isAuthenticated,
   onRequestLogin,
   onRequestSubmit,
+  iconOnly = false,
+  className,
 }: ArchiveSubmitTriggerProps) {
   function handleClick() {
     if (isAuthenticated) {
@@ -24,15 +29,21 @@ export function ArchiveSubmitTrigger({
   }
 
   return (
-    <Button
-      className="bg-white/[0.08] text-base font-bold text-foreground hover:bg-white/[0.06]"
-      onClick={handleClick}
-      size="md"
-      type="button"
-      variant="pill"
-    >
-      <SubmitPlusIcon aria-hidden="true" className="h-4 w-4" />
-      <span>推荐投稿</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          aria-label="投稿 PV"
+          className={className}
+          onClick={handleClick}
+          size={iconOnly ? "icon" : "default"}
+          type="button"
+          variant="secondary"
+        >
+          <UploadIcon aria-hidden="true" className="h-5 w-5" />
+          {iconOnly ? null : <span>投稿 PV</span>}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>投稿 PV</TooltipContent>
+    </Tooltip>
   );
 }

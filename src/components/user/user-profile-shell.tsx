@@ -1,10 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ArchiveSubmitDialog } from "@/components/archive/archive-submit-dialog";
+import { AccountActions } from "@/components/auth/account-actions";
+import { SourceBadge } from "@/components/video/source-badge";
+import { Chip } from "@/components/ui/chip";
+import { StatePanel } from "@/components/ui/state-panel";
+import FilterIcon from "@/components/icons/shared/filter.svg";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { FixedBackButton } from "@/components/layout/fixed-back-button";
 import {
@@ -34,23 +40,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
-import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
-import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
 import EditIcon from "@/components/icons/shared/edit-16.svg";
 import ClearFilterIcon from "@/components/icons/user/clear-filter.svg";
-import CloseIcon from "@/components/icons/user/close.svg";
+import CloseIcon from "@/components/icons/shared/close-16.svg";
 import FolderActiveSvgIcon from "@/components/icons/user/folder-active.svg";
 import FolderSvgIcon from "@/components/icons/user/folder.svg";
 import GridIcon from "@/components/icons/user/grid.svg";
-import HeartIcon from "@/components/icons/user/heart.svg";
-import UserArchiveIcon from "@/components/icons/user/empty-archive.svg";
+import HeartIcon from "@/components/icons/shared/heart.svg";
 import UserChevronLeftIcon from "@/components/icons/user/chevron-left.svg";
 import UserChevronRightIcon from "@/components/icons/user/chevron-right.svg";
 import EyeIcon from "@/components/icons/user/eye.svg";
 import ListIcon from "@/components/icons/user/list.svg";
-import PlusIcon from "@/components/icons/user/plus-20.svg";
-import SearchIcon from "@/components/icons/user/search.svg";
+import UserArchiveIcon from "@/components/icons/shared/empty.svg";
+import SearchIcon from "@/components/icons/shared/search.svg";
 import { useAuth } from "@/lib/auth/use-auth";
 import type {
   UserArchiveItem,
@@ -70,18 +72,6 @@ type EditingTarget = {
   memberships: UserArchiveVideoMembership[];
   video: FavoriteEditorVideo;
 } | null;
-
-function getVideoSourceIcon(platform: string | null) {
-  if (platform === "bilibili") {
-    return BilibiliSourceIcon;
-  }
-
-  if (platform === "youtube") {
-    return YoutubeSourceIcon;
-  }
-
-  return GenericSourceIcon;
-}
 
 function SidebarChevronIcon({ direction }: { direction: "left" | "right" }) {
   const Icon =
@@ -154,6 +144,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     isReady,
     isAuthenticated,
     isAdmin,
+    logout,
     dialogMode,
     openLogin,
     openRegister,
@@ -410,7 +401,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
             >
               <SheetTitle className="sr-only">收藏夹菜单</SheetTitle>
               <SheetDescription className="sr-only">
-                选择收藏夹，或推荐你喜欢的视频。
+                选择收藏夹，或投稿 PV
               </SheetDescription>
               <SidebarContent
                 data={data}
@@ -429,9 +420,8 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
             draftTagQuery={draftTagQuery}
             isPending={isPending}
             onClear={clearFilters}
-            onLoginClick={openLogin}
             onManageTags={() => setTagManagerOpen(true)}
-            onRegisterClick={openRegister}
+            accountActions={<AccountActions user={user} onLoginClick={openLogin} onRegisterClick={openRegister} onLogout={logout} />}
             onSearchChange={setDraftTagQuery}
             onSearchKeyDown={handleSearchKeyDown}
             onSearchSubmit={submitTagSearch}
@@ -535,21 +525,13 @@ function SidebarContent({
 
         <CompactProfileSummary data={data} />
 
-        <IconButton
-          aria-label="推荐投稿"
-          className="mt-5"
-          onClick={onUploadClick}
-          size="lg"
-          variant="surface"
-        >
-          <PlusIcon />
-        </IconButton>
+        <ArchiveSubmitTrigger className="mt-5" iconOnly isAuthenticated={data.isAuthenticated} onRequestLogin={onUploadClick} onRequestSubmit={onUploadClick} />
 
         <nav className="mt-5 flex min-h-0 w-full flex-1 flex-col items-center gap-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <IconButton
-                aria-label={`全部收藏，${data.allItemCount} 个视频`}
+                aria-label={`全部收藏，${data.allItemCount} 个 PV`}
                 aria-pressed={data.activeCollection.isAll}
                 className={cn(
                   data.activeCollection.isAll &&
@@ -563,7 +545,7 @@ function SidebarContent({
               </IconButton>
             </TooltipTrigger>
             <TooltipContent side="right">
-              全部收藏 · {data.allItemCount} 个视频
+              全部收藏 · {data.allItemCount} 个 PV
             </TooltipContent>
           </Tooltip>
           <CompactCollectionMenu
@@ -646,9 +628,7 @@ function SidebarContent({
             ))}
 
             {data.collections.length === 0 ? (
-              <p className="px-3 py-3 text-sm leading-6 text-muted">
-                还没有收藏夹。
-              </p>
+              <StatePanel compact title="还没有收藏夹" />
             ) : null}
           </div>
         </div>
@@ -690,7 +670,7 @@ function ProfileSummary({ data }: { data: UserArchivePageData }) {
       <ProfileAvatar data={data} />
       <div className="min-w-0">
         <p className="truncate text-base font-bold text-foreground">
-          {profile?.displayName ?? "未登录档案"}
+          {profile?.displayName ?? "未登录"}
         </p>
         <p className="mt-1 truncate text-sm text-subtle">
           {profile?.headline ?? "登录后管理收藏夹与标签"}
@@ -704,15 +684,13 @@ function TopBar({
   className,
   data,
   isPending,
-  onLoginClick,
-  onRegisterClick,
+  accountActions,
   onViewChange,
 }: {
   className?: string;
   data: UserArchivePageData;
   isPending: boolean;
-  onLoginClick: () => void;
-  onRegisterClick: () => void;
+  accountActions: ReactNode;
   onViewChange: (view: UserArchiveView) => void;
 }) {
   return (
@@ -727,21 +705,7 @@ function TopBar({
       </div>
 
       <div className="flex items-center justify-between gap-3 sm:ml-auto">
-        {!data.isAuthenticated ? (
-          <div className="hidden items-center gap-2 sm:flex">
-            <Button
-              onClick={onLoginClick}
-              size="sm"
-              type="button"
-              variant="secondary"
-            >
-              登录
-            </Button>
-            <Button onClick={onRegisterClick} size="sm" type="button">
-              注册
-            </Button>
-          </div>
-        ) : null}
+        {accountActions}
 
         <div
           className={cn(
@@ -787,9 +751,8 @@ function FilterRow({
   draftTagQuery,
   isPending,
   onClear,
-  onLoginClick,
   onManageTags,
-  onRegisterClick,
+  accountActions,
   onSearchChange,
   onSearchKeyDown,
   onSearchSubmit,
@@ -803,9 +766,8 @@ function FilterRow({
   draftTagQuery: string;
   isPending: boolean;
   onClear: () => void;
-  onLoginClick: () => void;
   onManageTags: () => void;
-  onRegisterClick: () => void;
+  accountActions: ReactNode;
   onSearchChange: (value: string) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onSearchSubmit: () => void;
@@ -828,14 +790,13 @@ function FilterRow({
           <h1 className="text-2xl font-black tracking-tight text-foreground">
             {data.activeCollection.name}
           </h1>
-          <p className="mt-1 text-sm text-subtle">{data.totalCount} 个视频</p>
+          <p className="mt-1 text-sm text-subtle">{data.totalCount} 个 PV</p>
         </div>
         <TopBar
           className="lg:w-auto"
           data={data}
           isPending={isPending}
-          onLoginClick={onLoginClick}
-          onRegisterClick={onRegisterClick}
+          accountActions={accountActions}
           onViewChange={onViewChange}
         />
       </div>
@@ -849,16 +810,16 @@ function FilterRow({
         >
           <TextField
             className="h-10"
-            label="搜索收藏的视频"
+            label="搜索收藏的 PV"
             labelClassName="sr-only"
             maxLength={80}
             onChange={(event) => onKeywordChange(event.target.value)}
-            placeholder="输入视频标题"
+            placeholder="输入 PV 标题"
             type="search"
             value={draftKeyword}
             wrapperClassName="min-w-0 flex-1"
           />
-          <IconButton aria-label="搜索视频标题" type="submit" variant="surface">
+          <IconButton aria-label="搜索 PV 标题" type="submit" variant="surface">
             <SearchIcon aria-hidden="true" />
           </IconButton>
         </form>
@@ -871,7 +832,7 @@ function FilterRow({
           type="button"
           variant="secondary"
         >
-          <ClearFilterIcon aria-hidden="true" className="h-4 w-4" />
+          <FilterIcon aria-hidden="true" className="h-4 w-4" />
           筛选
           {data.filters.tagIds.length > 0
             ? " (" + data.filters.tagIds.length + ")"
@@ -886,7 +847,7 @@ function FilterRow({
             variant="ghost"
           >
             <ClearFilterIcon aria-hidden="true" className="h-4 w-4" />
-            清空筛选
+            清除筛选
           </Button>
         ) : null}
       </div>
@@ -899,7 +860,7 @@ function FilterRow({
             <div className="flex items-end gap-2">
               <TextField
                 className="h-10"
-                label="查找私有标签"
+                label="查找个人标签"
                 maxLength={80}
                 onChange={(event) => onSearchChange(event.target.value)}
                 onKeyDown={onSearchKeyDown}
@@ -942,7 +903,7 @@ function FilterRow({
               </FilterButton>
             ))}
             {data.tags.length === 0 ? (
-              <p className="text-sm text-subtle">暂无匹配的标签</p>
+              <StatePanel compact title="暂无匹配的标签" />
             ) : null}
           </div>
         </div>
@@ -1020,12 +981,11 @@ function ArchiveCard({
   view: UserArchiveView;
 }) {
   const listView = view === "list";
-  const SourceIcon = getVideoSourceIcon(item.storageProvider);
   const mediaClassName = cn(
     "relative block overflow-hidden bg-surface",
     listView
-      ? "h-full min-h-[144px] rounded-l-xl"
-      : "aspect-video rounded-t-xl",
+      ? "h-full min-h-[144px] rounded-l-lg"
+      : "aspect-video rounded-t-lg",
   );
   const mediaContent = (
     <>
@@ -1033,7 +993,7 @@ function ArchiveCard({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           alt=""
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+          className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.015]"
           loading="lazy"
           referrerPolicy="no-referrer"
           src={item.coverUrl}
@@ -1048,13 +1008,7 @@ function ArchiveCard({
       )}
 
       <div className="absolute bottom-2 right-2 flex min-w-0 items-end justify-end sm:bottom-3 sm:right-3">
-        <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
-          <SourceIcon
-            aria-hidden="true"
-            className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
-          />
-          <span className="min-w-0 truncate">{item.sourceLabel}</span>
-        </span>
+        <SourceBadge platform={item.storageProvider} label={item.sourceLabel} />
       </div>
     </>
   );
@@ -1072,7 +1026,7 @@ function ArchiveCard({
   return (
     <article
       className={cn(
-        "group rounded-xl border border-white/[0.07] bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-white/14",
+        "group rounded-lg border border-border bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.14]",
         listView
           ? "grid grid-cols-[112px,1fr] sm:grid-cols-[180px,1fr]"
           : "flex flex-col",
@@ -1090,13 +1044,13 @@ function ArchiveCard({
           {mediaContent}
         </Link>
       ) : (
-        <div aria-label="视频已下架" className={mediaClassName} role="img">
+        <div aria-label="PV 已下架" className={mediaClassName} role="img">
           {mediaContent}
         </div>
       )}
 
       <div
-        className={cn("flex flex-1 flex-col", listView ? "p-4 sm:p-5" : "p-5")}
+        className="flex flex-1 flex-col p-4"
       >
         <div className="flex items-start justify-between gap-3">
           {item.href ? (
@@ -1126,10 +1080,10 @@ function ArchiveCard({
             </span>
           </div>
 
-          <span className="inline-flex min-w-0 items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs text-subtle">
+          <Chip size="xs">
             <FolderIcon />
             <span className="max-w-[120px] truncate">{collectionLabel}</span>
-          </span>
+          </Chip>
         </div>
       </div>
     </article>
@@ -1137,43 +1091,8 @@ function ArchiveCard({
 }
 
 function GuestEmptyState() {
-  return (
-    <section className="flex min-h-[360px] items-center justify-center rounded-xl border border-border bg-panel px-6 py-10 text-center">
-      <div className="max-w-md space-y-4">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
-          <UserArchiveIcon
-            aria-hidden="true"
-            className="h-12 w-12 text-subtle"
-          />
-        </div>
-        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-          登录后打开你的档案
-        </h2>
-        <p className="text-sm leading-6 text-muted">
-          收藏夹、私有标签和收藏记录只对当前账号可见。
-        </p>
-      </div>
-    </section>
-  );
+  return <StatePanel align="center" title="登录后打开我的收藏" description="收藏夹、个人标签和收藏记录只对当前账号可见" />;
 }
-
 function ArchiveEmptyState() {
-  return (
-    <section className="flex min-h-[360px] items-center justify-center rounded-xl border border-border bg-panel px-6 py-10 text-center">
-      <div className="max-w-md space-y-4">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
-          <UserArchiveIcon
-            aria-hidden="true"
-            className="h-12 w-12 text-subtle"
-          />
-        </div>
-        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-          当前范围暂无收藏
-        </h2>
-        <p className="text-sm leading-6 text-muted">
-          可以从视频详情页收藏喜欢的视频，或清空搜索与筛选。
-        </p>
-      </div>
-    </section>
-  );
+  return <StatePanel align="center" title="当前范围暂无收藏" description="可以从 PV 详情页收藏 PV，或清除搜索与筛选" />;
 }

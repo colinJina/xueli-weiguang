@@ -151,7 +151,7 @@ function Fixture() {
                 {JSON.stringify(filters.colors)}
               </output>
               <output aria-label="账户操作">
-                {loggedOut ? "已登出" : "已登录"}
+                {loggedOut ? "已退出登录" : "已登录"}
               </output>
               <VideoToneSwatches tones={video.tones} />
               <DeferredVideoPlayer video={video} />

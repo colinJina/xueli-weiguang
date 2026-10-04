@@ -2,7 +2,7 @@ import { ArchiveGridSkeleton, ArchiveSkeletonBlock } from "@/components/archive/
 
 export default function ArchiveLoading() {
   return (
-    <div className="min-h-screen bg-[#020202]">
+    <div className="min-h-screen bg-background">
       <header className="border-b border-white/[0.06] bg-[rgba(3,3,4,0.94)]">
         <div className="page-container flex min-h-[72px] items-center justify-between gap-5 py-2">
           <ArchiveSkeletonBlock className="h-10 w-56 rounded-full" />

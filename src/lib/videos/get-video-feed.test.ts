@@ -20,7 +20,7 @@ vi.mock("@/lib/videos/get-video-dictionaries", () => ({ getVideoDictionaries: as
 vi.mock("@/lib/videos/get-videos", () => ({ hydrateArchiveRows: async (_client: unknown, rows: VideoBaseRow[]) => { state.hydrated = rows.map((row) => row.id); return []; } }));
 
 const stamp = "2026-10-04T01:02:03.123456+00:00";
-const rows: VideoBaseRow[] = Array.from({ length: 24 }, (_, index) => ({ id: `10000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, platform: "bilibili", title: "作品", category_id: "category", source_url: null, embed_url: null, cover_url: null, description: null, author_name: null, author_avatar: null, view_count: 0, like_count: 0, published_at: stamp, created_at: stamp }));
+const rows: VideoBaseRow[] = Array.from({ length: 24 }, (_, index) => ({ id: `10000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, platform: "bilibili", title: "PV", category_id: "category", source_url: null, embed_url: null, cover_url: null, description: null, author_name: null, author_avatar: null, view_count: 0, like_count: 0, published_at: stamp, created_at: stamp }));
 beforeEach(() => {
   state.args = null;
   state.signal = null;

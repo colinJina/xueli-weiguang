@@ -33,7 +33,7 @@ export function ArchiveFilterBar({
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 border-b border-border py-4 pb-5">
       <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-8 gap-y-4">
-        <FilterRow className="min-w-0 flex-1" label="类型">
+        <FilterRow className="min-w-0 flex-1" label="分类">
           <ArchiveHorizontalWheelScroll className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex min-w-max gap-2.5 pb-1">
               <FilterButton

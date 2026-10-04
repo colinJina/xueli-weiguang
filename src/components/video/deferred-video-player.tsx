@@ -4,11 +4,9 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 
 import type { VideoDetail } from "@/lib/videos/types";
-import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
-import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
-import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
-import VideoPlayIcon from "@/components/icons/video/play.svg";
+import VideoPlayIcon from "@/components/icons/shared/play.svg";
 import VideoUnavailableIcon from "@/components/icons/video/unavailable.svg";
+import { SourceBadge } from "@/components/video/source-badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -35,18 +33,6 @@ function getAutoplayEmbedUrl(value: string) {
   } catch {
     return value.includes("?") ? `${value}&autoplay=1` : `${value}?autoplay=1`;
   }
-}
-
-function getVideoSourceIcon(platform: string) {
-  if (platform === "bilibili") {
-    return BilibiliSourceIcon;
-  }
-
-  if (platform === "youtube") {
-    return YoutubeSourceIcon;
-  }
-
-  return GenericSourceIcon;
 }
 
 export function DeferredVideoPlayer({
@@ -78,7 +64,6 @@ export function DeferredVideoPlayer({
       !shouldRenderExternalEmbed &&
       !shouldRenderCosVideo) ||
     hasVideoError;
-  const SourceIcon = getVideoSourceIcon(video.storageProvider);
 
   function handleActivatePlayer() {
     setIsPlayerActive(true);
@@ -102,13 +87,7 @@ export function DeferredVideoPlayer({
     >
       {showSourceBadge ? (
         <div className="absolute left-4 top-4 z-30 sm:left-5 sm:top-5">
-          <div className="inline-flex items-center gap-2 rounded-[12px] border border-white/10 bg-[rgba(10,10,11,0.86)] px-3 py-2 text-[0.78rem] font-medium tracking-[0.06em] text-foreground shadow-panel">
-            <SourceIcon
-              aria-hidden="true"
-              className="h-[0.95rem] w-[0.95rem]"
-            />
-            <span>{video.sourceLabel}</span>
-          </div>
+          <SourceBadge platform={video.storageProvider} label={video.sourceLabel} />
         </div>
       ) : null}
 
@@ -182,7 +161,7 @@ export function DeferredVideoPlayer({
             preload="metadata"
             src={video.playbackUrl ?? undefined}
           >
-            您的浏览器暂不支持此视频格式，请使用最新版 Chrome、Edge 或 Safari。
+            您的浏览器暂不支持此 PV 格式，请使用最新版 Chrome、Edge 或 Safari
           </video>
         ) : null}
 
@@ -203,20 +182,20 @@ function VideoUnavailableState({ onRetry }: { onRetry?: () => void }) {
       className="flex h-full w-full items-center justify-center px-6 text-center"
     >
       <div className="flex max-w-[22rem] flex-col items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.03] text-subtle">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.12] bg-white/[0.03] text-subtle">
           <VideoUnavailableIcon aria-hidden="true" className="h-6 w-6" />
         </div>
         <div className="space-y-1">
           <p className="text-sm font-semibold tracking-[0.02em] text-foreground">
-            视频暂不可用
+            PV 暂不可用
           </p>
           <p className="text-sm leading-6 text-subtle">
-            {onRetry ? "加载失败，请重新尝试。" : "请稍后再试。"}
+            {onRetry ? "加载失败，请重新尝试" : "请稍后再试"}
           </p>
         </div>
         {onRetry ? (
           <Button onClick={onRetry} size="sm" type="button" variant="pill">
-            重新加载
+            重试
           </Button>
         ) : null}
       </div>

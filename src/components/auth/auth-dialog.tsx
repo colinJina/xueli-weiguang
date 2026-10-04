@@ -32,19 +32,19 @@ type AuthDialogProps = {
 const AUTH_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REGISTER_CODE_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
-const REGISTERED_EMAIL_MESSAGE = "该邮箱已注册，请改用登录方式进入。";
+const REGISTERED_EMAIL_MESSAGE = "该邮箱已注册，请改用登录方式进入";
 
 const registerCopy: Record<
   RegisterStep,
   { title: string; description: string }
 > = {
   credentials: {
-    title: "创建你的档案",
-    description: "使用邮箱和密码创建账号，随后输入邮箱中的验证码完成确认。",
+    title: "注册",
+    description: "使用邮箱和密码创建账号，随后输入邮箱中的验证码完成确认",
   },
   code: {
     title: "验证邮箱",
-    description: "请输入邮箱里收到的 6 位验证码，验证通过后即可完成注册。",
+    description: "请输入邮箱里收到的 6 位验证码，验证通过后即可完成注册",
   },
 };
 
@@ -147,9 +147,9 @@ export function AuthDialog({
   const currentCopy = isRegister
     ? registerCopy[registerStep]
     : {
-        title: "登录你的档案",
+        title: "登录",
         description:
-          "使用注册时填写的邮箱与密码登录，登录后即可访问推荐投稿入口。",
+          "使用邮箱和密码登录",
       };
   const cooldownSeconds = cooldownUntil
     ? Math.max(0, Math.ceil((cooldownUntil - nowTick) / 1000))
@@ -165,7 +165,7 @@ export function AuthDialog({
 
     const normalizedEmail = normalizeEmail(email);
     if (!isValidEmail(normalizedEmail)) {
-      setErrorMessage("邮箱格式不合法，请检查后重试。");
+      setErrorMessage("邮箱格式不合法，请检查后重试");
       setIsSubmitting(false);
       return;
     }
@@ -200,7 +200,7 @@ export function AuthDialog({
 
     const normalizedEmail = normalizeEmail(email);
     if (!isValidEmail(normalizedEmail)) {
-      setErrorMessage("邮箱格式不合法，请检查后重试。");
+      setErrorMessage("邮箱格式不合法，请检查后重试");
       setIsSubmitting(false);
       return;
     }
@@ -220,7 +220,7 @@ export function AuthDialog({
       }
 
       if (!data.session) {
-        setSuccessMessage("邮箱已验证，请使用邮箱与密码登录。");
+        setSuccessMessage("邮箱已验证，请使用邮箱与密码登录");
         setIsSubmitting(false);
         return;
       }
@@ -237,7 +237,7 @@ export function AuthDialog({
     }
 
     if (password.length < 8) {
-      setErrorMessage("密码长度过短，请使用至少 8 位密码。");
+      setErrorMessage("密码长度过短，请使用至少 8 位密码");
       setIsSubmitting(false);
       return;
     }
@@ -266,7 +266,7 @@ export function AuthDialog({
       setRegisterStep("code");
       setToken("");
       setCooldownUntil(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
-      setSuccessMessage("验证码已发送，请查收邮箱（含垃圾邮件目录）。");
+      setSuccessMessage("验证码已发送，请查收邮箱（含垃圾邮件目录）");
       setIsSubmitting(false);
       return;
     }
@@ -288,7 +288,7 @@ export function AuthDialog({
 
     const normalizedEmail = normalizeEmail(email);
     if (!isValidEmail(normalizedEmail)) {
-      setErrorMessage("邮箱格式不合法，请检查后重试。");
+      setErrorMessage("邮箱格式不合法，请检查后重试");
       return;
     }
 
@@ -308,7 +308,7 @@ export function AuthDialog({
     }
 
     setCooldownUntil(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
-    setSuccessMessage("验证码已重新发送，请稍候查收邮箱。");
+    setSuccessMessage("验证码已重新发送，请稍候查收邮箱");
     setIsSubmitting(false);
   }
 
@@ -437,7 +437,7 @@ export function AuthDialog({
                   {isSubmitting ? (
                     <SpinnerIcon
                       aria-hidden="true"
-                      className="h-4 w-4 animate-spin"
+                      className="h-4 w-4 animate-spin motion-reduce:animate-none"
                     />
                   ) : null}
                   {submitLabel}

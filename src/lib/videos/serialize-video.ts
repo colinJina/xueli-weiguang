@@ -23,7 +23,7 @@ type VideoRelations = {
 
 const sourceLabels: Record<VideoStorageProvider, string> = {
   bilibili: "Bilibili",
-  cos: "原创",
+  cos: "站内 PV",
   youtube: "YouTube",
 };
 

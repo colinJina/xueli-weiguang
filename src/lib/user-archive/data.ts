@@ -209,7 +209,7 @@ function serializeUnavailableItem(input: {
     collectionId: input.row.collection_id,
     collectionName: input.collectionName,
     videoId: input.row.video_id,
-    title: "视频已下架",
+    title: "PV 已下架",
     note: input.row.note ?? "",
     coverUrl: null,
     viewCountLabel: "—",
@@ -290,8 +290,8 @@ function createActiveCollection(input: {
 
   return {
     id: null,
-    name: "全部收藏",
-    description: "当前档案下所有已收藏公开视频。",
+    name: "我的收藏",
+    description: "所有已收藏的公开 PV",
     itemCount: input.allItemCount,
     isAll: true,
   };
@@ -322,8 +322,8 @@ export function createGuestUserArchivePageData(
     tagLibrary: [],
     activeCollection: {
       id: null,
-      name: "我的档案",
-      description: "登录后管理你的收藏夹、标签和公开视频收藏。",
+      name: "我的收藏",
+      description: "登录后管理你的收藏夹、标签和公开 PV 收藏",
       itemCount: 0,
       isAll: true,
     },

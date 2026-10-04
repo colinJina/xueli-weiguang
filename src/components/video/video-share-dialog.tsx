@@ -73,7 +73,7 @@ export function VideoShareDialog({
       if (shareError instanceof Error && shareError.name === "AbortError") {
         return;
       }
-      setError("系统分享暂时不可用，请复制链接后分享。");
+      setError("系统分享暂时不可用，请复制链接后分享");
     }
   }
 
@@ -98,7 +98,7 @@ export function VideoShareDialog({
       downloadShareImage(url, video.id);
     } catch {
       if (mountedRef.current) {
-        setError("分享图生成失败，请稍后重试；也可以先复制链接分享。");
+        setError("分享图生成失败，请稍后重试；也可以先复制链接分享");
       }
     } finally {
       if (mountedRef.current) {
@@ -118,10 +118,10 @@ export function VideoShareDialog({
     <DialogShell
       className="flex max-h-[90dvh] flex-col overflow-hidden"
       closeLabel="关闭分享弹窗"
-      description="分享作品链接，或保存一张影像卡片。"
+      description="分享 PV 链接，或保存分享图"
       maxWidthClassName="max-w-[560px]"
       onClose={onClose}
-      title="分享视频"
+      title="分享 PV"
     >
       <Tabs
         className="flex min-h-0 flex-col"
@@ -154,7 +154,7 @@ export function VideoShareDialog({
                 icon={<AlertIcon aria-hidden="true" className="h-4 w-4" />}
                 variant="error"
               >
-                二维码生成失败，仍可复制链接分享。
+                二维码生成失败，仍可复制链接分享
               </FormMessage>
               <Button
                 onClick={retryQrCode}
@@ -172,7 +172,7 @@ export function VideoShareDialog({
                 <div className="flex min-h-[220px] items-center justify-center">
                   {qrCode.status === "ready" ? (
                     <Image
-                      alt="扫码打开作品详情"
+                      alt="扫码查看 PV"
                       className="h-[220px] w-[220px] rounded-lg"
                       height={220}
                       loading="eager"
@@ -192,7 +192,7 @@ export function VideoShareDialog({
                     />
                   )}
                 </div>
-                <VideoShareLinkRow label="站内作品链接" url={shareUrl} />
+                <VideoShareLinkRow label="PV 页面链接" url={shareUrl} />
                 {source ? (
                   <VideoShareLinkRow label={source.label} url={source.url} />
                 ) : null}
@@ -248,7 +248,7 @@ export function VideoShareDialog({
                 )}
                 {cover.status === "unavailable" && video.coverImageUrl ? (
                   <p className="text-xs leading-5 text-subtle">
-                    封面暂时无法加载，将使用简洁封面生成分享图。
+                    封面暂时无法加载，将使用简洁封面生成分享图
                   </p>
                 ) : null}
                 <Button
@@ -278,7 +278,7 @@ export function VideoShareDialog({
                     className="text-center text-xs leading-5 text-subtle"
                     role="status"
                   >
-                    分享图已生成，也可长按上方图片保存。
+                    分享图已生成，也可长按上方图片保存
                   </p>
                 ) : null}
               </>

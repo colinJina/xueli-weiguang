@@ -2,10 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-import CloseIcon from "@/components/icons/user/close.svg";
+import CloseIcon from "@/components/icons/shared/close-16.svg";
 import FolderActiveIcon from "@/components/icons/user/folder-active.svg";
 import FolderIcon from "@/components/icons/user/folder.svg";
-import SearchIcon from "@/components/icons/user/search.svg";
+import SearchIcon from "@/components/icons/shared/search.svg";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import {
@@ -152,8 +152,8 @@ export function CompactCollectionMenu({
               )}
               <p>
                 {collections.length === 0
-                  ? "还没有收藏夹。"
-                  : "未找到匹配的收藏夹。"}
+                  ? "还没有收藏夹"
+                  : "未找到匹配的收藏夹"}
               </p>
               {collections.length > 0 ? (
                 <Button

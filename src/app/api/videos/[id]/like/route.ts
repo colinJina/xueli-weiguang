@@ -68,7 +68,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
   if (!isVideoId(id)) {
     return interactionError(
       "VALIDATION_FAILED",
-      "视频标识无效，请刷新后再试。",
+      "PV 标识无效，请刷新后再试",
       400,
     );
   }
@@ -77,13 +77,13 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const { supabase, video } = await loadPublishedVideo(id);
 
     if (!video || !video.published_at) {
-      return interactionError("VIDEO_NOT_FOUND", "视频不存在或尚未公开。", 404);
+      return interactionError("VIDEO_NOT_FOUND", "PV 不存在或尚未公开", 404);
     }
 
     if (video.storage_provider !== "cos") {
       return interactionError(
         "INTERACTION_UNAVAILABLE",
-        "该视频暂不支持站内点赞。",
+        "该 PV 暂不支持站内点赞",
         409,
       );
     }
@@ -107,7 +107,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       console.error("Failed to load video like state", error);
       return interactionError(
         "METRICS_UNAVAILABLE",
-        "点赞状态暂时无法读取，请稍后再试。",
+        "点赞状态暂时无法读取，请稍后再试",
         503,
       );
     }
@@ -117,7 +117,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     console.error("Failed to prepare video like state", error);
     return interactionError(
       "METRICS_UNAVAILABLE",
-      "点赞状态暂时无法读取，请稍后再试。",
+      "点赞状态暂时无法读取，请稍后再试",
       503,
     );
   }
@@ -129,7 +129,7 @@ export async function PUT(_request: Request, { params }: RouteContext) {
   if (!isVideoId(id)) {
     return interactionError(
       "VALIDATION_FAILED",
-      "视频标识无效，请刷新后再试。",
+      "PV 标识无效，请刷新后再试",
       400,
     );
   }
@@ -141,17 +141,17 @@ export async function PUT(_request: Request, { params }: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return interactionError("UNAUTHENTICATED", "请先登录后再点赞。", 401);
+      return interactionError("UNAUTHENTICATED", "请先登录后再点赞", 401);
     }
 
     if (!video || !video.published_at) {
-      return interactionError("VIDEO_NOT_FOUND", "视频不存在或尚未公开。", 404);
+      return interactionError("VIDEO_NOT_FOUND", "PV 不存在或尚未公开", 404);
     }
 
     if (video.storage_provider !== "cos") {
       return interactionError(
         "INTERACTION_UNAVAILABLE",
-        "该视频暂不支持站内点赞。",
+        "该 PV 暂不支持站内点赞",
         409,
       );
     }
@@ -167,7 +167,7 @@ export async function PUT(_request: Request, { params }: RouteContext) {
       console.error("Failed to like video atomically", mutationError);
       return interactionError(
         "METRICS_UNAVAILABLE",
-        "点赞暂时无法保存，请稍后再试。",
+        "点赞暂时无法保存，请稍后再试",
         503,
       );
     }
@@ -178,7 +178,7 @@ export async function PUT(_request: Request, { params }: RouteContext) {
     console.error("Failed to like video", error);
     return interactionError(
       "METRICS_UNAVAILABLE",
-      "点赞暂时无法保存，请稍后再试。",
+      "点赞暂时无法保存，请稍后再试",
       503,
     );
   }
@@ -190,7 +190,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   if (!isVideoId(id)) {
     return interactionError(
       "VALIDATION_FAILED",
-      "视频标识无效，请刷新后再试。",
+      "PV 标识无效，请刷新后再试",
       400,
     );
   }
@@ -202,17 +202,17 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return interactionError("UNAUTHENTICATED", "请先登录后再取消点赞。", 401);
+      return interactionError("UNAUTHENTICATED", "请先登录后再取消点赞", 401);
     }
 
     if (!video || !video.published_at) {
-      return interactionError("VIDEO_NOT_FOUND", "视频不存在或尚未公开。", 404);
+      return interactionError("VIDEO_NOT_FOUND", "PV 不存在或尚未公开", 404);
     }
 
     if (video.storage_provider !== "cos") {
       return interactionError(
         "INTERACTION_UNAVAILABLE",
-        "该视频暂不支持站内点赞。",
+        "该 PV 暂不支持站内点赞",
         409,
       );
     }
@@ -228,7 +228,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       console.error("Failed to unlike video atomically", mutationError);
       return interactionError(
         "METRICS_UNAVAILABLE",
-        "取消点赞暂时无法保存，请稍后再试。",
+        "取消点赞暂时无法保存，请稍后再试",
         503,
       );
     }
@@ -239,7 +239,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     console.error("Failed to unlike video", error);
     return interactionError(
       "METRICS_UNAVAILABLE",
-      "取消点赞暂时无法保存，请稍后再试。",
+      "取消点赞暂时无法保存，请稍后再试",
       503,
     );
   }

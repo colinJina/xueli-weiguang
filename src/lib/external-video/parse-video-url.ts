@@ -53,7 +53,7 @@ export function parseExternalVideoUrl(
     };
   } catch (error) {
     if (error instanceof BilibiliUrlError) {
-      throw new ExternalVideoUrlError("当前仅支持 Bilibili 或 YouTube 视频链接。");
+      throw new ExternalVideoUrlError("当前仅支持 Bilibili 或 YouTube PV 链接");
     }
 
     throw error;

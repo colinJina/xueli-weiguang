@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json(
-      { code: "UNAUTHENTICATED", message: "请先登录后再投稿。" },
+      { code: "UNAUTHENTICATED", message: "请先登录后再投稿" },
       { status: 401 },
     );
   }
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof JsonRequestError
         ? error.message
-        : "请求内容无效，请重新提交。";
+        : "请求内容无效，请重新提交";
     const status = error instanceof JsonRequestError ? error.status : 400;
 
     return NextResponse.json(
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
     console.error("Failed to create native COS upload signature", error);
     return NextResponse.json(
-      { code: "STORAGE_UNAVAILABLE", message: "视频存储服务暂不可用，请稍后重试。" },
+      { code: "STORAGE_UNAVAILABLE", message: "暂时无法上传，请稍后重试" },
       { status: 503 },
     );
   }

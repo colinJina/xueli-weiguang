@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
-import VideoHeartIcon from "@/components/icons/video/heart.svg";
+import VideoHeartIcon from "@/components/icons/shared/heart.svg";
 import VideoHeartFilledIcon from "@/components/icons/video/heart-filled.svg";
 
 type LikeBurstIconProps = {

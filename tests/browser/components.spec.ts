@@ -73,7 +73,7 @@ test("login tabs, trapped focus and return focus", async ({ page }) => {
   await expect(page.getByRole("textbox", { name: "邮箱" })).toBeVisible();
   for (let index = 0; index < 10; index++) {
     await page.keyboard.press(index % 2 ? "Tab" : "Shift+Tab");
-    await expectFocusInside(page, "登录你的档案");
+    await expectFocusInside(page, "登录");
   }
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -156,7 +156,7 @@ test("collection select loads each annotation and saves the right membership", a
   await select.focus();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("option", { name: "影像", exact: true }),
+    page.getByRole("option", { name: "PV", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(
@@ -186,7 +186,7 @@ test("collection select loads each annotation and saves the right membership", a
 
 test("failed annotation saves keep the dialog and draft", async ({ page }) => {
   await page.route("**/api/user/collection-items/**", (route) =>
-    route.fulfill({ status: 500, json: { message: "保存失败，请重试。" } }),
+    route.fulfill({ status: 500, json: { message: "保存失败，请重试" } }),
   );
   await page.getByRole("button", { name: "打开备注" }).click();
   await page
@@ -206,36 +206,36 @@ test("submission tabs, native form fields and link submission", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "打开投稿" }).click();
-  await page.getByRole("tab", { name: "视频链接" }).focus();
+  await page.getByRole("tab", { name: "链接投稿" }).focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("tabpanel", { name: "上传视频" })).toBeVisible();
-  await expect(page.getByRole("tab", { name: "上传视频" })).toBeFocused();
+  await expect(page.getByRole("tabpanel", { name: "本地上传" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "本地上传" })).toBeFocused();
   await page
     .getByRole("textbox", { name: "标题", exact: true })
-    .fill("影像标题");
+    .fill("PV 标题");
   await page
     .getByRole("textbox", { name: "简介", exact: true })
     .fill("简介草稿");
-  await page.getByRole("checkbox", { name: /推送为首页精选/ }).check();
-  await expect(page.getByRole("button", { name: "提交视频" })).toBeDisabled();
-  await page.getByRole("tab", { name: "上传视频" }).focus();
+  await page.getByRole("checkbox", { name: /申请首页展示/ }).check();
+  await expect(page.getByRole("button", { name: "提交 PV" })).toBeDisabled();
+  await page.getByRole("tab", { name: "本地上传" }).focus();
   await page.keyboard.press("Home");
   await page
-    .getByRole("textbox", { name: "VIDEO URL" })
+    .getByRole("textbox", { name: "PV 链接" })
     .fill("https://www.youtube.com/watch?v=test-video");
   const request = page.waitForRequest("**/api/submissions");
   await page.getByRole("button", { name: "提交链接" }).click();
   expect((await request).postDataJSON()).toEqual({
     url: "https://www.youtube.com/watch?v=test-video",
   });
-  await expect(page.getByRole("status")).toContainText("已收到，待审核");
+  await expect(page.getByRole("status")).toContainText("投稿已收到，等待审核");
 });
 
 test("native cover selection opens a nested crop dialog and returns a JPG", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "打开投稿" }).click();
-  await page.getByRole("tab", { name: "上传视频" }).click();
+  await page.getByRole("tab", { name: "本地上传" }).click();
   const cover = await sharp({
     create: { width: 800, height: 450, channels: 3, background: "white" },
   })
@@ -248,10 +248,10 @@ test("native cover selection opens a nested crop dialog and returns a JPG", asyn
   await page.getByRole("button", { name: "保存裁切" }).click();
   await expect(page.getByRole("dialog", { name: "裁切封面" })).toHaveCount(0);
   await expect(
-    page.getByRole("dialog", { name: "推荐你喜欢的视频" }),
+    page.getByRole("dialog", { name: "投稿 PV" }),
   ).toBeVisible();
   await expect(page.getByText("cover-16x9.jpg", { exact: true })).toBeVisible();
-  await expectFocusInside(page, "推荐你喜欢的视频");
+  await expectFocusInside(page, "投稿 PV");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "打开投稿" })).toBeFocused();
 });
@@ -281,15 +281,15 @@ test("account menu keyboard actions keep a single interactive link", async ({
   const trigger = page.getByRole("button", { name: "账户菜单" });
   await trigger.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("menuitem", { name: "我的档案" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "我的收藏" })).toBeFocused();
   await expect(
     page.locator('[role="menuitem"] a, [role="menuitem"] button'),
   ).toHaveCount(0);
   await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("menuitem", { name: "登出" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "退出登录" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("status", { name: "账户操作" })).toHaveText(
-    "已登出",
+    "已退出登录",
   );
   await expect(trigger).toBeFocused();
 });
@@ -366,7 +366,7 @@ test("share tabs support keyboard navigation and image export", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "打开分享" }).click();
-  await expect(page.getByAltText("扫码打开作品详情")).toBeVisible();
+  await expect(page.getByAltText("扫码查看 PV")).toBeVisible();
   await page.getByRole("tab", { name: "链接分享" }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tabpanel", { name: "图片分享" })).toBeVisible();
@@ -424,12 +424,12 @@ test("profile sidebar and opening login from the sheet", async ({
     await expectFocusInside(page, "收藏夹菜单");
     await page
       .getByRole("dialog", { name: "收藏夹菜单" })
-      .getByRole("button", { name: "推荐投稿" })
+      .getByRole("button", { name: "投稿 PV" })
       .click();
     await expect(
-      page.getByRole("dialog", { name: "登录你的档案" }),
+      page.getByRole("dialog", { name: "登录" }),
     ).toBeVisible();
-    await expectFocusInside(page, "登录你的档案");
+    await expectFocusInside(page, "登录");
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
     await trigger.click();
@@ -449,7 +449,7 @@ test("compact collections search, selection and focus recovery", async ({ page }
   const search = menu.getByRole("textbox", { name: "搜索收藏夹" });
   await expect(search).toBeFocused();
   await expect(menu.getByRole("button", { name: "条收藏", exact: false })).toHaveCount(20);
-  await expect(menu.getByText("同名开头影像收藏夹", { exact: true })).toBeVisible();
+  await expect(menu.getByText("同名开头 PV 收藏夹", { exact: true })).toBeVisible();
   await expect(menu.getByText("同名开头音乐收藏夹", { exact: true })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("compact-collections.png") });
   await search.fill("不存在");
@@ -466,7 +466,7 @@ test("compact collections search, selection and focus recovery", async ({ page }
   await expect(trigger).toBeFocused();
   await expect(trigger).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("同名开头音乐收藏夹");
-  await expect(page.getByRole("searchbox", { name: "搜索收藏的视频" })).toHaveValue("品牌");
+  await expect(page.getByRole("searchbox", { name: "搜索收藏的 PV" })).toHaveValue("品牌");
   await trigger.click();
   await expect(search).toHaveValue("");
   await expect(menu.getByRole("button", { name: "当前收藏夹", exact: false })).toHaveAttribute("aria-pressed", "true");
@@ -533,7 +533,7 @@ test("dialogs and color palette meet WCAG accessibility checks", async ({
       await expect(page.getByRole("checkbox")).toHaveCount(2);
     }
     if (name === "打开分享") {
-      await expect(page.getByAltText("扫码打开作品详情")).toBeVisible();
+      await expect(page.getByAltText("扫码查看 PV")).toBeVisible();
     }
     const result = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])

@@ -15,8 +15,8 @@ const iconButtonVariants = cva("rounded-full text-muted-foreground", {
       soft: "border-white/[0.08] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.06] hover:text-foreground",
     },
     size: {
-      sm: "h-9 w-9",
-      default: "h-10 w-10",
+      sm: "h-11 w-11",
+      default: "h-11 w-11",
       lg: "h-11 w-11",
     },
   },

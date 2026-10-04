@@ -6,11 +6,10 @@ export default function VideoError({ reset }: { error: Error & { digest?: string
   return (
     <RouteErrorView
       backHref="/archive"
-      backLabel="返回作品归档"
-      description="视频详情暂时没有完整返回。重新尝试不会产生播放、点赞或收藏操作。"
-      eyebrow="VIDEO UNAVAILABLE"
+      backLabel="返回 PV"
+      description="PV 详情暂时没有完整返回，重新尝试不会产生播放、点赞或收藏操作"
       onRetry={reset}
-      title="视频详情暂时不可用"
+      title="PV 加载失败"
     />
   );
 }

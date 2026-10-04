@@ -5,10 +5,11 @@ import { ArchiveFilterBar } from "@/components/archive/archive-filter-bar";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
 import { ArchiveLoadMore } from "@/components/archive/archive-load-more";
 import { useArchiveVideos } from "@/components/archive/use-archive-videos";
+import AlertIcon from "@/components/icons/shared/alert-circle.svg";
+import { StatePanel } from "@/components/ui/state-panel";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { InlineLoadingMark } from "@/components/ui/inline-loading-mark";
-import { formatCompactNumber } from "@/lib/videos/metrics";
 import type {
   ArchiveDictionaries,
   ArchiveVideoFeed,
@@ -29,16 +30,8 @@ export function ArchiveRealtimeView({
     initialPage,
     initialError,
   );
-  const activeCategory =
-    dictionaries.categories.find(
-      (category) => category.id === filters.categoryId,
-    )?.name ?? "全部作品";
   return (
-    <ArchiveClientShell
-      activeChannel={activeCategory}
-      channelCount={`${formatCompactNumber(page.items.length)}${page.hasMore ? "+" : ""}`}
-      supportCount={String(dictionaries.tags.length).padStart(2, "0")}
-    >
+    <ArchiveClientShell>
       <section className="page-container">
         <ArchiveFilterBar
           {...dictionaries}
@@ -57,41 +50,31 @@ export function ArchiveRealtimeView({
         >
           {status === "loading" ? (
             <>
-              <InlineLoadingMark label="正在更新作品" />
+              <InlineLoadingMark label="正在加载 PV" />
               <span>
-                {hasResult ? "正在更新，保留上次结果" : "正在载入作品"}
+                {hasResult ? "正在更新，保留上次结果" : "正在加载 PV"}
               </span>
             </>
           ) : status === "ready" ? (
             <span>
-              已显示 {page.items.length} 部作品
+              已显示 {page.items.length} 个 PV
             </span>
           ) : null}
         </div>
-        {status === "error" ? (
+        {status === "error" && !hasResult ? (
+          <StatePanel kind="error" title="PV 加载失败" description="请稍后重试">
+            <Button onClick={retry} variant="secondary">重试</Button>
+          </StatePanel>
+        ) : status === "error" ? (
           <div className="mb-5 flex flex-wrap items-center gap-3" role="alert">
             <FormMessage
               className="flex-1"
               variant="error"
-              icon={
-                <svg
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                >
-                  <circle cx="10" cy="10" r="8" stroke="currentColor" />
-                  <path
-                    d="M10 5v6m0 3v1"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              }
+              icon={<AlertIcon aria-hidden="true" className="h-4 w-4" />}
             >
               {hasResult
-                ? "更新失败，以下仍是上次筛选的结果。"
-                : "暂时无法载入作品，请重试。"}
+                ? "更新失败，仍显示上次结果"
+                : "暂时无法载入 PV，请重试"}
             </FormMessage>
             <Button onClick={retry} size="sm" variant="secondary">
               重试

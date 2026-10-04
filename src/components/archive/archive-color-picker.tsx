@@ -148,7 +148,7 @@ export function ArchiveColorPicker({ color, onChange }: Props) {
         />
       </div>
       <p className="text-[11px] leading-5 text-subtle" id={`${id}-help`}>
-        方向键调整饱和度与亮度，按住 Shift 大步调整。
+        方向键调整饱和度与亮度，按住 Shift 大步调整
       </p>
       <RangeField
         label="色相"
@@ -200,7 +200,7 @@ export function ArchiveColorPicker({ color, onChange }: Props) {
       />
       {!normalized ? (
         <p className="text-xs text-muted" id={`${id}-hex-error`} role="alert">
-          请输入完整的六位 HEX 色值。
+          请输入完整的六位 HEX 色值
         </p>
       ) : null}
       <RangeField
@@ -213,7 +213,7 @@ export function ArchiveColorPicker({ color, onChange }: Props) {
         onValueCommit={(precision) => onChange({ ...color, precision }, true)}
       />
       <p className="text-xs leading-5 text-subtle">
-        精度越高，颜色越接近；调整后作品会实时更新。
+        精度越高，颜色越接近；调整后 PV 会实时更新
       </p>
     </div>
   );

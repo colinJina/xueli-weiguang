@@ -170,7 +170,7 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
       </div>
       <ArchiveColorPicker color={color} key={index} onChange={updateColor} />
       <p className="mt-4 text-xs text-subtle">
-        最多选择 3 色，与类型、标签和固定色调叠加。
+        最多选择 3 种颜色，可同时筛选分类、标签和色调
       </p>
     </>
   );
@@ -192,7 +192,7 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent aria-labelledby={`${id}-title`} id={id} side="bottom">
         <SheetDescription className="sr-only">
-          选择目标颜色和匹配精度，筛选公开视频。
+          选择目标颜色和匹配精度，筛选公开 PV
         </SheetDescription>
         {content}
       </SheetContent>

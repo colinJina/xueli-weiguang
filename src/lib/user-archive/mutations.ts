@@ -27,7 +27,7 @@ type MutationResult = {
 
 export function normalizeCollectionIds(value: unknown): string[] {
   if (!Array.isArray(value) || value.length > USER_COLLECTION_LIMIT || !value.every(isUuid)) {
-    throw validationError("请选择有效的收藏夹。", { collectionIds: "收藏夹列表无效" });
+    throw validationError("请选择有效的收藏夹", { collectionIds: "收藏夹列表无效" });
   }
   return Array.from(new Set(value));
 }
@@ -37,7 +37,7 @@ export async function setVideoCollections(
   videoId: string,
   input: Record<string, unknown>,
 ): Promise<UserArchiveFavoriteSelectionResult> {
-  assertUuid(videoId, "videoId", "视频");
+  assertUuid(videoId, "videoId", "PV");
   const collectionIds = normalizeCollectionIds(input.collectionIds);
   const { data, error } = await client.rpc("set_video_collections", {
     p_video_id: videoId,
@@ -47,14 +47,14 @@ export async function setVideoCollections(
     throw mapDatabaseError(error);
   }
   if (!Array.isArray(data) || !data.every(isUuid)) {
-    throw databaseUnavailableError("收藏状态暂时无法确认，请重试。");
+    throw databaseUnavailableError("收藏状态暂时无法确认，请重试");
   }
   return { videoId, collectionIds: data, isFavorited: data.length > 0 };
 }
 
 function assertUuid(value: string, field: string, label: string) {
   if (!isUuid(value)) {
-    throw validationError(`${label}无效，请刷新后重试。`, {
+    throw validationError(`${label}无效，请刷新后重试`, {
       [field]: `${label}无效`,
     });
   }
@@ -67,17 +67,17 @@ function normalizeRequiredText(
   maxLength: number,
 ) {
   if (typeof value !== "string") {
-    throw validationError(`${label}不能为空。`, { [field]: `请输入${label}` });
+    throw validationError(`${label}不能为空`, { [field]: `请输入${label}` });
   }
 
   const trimmedValue = value.trim();
 
   if (!trimmedValue) {
-    throw validationError(`${label}不能为空。`, { [field]: `请输入${label}` });
+    throw validationError(`${label}不能为空`, { [field]: `请输入${label}` });
   }
 
   if (trimmedValue.length > maxLength) {
-    throw validationError(`${label}不能超过 ${maxLength} 个字符。`, {
+    throw validationError(`${label}不能超过 ${maxLength} 个字符`, {
       [field]: `${label}过长`,
     });
   }
@@ -100,13 +100,13 @@ function normalizeOptionalText(
   }
 
   if (typeof value !== "string") {
-    throw validationError(`${label}格式无效。`, { [field]: `${label}格式无效` });
+    throw validationError(`${label}格式无效`, { [field]: `${label}格式无效` });
   }
 
   const trimmedValue = value.trim();
 
   if (trimmedValue.length > maxLength) {
-    throw validationError(`${label}不能超过 ${maxLength} 个字符。`, {
+    throw validationError(`${label}不能超过 ${maxLength} 个字符`, {
       [field]: `${label}过长`,
     });
   }
@@ -120,7 +120,7 @@ function normalizeSortOrder(value: unknown) {
   }
 
   if (typeof value !== "number" || !Number.isInteger(value)) {
-    throw validationError("排序值必须是整数。", { sortOrder: "排序值无效" });
+    throw validationError("排序值必须是整数", { sortOrder: "排序值无效" });
   }
 
   return value;
@@ -132,7 +132,7 @@ export function normalizeTagIds(value: unknown) {
   }
 
   if (!Array.isArray(value)) {
-    throw validationError("标签列表无效，请重新选择。", { tagIds: "标签列表无效" });
+    throw validationError("标签列表无效，请重新选择", { tagIds: "标签列表无效" });
   }
 
   const tagIds = Array.from(
@@ -142,11 +142,11 @@ export function normalizeTagIds(value: unknown) {
   ).filter(Boolean);
 
   if (tagIds.some((tagId) => !isUuid(tagId))) {
-    throw validationError("标签列表无效，请重新选择。", { tagIds: "标签列表无效" });
+    throw validationError("标签列表无效，请重新选择", { tagIds: "标签列表无效" });
   }
 
   if (tagIds.length > TAGS_PER_ITEM_LIMIT) {
-    throw limitExceededError("单条收藏最多只能绑定 10 个标签。");
+    throw limitExceededError("单条收藏最多只能绑定 10 个标签");
   }
 
   return tagIds;
@@ -172,7 +172,7 @@ async function ensureTagIdsBelongToUser(
   }
 
   if ((data ?? []).length !== tagIds.length) {
-    throw notFoundError("选择的标签不存在或已被删除。");
+    throw notFoundError("选择的标签不存在或已被删除");
   }
 }
 
@@ -197,7 +197,7 @@ async function ensureUserCollectionQuota(client: SupabaseClient, userId: string)
   );
 
   if (count >= USER_COLLECTION_LIMIT) {
-    throw limitExceededError(`收藏夹最多只能创建 ${USER_COLLECTION_LIMIT} 个。`);
+    throw limitExceededError(`收藏夹最多只能创建 ${USER_COLLECTION_LIMIT} 个`);
   }
 }
 
@@ -210,7 +210,7 @@ async function ensureUserTagQuota(client: SupabaseClient, userId: string) {
   );
 
   if (count >= USER_COLLECTION_TAG_LIMIT) {
-    throw limitExceededError(`标签最多只能创建 ${USER_COLLECTION_TAG_LIMIT} 个。`);
+    throw limitExceededError(`标签最多只能创建 ${USER_COLLECTION_TAG_LIMIT} 个`);
   }
 }
 
@@ -233,12 +233,12 @@ async function ensureCollectionItemQuota(
   ]);
 
   if (userItemCount >= USER_COLLECTION_ITEM_LIMIT) {
-    throw limitExceededError(`最多只能收藏 ${USER_COLLECTION_ITEM_LIMIT} 条视频。`);
+    throw limitExceededError(`最多只能收藏 ${USER_COLLECTION_ITEM_LIMIT} 个 PV`);
   }
 
   if (collectionItemCount >= COLLECTION_ITEM_PER_COLLECTION_LIMIT) {
     throw limitExceededError(
-      `单个收藏夹最多只能收藏 ${COLLECTION_ITEM_PER_COLLECTION_LIMIT} 条视频。`,
+      `单个收藏夹最多只能收藏 ${COLLECTION_ITEM_PER_COLLECTION_LIMIT} 个 PV`,
     );
   }
 }
@@ -308,7 +308,7 @@ export async function updateCollection(
   }
 
   if (Object.keys(patch).length === 0) {
-    throw validationError("没有可保存的收藏夹变更。");
+    throw validationError("没有可保存的收藏夹变更");
   }
 
   const { data, error } = await client
@@ -323,7 +323,7 @@ export async function updateCollection(
   }
 
   if (!data) {
-    throw notFoundError("收藏夹不存在或已被删除。");
+    throw notFoundError("收藏夹不存在或已被删除");
   }
 
   return { id: (data as MutationResult).id };
@@ -347,7 +347,7 @@ export async function deleteCollection(
   }
 
   if (!data) {
-    throw notFoundError("收藏夹不存在或已被删除。");
+    throw notFoundError("收藏夹不存在或已被删除");
   }
 
   return { id: (data as MutationResult).id };
@@ -399,7 +399,7 @@ export async function updateTag(
   }
 
   if (Object.keys(patch).length === 0) {
-    throw validationError("没有可保存的标签变更。");
+    throw validationError("没有可保存的标签变更");
   }
 
   const { data, error } = await client
@@ -414,7 +414,7 @@ export async function updateTag(
   }
 
   if (!data) {
-    throw notFoundError("标签不存在或已被删除。");
+    throw notFoundError("标签不存在或已被删除");
   }
 
   return { id: (data as MutationResult).id };
@@ -438,7 +438,7 @@ export async function deleteTag(
   }
 
   if (!data) {
-    throw notFoundError("标签不存在或已被删除。");
+    throw notFoundError("标签不存在或已被删除");
   }
 
   return { id: (data as MutationResult).id };
@@ -471,8 +471,8 @@ export async function createCollectionItem(
 ): Promise<MutationResult> {
   assertUuid(collectionId, "collectionId", "收藏夹");
 
-  const videoId = normalizeRequiredText(input.videoId, "videoId", "视频标识", 80);
-  assertUuid(videoId, "videoId", "视频");
+  const videoId = normalizeRequiredText(input.videoId, "videoId", "PV 标识", 80);
+  assertUuid(videoId, "videoId", "PV");
 
   const note =
     normalizeOptionalText(input.note, "note", "收藏备注", COLLECTION_ITEM_NOTE_MAX_LENGTH) ?? "";
@@ -495,7 +495,7 @@ export async function createCollectionItem(
   }
 
   if (typeof data !== "string") {
-    throw notFoundError("收藏记录保存失败，请刷新后重试。");
+    throw notFoundError("收藏记录保存失败，请刷新后重试");
   }
 
   return { id: data };
@@ -514,7 +514,7 @@ export async function updateCollectionItem(
   const tagIds = normalizeTagIds(input.tagIds);
 
   if (note === undefined && sortOrder === undefined && tagIds === undefined) {
-    throw validationError("没有可保存的收藏记录变更。");
+    throw validationError("没有可保存的收藏记录变更");
   }
 
   await ensureTagIdsBelongToUser(client, userId, tagIds);
@@ -531,7 +531,7 @@ export async function updateCollectionItem(
   }
 
   if (typeof data !== "string") {
-    throw notFoundError("收藏记录不存在或已被移除。");
+    throw notFoundError("收藏记录不存在或已被移除");
   }
 
   return { id: data };
@@ -555,7 +555,7 @@ export async function deleteCollectionItem(
   }
 
   if (!data) {
-    throw notFoundError("收藏记录不存在或已被移除。");
+    throw notFoundError("收藏记录不存在或已被移除");
   }
 
   return { id: (data as MutationResult).id };
