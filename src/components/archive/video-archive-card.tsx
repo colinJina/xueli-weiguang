@@ -28,7 +28,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
 
   return (
     <Link
-      className="group relative isolate flex h-full w-full min-w-0 flex-col rounded-lg border border-border bg-panel transition duration-200 hover:z-10 hover:-translate-y-0.5 focus-within:z-10"
+      className="group relative isolate flex h-full w-full min-w-0 flex-col rounded-lg border border-border bg-panel [--card-active-shadow:0_0_18px_rgb(255_255_255_/_0.1),0_6px_18px_rgb(0_0_0_/_0.22)] transition-[border-color,box-shadow,transform] duration-[240ms] ease-out hover:z-10 hover:-translate-y-0.5 hover:border-white/25 hover:shadow-[shadow:var(--card-active-shadow)] focus-visible:z-10 focus-visible:-translate-y-0.5 focus-visible:border-white/25 focus-visible:shadow-[shadow:var(--card-active-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none motion-reduce:transition-none"
       href={`/video/${item.id}`}
     >
       <div
@@ -42,7 +42,7 @@ export function VideoArchiveCard({ item }: VideoArchiveCardProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt=""
-            className="block h-full w-full origin-bottom rounded-t-lg object-contain transform-gpu transition duration-300 will-change-transform group-hover:scale-[1.015]"
+            className="block h-full w-full origin-bottom rounded-t-lg object-contain transform-gpu transition duration-300 will-change-transform group-hover:scale-[1.015] motion-reduce:transform-none motion-reduce:transition-none"
             loading="lazy"
             referrerPolicy="no-referrer"
             src={item.coverUrl}
