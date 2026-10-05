@@ -14,6 +14,53 @@ function deferred() {
 afterEach(() => vi.useRealTimers());
 
 describe("infinite archive requests", () => {
+  it("ignores an obsolete first batch as soon as search editing begins", async () => {
+    const old = deferred(), next = deferred();
+    let oldSignal: AbortSignal | undefined;
+    const load = vi.fn((_filters: ArchiveFilters, signal: AbortSignal) => {
+      if (!oldSignal) {
+        oldSignal = signal;
+        return old.promise;
+      }
+      return next.promise;
+    });
+    const onResult = vi.fn(), onStatus = vi.fn();
+    const query = new ArchiveFeedQuery(feed(["existing"]), false, { load, onResult, onStatus, onMoreStatus: vi.fn() });
+    query.schedule(parseArchiveFilters({ q: "pv" }));
+    query.invalidate();
+    expect(oldSignal?.aborted).toBe(true);
+    old.resolve(feed(["obsolete"], null));
+    await Promise.resolve();
+    expect(onResult).not.toHaveBeenCalled();
+    expect(onStatus).toHaveBeenLastCalledWith("loading");
+    const nextFilters = parseArchiveFilters({ q: "雪" });
+    query.schedule(nextFilters);
+    next.resolve(feed(["current"], null, nextFilters));
+    await Promise.resolve();
+    expect(onResult).toHaveBeenCalledExactlyOnceWith(feed(["current"], null, nextFilters));
+    query.dispose();
+  });
+
+  it("cancels continuation and blocks loading more during search composition", async () => {
+    const pending = deferred();
+    let signal: AbortSignal | undefined;
+    const load = vi.fn((_filters: ArchiveFilters, currentSignal: AbortSignal) => {
+      signal = currentSignal;
+      return pending.promise;
+    });
+    const onResult = vi.fn();
+    const query = new ArchiveFeedQuery(feed(["existing"]), false, { load, onResult, onStatus: vi.fn(), onMoreStatus: vi.fn() });
+    const append = query.loadMore();
+    query.invalidate();
+    expect(signal?.aborted).toBe(true);
+    await query.loadMore();
+    expect(load).toHaveBeenCalledOnce();
+    pending.resolve(feed(["obsolete"], null));
+    await append;
+    expect(onResult).not.toHaveBeenCalled();
+    query.dispose();
+  });
+
   it("deduplicates overlapping batches and blocks duplicate in-flight loads", async () => {
     const pending = deferred();
     const load = vi.fn(() => pending.promise);

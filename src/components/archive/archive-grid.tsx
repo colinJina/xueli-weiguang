@@ -1,17 +1,22 @@
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
 import { ArchiveVirtualGrid } from "@/components/archive/archive-virtual-grid";
 import { StatePanel } from "@/components/ui/state-panel";
+import { Button } from "@/components/ui/button";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type ArchiveGridProps = {
   items: ArchiveVideoItem[];
   hasMore?: boolean;
+  query?: string;
+  onClearSearch?: () => void;
 };
 
-export function ArchiveGrid({ items, hasMore = false }: ArchiveGridProps) {
+export function ArchiveGrid({ items, hasMore = false, query = "", onClearSearch }: ArchiveGridProps) {
   if (items.length === 0) {
     return (
-      <StatePanel title="暂无符合条件的 PV" description="尝试调整分类、标签或色调筛选" />
+      <StatePanel title="暂无符合条件的 PV" description={query ? "尝试调整关键词、分类、标签或颜色筛选" : "尝试调整分类、标签或色调筛选"}>
+        {query && onClearSearch ? <Button variant="secondary" onClick={onClearSearch}>清除搜索</Button> : null}
+      </StatePanel>
     );
   }
 

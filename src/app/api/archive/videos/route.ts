@@ -3,7 +3,8 @@ import {
   validateArchiveSearchParams,
 } from "@/lib/videos/archive-filters";
 import { getArchiveVideos } from "@/lib/videos/get-videos";
-import { parseArchiveCursor } from "@/lib/videos/archive-cursor";
+import { parseArchiveFeedCursor } from "@/lib/videos/archive-search-cursor";
+import { parseArchiveSearch } from "@/lib/videos/archive-search";
 import { getArchiveVideoFeed } from "@/lib/videos/get-video-feed";
 
 export const dynamic = "force-dynamic";
@@ -13,12 +14,14 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const stream = params.get("stream");
   const cursorValue = params.get("cursor");
-  const cursor = parseArchiveCursor(cursorValue);
-  if (!validateArchiveSearchParams(params) || params.getAll("stream").length > 1 || params.getAll("cursor").length > 1 || (stream !== null && stream !== "1") || (cursorValue !== null && (stream !== "1" || !cursor))) {
+  const filters = parseArchiveFilters(Object.fromEntries(params));
+  const search = parseArchiveSearch(params.get("q") ?? "");
+  const cursor = parseArchiveFeedCursor(cursorValue, filters);
+  if (!validateArchiveSearchParams(params) || params.getAll("stream").length > 1 || params.getAll("cursor").length > 1 || (stream !== null && stream !== "1") || (filters.query && stream !== "1") || (cursorValue !== null && (stream !== "1" || !cursor))) {
     return Response.json(
       {
         code: "VALIDATION_FAILED",
-        message: "筛选条件格式有误，请调整后重试",
+        message: search.error ?? "筛选条件格式有误，请调整后重试",
       },
       { status: 400, headers },
     );

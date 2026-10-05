@@ -36,6 +36,12 @@ export class ArchiveFeedQuery {
     this.query.schedule(filters, immediate);
   }
 
+  invalidate(pending = true) {
+    this.query.dispose();
+    this.cancelMore();
+    this.setStatus(pending ? "loading" : "ready");
+  }
+
   restore(feed: ArchiveVideoFeed) {
     this.query.dispose();
     this.cancelMore();

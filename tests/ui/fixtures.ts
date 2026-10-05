@@ -6,6 +6,7 @@ import type {
 import type { VideoDetail, ArchiveFilters } from "@/lib/videos/types";
 
 export const filters: ArchiveFilters = {
+  query: "",
   categoryId: null,
   tagIds: [],
   toneKeys: [],

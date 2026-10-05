@@ -4,6 +4,7 @@ export type FilterPatch = Partial<ArchiveFilters>;
 
 export function buildArchiveHref(filters: ArchiveFilters, patch: FilterPatch) {
   const nextFilters = {
+    query: patch.query ?? filters.query,
     categoryId:
       patch.categoryId !== undefined ? patch.categoryId : filters.categoryId,
     tagIds: patch.tagIds ?? filters.tagIds,
@@ -13,6 +14,10 @@ export function buildArchiveHref(filters: ArchiveFilters, patch: FilterPatch) {
     page: patch.page ?? 1,
   };
   const params = new URLSearchParams();
+
+  if (nextFilters.query) {
+    params.set("q", nextFilters.query);
+  }
 
   if (nextFilters.categoryId) {
     params.set("category", nextFilters.categoryId);

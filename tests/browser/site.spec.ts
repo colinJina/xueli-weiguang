@@ -108,6 +108,70 @@ test("production archive filters, color palette and video navigation", async ({
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
+test("archive search combines filters, submits history and clears independently", async ({ page }) => {
+  await page.goto("http://127.0.0.1:3100/archive?tones=blue");
+  const input = page.getByRole("searchbox", { name: "搜索 PV" });
+  await input.fill("pv");
+  await expect(page).toHaveURL(/q=pv/);
+  expect(new URL(page.url()).searchParams.get("tones")).toBe("blue");
+  await input.press("Enter");
+  await expect(page.getByRole("status").filter({ hasText: "已显示" })).toBeVisible();
+  await expectNoOverflow(page);
+  await page.goBack();
+  await expect(input).toHaveValue("");
+  expect(new URL(page.url()).searchParams.get("tones")).toBe("blue");
+  await input.fill("archive_search_missing_9a3");
+  await input.press("Enter");
+  await expect(page.getByText("暂无符合条件的 PV", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "清除搜索", exact: true }).first().click();
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue("");
+  expect(new URL(page.url()).searchParams.has("q")).toBe(false);
+  expect(new URL(page.url()).searchParams.get("tones")).toBe("blue");
+});
+
+test("archive search restores SSR conditions and retries a failed query", async ({ page }) => {
+  await page.goto("http://127.0.0.1:3100/archive?q=pv");
+  const input = page.getByRole("searchbox", { name: "搜索 PV" });
+  await expect(input).toHaveValue("pv");
+  await expect(page.locator('a[href^="/video/"]').first()).toBeVisible();
+  let fail = true;
+  await page.route("**/api/archive/videos?**", async (route) => {
+    if (fail) {
+      return route.fulfill({ status: 503, json: { code: "ARCHIVE_UNAVAILABLE", message: "暂时无法更新 PV，请重试" } });
+    }
+    return route.continue();
+  });
+  await input.fill("排字");
+  await input.press("Enter");
+  await expect(page.getByText("更新失败，仍显示上次结果", { exact: true })).toBeVisible();
+  await expect(page.locator('a[href^="/video/"]').first()).toBeVisible();
+  fail = false;
+  await page.getByRole("button", { name: "重试", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "已显示" })).toBeVisible();
+  await input.fill("https://b23.tv/example");
+  await expect(input).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByRole("search", { name: "搜索 PV" }).getByRole("alert")).toContainText("完整 PV 链接");
+  await expectNoOverflow(page);
+});
+
+test("archive search API enforces ranked cursors and legacy compatibility", async ({ request }) => {
+  const first = await request.get("http://127.0.0.1:3100/api/archive/videos?stream=1&q=pv");
+  expect(first.status()).toBe(200);
+  const feed = await first.json();
+  expect(feed.items).toHaveLength(24);
+  expect(feed.nextCursor).toMatch(/^s1~/);
+  expect(feed).not.toHaveProperty("totalCount");
+  const next = await request.get("http://127.0.0.1:3100/api/archive/videos", { params: { stream: "1", q: "pv", cursor: feed.nextCursor } });
+  expect(next.status()).toBe(200);
+  const continuation = await next.json();
+  const ids = [...feed.items, ...continuation.items].map((item: { id: string }) => item.id);
+  expect(new Set(ids).size).toBe(ids.length);
+  expect((await request.get("http://127.0.0.1:3100/api/archive/videos", { params: { stream: "1", q: "别的关键词", cursor: feed.nextCursor } })).status()).toBe(400);
+  expect((await request.get("http://127.0.0.1:3100/api/archive/videos?q=pv")).status()).toBe(400);
+  expect((await request.get("http://127.0.0.1:3100/api/archive/videos")).status()).toBe(200);
+});
+
 test("production video share and guest favorite login", async ({ page }) => {
   await page.goto("http://127.0.0.1:3100");
   const link = page.locator('a[href^="/video/"]').first();

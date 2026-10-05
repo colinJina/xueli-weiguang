@@ -44,6 +44,7 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
   const queryRef = useRef<ArchiveFeedQuery | null>(null);
   const cacheKeyRef = useRef(buildArchiveHref(initialPage.filters, {}));
   const restoringPositionRef = useRef(false);
+  const searchHistoryHrefRef = useRef<string | null>(null);
 
   const savePosition = useCallback(() => {
     // Next can reset scroll after changing the route but before effect cleanup.
@@ -87,6 +88,7 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
     let frame: number | undefined;
     let restoreFrame: number | undefined;
     function restoreFromUrl() {
+      searchHistoryHrefRef.current = null;
       if (window.location.pathname !== "/archive") {
         return;
       }
@@ -157,8 +159,19 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
     setFilters(next);
     const href = buildArchiveHref(next, {});
     cacheKeyRef.current = href;
+    const state = { ...window.history.state, archiveFeed: true };
+    if (patch.query !== undefined && options.replace === true && searchHistoryHrefRef.current === null) {
+      searchHistoryHrefRef.current = window.location.pathname + window.location.search;
+    }
+    if (patch.query !== undefined && options.replace === false && searchHistoryHrefRef.current !== null) {
+      // Restore the pre-edit entry before pushing the submitted query, so Back
+      // returns to the previous committed search rather than the last keystroke.
+      window.history.replaceState(state, "", searchHistoryHrefRef.current);
+      searchHistoryHrefRef.current = null;
+    } else if (patch.query === undefined && !options.replace) {
+      searchHistoryHrefRef.current = null;
+    }
     if (href !== window.location.pathname + window.location.search) {
-      const state = { ...window.history.state, archiveFeed: true };
       if (options.replace) {
         window.history.replaceState(state, "", href);
       } else {
@@ -170,6 +183,13 @@ export function useArchiveVideos(initialPage: ArchiveVideoFeed, initialError: bo
   }, [savePosition]);
 
   const retry = useCallback(() => queryRef.current?.schedule(filtersRef.current, true), []);
+  const invalidateSearch = useCallback((pending: boolean) => {
+    savePosition();
+    if (searchHistoryHrefRef.current === null) {
+      searchHistoryHrefRef.current = window.location.pathname + window.location.search;
+    }
+    queryRef.current?.invalidate(pending);
+  }, [savePosition]);
   const loadMore = useCallback(() => { void queryRef.current?.loadMore(); }, []);
-  return { filters, page, hasResult, status, moreStatus, changeFilters, retry, loadMore };
+  return { filters, page, hasResult, status, moreStatus, changeFilters, retry, loadMore, invalidateSearch };
 }

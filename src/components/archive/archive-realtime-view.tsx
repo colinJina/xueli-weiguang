@@ -2,6 +2,7 @@
 
 import { ArchiveClientShell } from "@/components/archive/archive-client-shell";
 import { ArchiveFilterBar } from "@/components/archive/archive-filter-bar";
+import { ArchiveSearchField } from "@/components/archive/archive-search-field";
 import { ArchiveGrid } from "@/components/archive/archive-grid";
 import { ArchiveLoadMore } from "@/components/archive/archive-load-more";
 import { useArchiveVideos } from "@/components/archive/use-archive-videos";
@@ -26,13 +27,16 @@ export function ArchiveRealtimeView({
   initialPage,
   initialError = false,
 }: Props) {
-  const { filters, page, hasResult, status, moreStatus, changeFilters, retry, loadMore } = useArchiveVideos(
+  const { filters, page, hasResult, status, moreStatus, changeFilters, retry, loadMore, invalidateSearch } = useArchiveVideos(
     initialPage,
     initialError,
   );
   return (
     <ArchiveClientShell>
       <section className="page-container">
+        <div className="pt-5">
+          <ArchiveSearchField query={filters.query} onEditing={invalidateSearch} onSearch={(query, options) => changeFilters({ query }, options)} />
+        </div>
         <ArchiveFilterBar
           {...dictionaries}
           filters={filters}
@@ -83,7 +87,7 @@ export function ArchiveRealtimeView({
         ) : null}
         {hasResult ? (
           <>
-            <ArchiveGrid items={page.items} hasMore={page.hasMore} />
+            <ArchiveGrid items={page.items} hasMore={page.hasMore} query={page.filters.query} onClearSearch={() => changeFilters({ query: "" })} />
             {page.items.length > 0 ? <ArchiveLoadMore hasMore={page.hasMore} enabled={status === "ready"} status={moreStatus} onLoadMore={loadMore} /> : null}
           </>
         ) : null}

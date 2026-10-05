@@ -1,4 +1,5 @@
 import { parseToneKeyList, TONE_PRESETS } from "@/lib/videos/tone-options";
+import { parseArchiveSearch } from "@/lib/videos/archive-search";
 import type { ArchiveFilters, ColorTarget } from "@/lib/videos/types";
 
 export const ARCHIVE_PAGE_SIZE = 24;
@@ -37,6 +38,7 @@ export function parseArchiveFilters(
   const page = single(params.page);
   const pageNumber = page && /^\d+$/.test(page) ? Number(page) : 1;
   return {
+    query: parseArchiveSearch(single(params.q) ?? "").query,
     categoryId: category && UUID_PATTERN.test(category) ? category : null,
     tagIds: list(single(params.tags))
       .filter((id) => UUID_PATTERN.test(id))
@@ -55,6 +57,9 @@ export function parseArchiveFilters(
 // API validation rejects malformed input before any database query. SSR normalizes
 // old/shared URLs with the same parser, preserving tones=red compatibility.
 export function validateArchiveSearchParams(params: URLSearchParams) {
+  if (params.getAll("q").length > 1 || parseArchiveSearch(params.get("q") ?? "").error) {
+    return false;
+  }
   const keys = ["category", "tags", "tones", "colors", "colorMode", "page"];
   for (const key of keys) {
     if (

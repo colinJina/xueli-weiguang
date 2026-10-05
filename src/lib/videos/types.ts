@@ -84,6 +84,7 @@ export type VideoDetail = {
 };
 
 export type ArchiveFilters = {
+  query: string;
   categoryId: string | null;
   tagIds: string[];
   toneKeys: string[];

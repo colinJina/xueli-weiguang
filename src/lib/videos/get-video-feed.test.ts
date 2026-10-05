@@ -17,6 +17,7 @@ vi.mock("@/lib/supabase/public", () => ({ createPublicClient: () => ({ rpc: (nam
   return query;
 } }) }));
 vi.mock("@/lib/videos/get-video-dictionaries", () => ({ getVideoDictionaries: async () => ({ categories: [], tags: [] }) }));
+vi.mock("@/lib/videos/get-archive-search-feed", () => ({ getArchiveSearchFeed: vi.fn() }));
 vi.mock("@/lib/videos/get-videos", () => ({ hydrateArchiveRows: async (_client: unknown, rows: VideoBaseRow[]) => { state.hydrated = rows.map((row) => row.id); return []; } }));
 
 const stamp = "2026-10-04T01:02:03.123456+00:00";

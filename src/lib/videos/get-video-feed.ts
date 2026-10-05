@@ -1,6 +1,8 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { formatArchiveCursor } from "@/lib/videos/archive-cursor";
 import type { ArchiveCursor } from "@/lib/videos/archive-cursor";
+import type { ArchiveFeedCursor } from "@/lib/videos/archive-search-cursor";
+import { getArchiveSearchFeed } from "@/lib/videos/get-archive-search-feed";
 import { ARCHIVE_PAGE_SIZE, parseArchiveFilters } from "@/lib/videos/archive-filters";
 import type { ArchiveSearchParams } from "@/lib/videos/archive-filters";
 import { getVideoDictionaries } from "@/lib/videos/get-video-dictionaries";
@@ -35,12 +37,18 @@ export function archiveFeedRpcArgs(filters: ArchiveFilters, cursor: ArchiveCurso
 
 export async function getArchiveVideoFeed(
   raw: ArchiveSearchParams,
-  cursor: ArchiveCursor | null = null,
+  cursor: ArchiveFeedCursor | null = null,
   existingDictionaries?: ArchiveDictionaries,
   signal?: AbortSignal,
 ): Promise<ArchiveVideoFeed> {
   const supabase = createPublicClient();
   const filters = { ...parseArchiveFilters(raw), page: 1 };
+  if (filters.query) {
+    return getArchiveSearchFeed(filters, cursor, signal);
+  }
+  if (cursor && "rank" in cursor) {
+    throw new Error("Search cursor cannot be used for an ordinary feed");
+  }
   // Like the legacy archive RPC, constrain only this RPC boundary until Database types are generated.
   const rpcClient = supabase as unknown as FeedRpcClient;
   let query = rpcClient.rpc("get_archive_video_feed", archiveFeedRpcArgs(filters, cursor));
