@@ -55,7 +55,7 @@ export function ArchiveFilterBar({
           </ArchiveHorizontalWheelScroll>
         </FilterRow>
         <FilterRow label="色调">
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1 md:-translate-y-2">
             {TONE_PRESETS.map((tone) => {
               const active = filters.toneKeys.includes(tone.key);
               return (

@@ -81,58 +81,42 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
   );
   const content = (
     <>
-      {" "}
-      <div className="mb-4 flex items-center justify-between gap-4">
-        {desktop ? (
-          <h2 className="font-semibold text-foreground" id={`${id}-title`}>
-            <PaletteBrushIcon aria-hidden="true" className="h-6 w-6" />
-            <span className="sr-only">色盘</span>
-          </h2>
-        ) : (
-          <SheetTitle id={`${id}-title`}>
-            <PaletteBrushIcon aria-hidden="true" className="h-6 w-6" />
-            <span className="sr-only">色盘</span>
-          </SheetTitle>
-        )}
-        <IconButton
-          aria-label="清除颜色并关闭色盘"
-          onClick={clearAndClose}
-          size="sm"
-          variant="ghost"
-        >
-          <CloseIcon aria-hidden="true" className="h-4 w-4" />
-        </IconButton>
-      </div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {filters.colors.map((target, targetIndex) => (
-          <div className="flex items-center gap-1" key={targetIndex}>
-            <FilterButton
-              active={index === targetIndex}
-              aria-label={`编辑颜色 ${targetIndex + 1} ${target.hex}`}
-              className="gap-2 px-2.5"
-              onClick={() => setActiveIndex(targetIndex)}
-            >
-              <span
-                aria-hidden="true"
-                className="h-3.5 w-3.5 rounded-full ring-1 ring-white/20"
-                style={{ backgroundColor: target.hex }}
-              />
-              <span>{targetIndex + 1}</span>
-            </FilterButton>
-            <IconButton
-              aria-label={`移除颜色 ${targetIndex + 1}`}
-              onClick={() => {
-                onChange({
-                  colors: filters.colors.filter((_, i) => i !== targetIndex),
-                });
-                setActiveIndex(0);
-              }}
-              size="sm"
-              variant="ghost"
-            >
-              <CloseIcon aria-hidden="true" className="h-3 w-3" />
-            </IconButton>
-          </div>
+      {!desktop && (
+        <SheetTitle className="sr-only" id={`${id}-title`}>
+          色盘
+        </SheetTitle>
+      )}
+      <div className="mb-3 flex items-start gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          {filters.colors.map((target, targetIndex) => (
+            <div className="flex items-center gap-1" key={targetIndex}>
+              <FilterButton
+                active={index === targetIndex}
+                aria-label={`编辑颜色 ${targetIndex + 1} ${target.hex}`}
+                className="gap-2 px-2.5"
+                onClick={() => setActiveIndex(targetIndex)}
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 rounded-full ring-1 ring-white/20"
+                  style={{ backgroundColor: target.hex }}
+                />
+                <span>{targetIndex + 1}</span>
+              </FilterButton>
+              <IconButton
+                aria-label={`移除颜色 ${targetIndex + 1}`}
+                onClick={() => {
+                  onChange({
+                    colors: filters.colors.filter((_, i) => i !== targetIndex),
+                  });
+                  setActiveIndex(0);
+                }}
+                size="sm"
+                variant="ghost"
+              >
+                <CloseIcon aria-hidden="true" className="h-3 w-3" />
+              </IconButton>
+            </div>
         ))}
         <Button
           disabled={filters.colors.length >= MAX_TARGET_COLORS}
@@ -153,6 +137,16 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
           </svg>
           添加颜色
         </Button>
+        </div>
+        <IconButton
+          aria-label="清除颜色并关闭色盘"
+          className="shrink-0"
+          onClick={clearAndClose}
+          size="sm"
+          variant="ghost"
+        >
+          <CloseIcon aria-hidden="true" className="h-4 w-4" />
+        </IconButton>
       </div>
       <div aria-label="颜色匹配方式" className="mb-4 flex items-center gap-2">
         <FilterButton
@@ -180,7 +174,7 @@ export function ArchiveColorPalette({ filters, onChange }: Props) {
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align="end"
-        aria-labelledby={`${id}-title`}
+        aria-label="色盘"
         className="max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
         id={id}
       >
