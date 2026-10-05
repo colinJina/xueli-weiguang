@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { VideoDetail } from "@/lib/videos/types";
@@ -17,6 +17,7 @@ type DeferredVideoPlayerProps = {
   coverOverlayStrength?: number;
   mediaClassName?: string;
   onCosPlay?: () => void;
+  preloadOnMount?: boolean;
   showSourceBadge?: boolean;
   video: VideoDetail;
 };
@@ -42,11 +43,14 @@ export function DeferredVideoPlayer({
   coverOverlayStrength = 0.55,
   mediaClassName,
   onCosPlay,
+  preloadOnMount = false,
   showSourceBadge = true,
   video,
 }: DeferredVideoPlayerProps) {
   const [isPlayerActive, setIsPlayerActive] = useState(false);
   const [hasVideoError, setHasVideoError] = useState(false);
+  const [hasStartedCosPlayback, setHasStartedCosPlayback] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const canRenderExternalEmbed =
     (video.storageProvider === "bilibili" ||
       video.storageProvider === "youtube") &&
@@ -56,9 +60,12 @@ export function DeferredVideoPlayer({
   const shouldRenderExternalEmbed =
     isPlayerActive && canRenderExternalEmbed && !hasVideoError;
   const shouldRenderCosVideo =
-    isPlayerActive && canRenderCosVideo && !hasVideoError;
+    (isPlayerActive || preloadOnMount) && canRenderCosVideo && !hasVideoError;
   const shouldRenderCover =
-    !isPlayerActive && (canRenderExternalEmbed || canRenderCosVideo);
+    !hasVideoError &&
+    (canRenderExternalEmbed || canRenderCosVideo) &&
+    (!isPlayerActive ||
+      (preloadOnMount && canRenderCosVideo && !hasStartedCosPlayback));
   const shouldRenderUnavailable =
     (!shouldRenderCover &&
       !shouldRenderExternalEmbed &&
@@ -67,14 +74,28 @@ export function DeferredVideoPlayer({
 
   function handleActivatePlayer() {
     setIsPlayerActive(true);
+
+    if (preloadOnMount && canRenderCosVideo) {
+      const media = videoRef.current;
+      void media?.play().catch((error: unknown) => {
+        if (videoRef.current === media && !(error instanceof Error && error.name === "AbortError")) {
+          setHasVideoError(true);
+        }
+      });
+    }
   }
 
-  function handleCosPlay() {
-    onCosPlay?.();
+  function handleCosPlaying() {
+    setHasStartedCosPlayback(true);
+    if (preloadOnMount) {
+      onCosPlay?.();
+    }
   }
 
   function handleRetryPlayback() {
     setHasVideoError(false);
+    setIsPlayerActive(false);
+    setHasStartedCosPlayback(false);
   }
 
   return (
@@ -93,7 +114,7 @@ export function DeferredVideoPlayer({
 
       <div
         className={cn(
-          "aspect-video w-full min-w-0 overflow-hidden bg-black",
+          "relative aspect-video w-full min-w-0 overflow-hidden bg-black",
           mediaClassName,
         )}
       >
@@ -102,7 +123,7 @@ export function DeferredVideoPlayer({
             size="default"
             variant="unstyled"
             aria-label={`播放 ${video.title}`}
-            className="group relative h-full w-full cursor-pointer overflow-hidden bg-black text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+            className="group absolute inset-0 z-20 h-full w-full cursor-pointer overflow-hidden bg-black text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
             onClick={handleActivatePlayer}
             type="button"
           >
@@ -152,14 +173,19 @@ export function DeferredVideoPlayer({
 
         {shouldRenderCosVideo ? (
           <video
-            autoPlay
+            ref={videoRef}
+            aria-hidden={!isPlayerActive}
+            autoPlay={!preloadOnMount && isPlayerActive}
             className="h-full w-full bg-black object-contain"
-            controls
+            controls={isPlayerActive}
             onError={() => setHasVideoError(true)}
-            onPlay={handleCosPlay}
+            onPlay={preloadOnMount ? undefined : onCosPlay}
+            onPlaying={handleCosPlaying}
+            playsInline
             poster={video.coverImageUrl ?? undefined}
-            preload="metadata"
+            preload={preloadOnMount ? "auto" : "metadata"}
             src={video.playbackUrl ?? undefined}
+            tabIndex={isPlayerActive ? undefined : -1}
           >
             您的浏览器暂不支持此 PV 格式，请使用最新版 Chrome、Edge 或 Safari
           </video>

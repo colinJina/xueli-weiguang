@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { LikeBurstIcon } from "@/components/video/like-burst-icon";
 import { VideoShareTrigger } from "@/components/video/video-share-trigger";
+import { useVideoFavoriteStatus } from "@/components/video/use-video-favorite-status";
 import StatusAlertIcon from "@/components/icons/shared/alert-circle.svg";
 import VideoBookmarkIcon from "@/components/icons/video/bookmark.svg";
 import VideoHeartIcon from "@/components/icons/shared/heart.svg";
+import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import { useAuth } from "@/lib/auth/use-auth";
-import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import { formatCompactNumber } from "@/lib/videos/metrics";
 import type { VideoShareData } from "@/lib/videos/share";
 import type {
@@ -26,7 +27,6 @@ import type {
 type VideoDetailActionsProps = {
   likeCount: number;
   likeCountLabel: string;
-  favoriteState: UserArchiveVideoFavoriteState | null;
   favoriteVideo: FavoriteEditorVideo;
   shareVideo: VideoShareData;
   onLikeCountChange: (nextCount: number, nextLabel: string) => void;
@@ -54,7 +54,6 @@ async function readLikeResponse(response: Response) {
 export function VideoDetailActions({
   likeCount,
   likeCountLabel,
-  favoriteState,
   favoriteVideo,
   shareVideo,
   onLikeCountChange,
@@ -63,6 +62,7 @@ export function VideoDetailActions({
 }: VideoDetailActionsProps) {
   const router = useRouter();
   const {
+    user,
     isReady,
     isAuthenticated,
     dialogMode,
@@ -75,13 +75,11 @@ export function VideoDetailActions({
   const [isPending, setIsPending] = useState(false);
   const [likeBurstKey, setLikeBurstKey] = useState(0);
   const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
-  const [localIsFavorited, setLocalIsFavorited] = useState<boolean | null>(null);
   const [continueToFavorite, setContinueToFavorite] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const canUseLocalLikes = storageProvider === "cos";
-  const isFavorited = isAuthenticated && (localIsFavorited ?? Boolean(favoriteState?.memberships.length));
-
-  useEffect(() => { setLocalIsFavorited(null); }, [videoId, isAuthenticated]);
+  const favoriteStatus = useVideoFavoriteStatus(videoId, user?.id, isReady);
+  const isFavorited = isAuthenticated && favoriteStatus.isFavorited === true;
 
   const refreshLikeState = useCallback(async () => {
     if (!canUseLocalLikes) {
@@ -216,17 +214,21 @@ export function VideoDetailActions({
       <div className="flex flex-wrap gap-3 lg:justify-end">
         {likeButton}
 
-        <Button aria-pressed={isFavorited} className="gap-2 font-medium" disabled={!isReady} onClick={handleFavoriteClick} size="md" type="button" variant={isFavorited ? "pillActive" : "pill"}>
-          <VideoBookmarkIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+        <Button aria-busy={favoriteStatus.isLoading} aria-pressed={favoriteStatus.isFavorited === null ? undefined : isFavorited} className="gap-2 font-medium" disabled={!isReady} onClick={handleFavoriteClick} size="md" title={favoriteStatus.error ?? undefined} type="button" variant={isFavorited ? "pillActive" : "pill"}>
+          {favoriteStatus.isLoading ? (
+            <SpinnerIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+          ) : (
+            <VideoBookmarkIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+          )}
           <span>{isFavorited ? "已收藏" : "收藏"}</span>
         </Button>
 
         <VideoShareTrigger key={shareVideo.id} video={shareVideo} />
       </div>
 
-      {errorMessage ? (
+      {errorMessage || favoriteStatus.error ? (
         <FormMessage className="lg:max-w-[20rem]" icon={<StatusAlertIcon aria-hidden="true" className="h-4 w-4 flex-none" />} variant="error">
-          {errorMessage}
+          {errorMessage ?? favoriteStatus.error}
         </FormMessage>
       ) : null}
 
@@ -254,13 +256,14 @@ export function VideoDetailActions({
       ) : null}
 
       <FavoriteSelectionDialog
-        onLoaded={(state) => setLocalIsFavorited(state.memberships.length > 0)}
+        key={`${videoId}:${user?.id ?? "guest"}`}
+        onLoaded={(state) => favoriteStatus.updateFavoriteStatus(state.memberships.length > 0)}
         onSaved={(result) => {
-          setLocalIsFavorited(result.isFavorited);
+          favoriteStatus.updateFavoriteStatus(result.isFavorited);
           router.refresh();
         }}
         onClose={() => setFavoriteDialogOpen(false)}
-        open={favoriteDialogOpen}
+        open={favoriteDialogOpen && isAuthenticated}
         video={favoriteVideo}
       />
     </div>

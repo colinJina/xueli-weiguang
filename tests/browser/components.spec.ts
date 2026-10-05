@@ -407,6 +407,88 @@ test("tooltip follows keyboard focus and player activation uses a single button"
   await expect(page.locator("iframe")).toHaveCount(1);
 });
 
+test("detail prepares playback without autoplay and favorite reads cannot delay it", async ({ page }) => {
+  // Generate a tiny local clip so the check does not depend on an external media host.
+  const clip = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 160;
+    canvas.height = 90;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas is unavailable");
+    }
+    const stream = canvas.captureStream(10);
+    const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+    const chunks: Blob[] = [];
+    const completed = new Promise<void>((resolve) => {
+      recorder.ondataavailable = (event) => chunks.push(event.data);
+      recorder.onstop = () => resolve();
+    });
+    recorder.start();
+    let frame = 0;
+    const timer = setInterval(() => {
+      context.fillStyle = frame++ % 2 === 0 ? "#000000" : "#ffffff";
+      context.fillRect(0, 0, 160, 90);
+    }, 100);
+    await new Promise<void>((resolve) => setTimeout(resolve, 600));
+    clearInterval(timer);
+    recorder.stop();
+    await completed;
+    stream.getTracks().forEach((track) => track.stop());
+    return Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer()));
+  });
+
+  await page.addInitScript(() => {
+    const user = { id: "favorite-test-user", aud: "authenticated", email: "fixture@example.test", app_metadata: {}, user_metadata: {}, created_at: "2026-10-05T00:00:00Z" };
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+    const token = `${btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }))}.${btoa(JSON.stringify({ sub: user.id, exp: expiresAt, aud: "authenticated" }))}.fixture`;
+    localStorage.setItem("xlwg:cached-user", JSON.stringify(user));
+    const session = { user, access_token: token, refresh_token: "fixture", token_type: "bearer", expires_at: expiresAt, expires_in: 3600 };
+    document.cookie = `sb-supabase-auth-token=${encodeURIComponent(JSON.stringify(session))}; path=/`;
+  });
+  await page.route("https://supabase.test/auth/v1/user", (route) => route.fulfill({ json: { id: "favorite-test-user", aud: "authenticated", app_metadata: {}, user_metadata: {} } }));
+  let mediaRequests = 0;
+  let viewRequests = 0;
+  let releaseFavorites!: () => void;
+  const favoritesReady = new Promise<void>((resolve) => { releaseFavorites = resolve; });
+  await page.route("**/detail-test.webm", (route) => {
+    mediaRequests += 1;
+    return route.fulfill({ contentType: "video/webm", body: Buffer.from(clip) });
+  });
+  await page.route("**/api/videos/video-test/**", (route) => {
+    if (route.request().url().endsWith("/view")) {
+      viewRequests += 1;
+      return route.fulfill({ json: { viewCount: 11, viewCountLabel: "11" } });
+    }
+    return route.fulfill({ json: { liked: false, likeCount: 2, likeCountLabel: "2" } });
+  });
+  await page.route("**/api/user/favorites/video-test", async (route) => {
+    await favoritesReady;
+    await route.fulfill({ json: favorites });
+  });
+  await page.goto("http://127.0.0.1:4173?scenario=detail-playback");
+  const media = page.locator("video");
+  const playButton = page.getByRole("button", { name: "播放 光影收藏" });
+  const favoriteButton = page.getByRole("button", { name: "收藏", exact: true });
+  try {
+    await expect(media).toHaveAttribute("preload", "auto");
+    await expect.poll(() => mediaRequests).toBeGreaterThan(0);
+    await expect.poll(() => media.evaluate((element: HTMLVideoElement) => element.readyState)).toBeGreaterThanOrEqual(2);
+    expect(await media.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+    expect(viewRequests).toBe(0);
+    await expect(favoriteButton).toHaveAttribute("aria-busy", "true");
+    await playButton.click();
+    await expect(playButton).toHaveCount(0);
+    await expect.poll(() => media.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(0);
+    await expect.poll(() => viewRequests).toBe(1);
+    await expect(favoriteButton).toHaveAttribute("aria-busy", "true");
+  } finally {
+    releaseFavorites();
+  }
+  await expect(page.getByRole("button", { name: "已收藏", exact: true })).toBeVisible();
+  expect(mediaRequests).toBe(1);
+});
+
 test("profile sidebar and opening login from the sheet", async ({
   page,
 }, testInfo) => {

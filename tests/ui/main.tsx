@@ -18,6 +18,7 @@ import { UserProfileShell } from "@/components/user/user-profile-shell";
 import { VideoShareDialog } from "@/components/video/video-share-dialog";
 import { VideoToneSwatches } from "@/components/video/video-tone-swatches";
 import { DeferredVideoPlayer } from "@/components/video/deferred-video-player";
+import { VideoDetailEngagement } from "@/components/video/video-detail-engagement";
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { TextField } from "@/components/ui/text-field";
@@ -82,7 +83,12 @@ function Fixture() {
     <AppRouterContext.Provider value={router}>
       <PathnameContext.Provider value="/user">
         <SearchParamsContext.Provider value={searchParams}>
-          {searchParams.get("scenario") === "profile-collections" ? (
+          {searchParams.get("scenario") === "detail-playback" ? (
+            <main className="mx-auto flex max-w-3xl flex-col gap-7 px-5 py-8">
+              <h1 className="text-2xl font-bold">详情页播放检查</h1>
+              <VideoDetailEngagement video={{ ...video, storageProvider: "cos", sourceLabel: "站内 PV", playbackUrl: "/detail-test.webm" }} />
+            </main>
+          ) : searchParams.get("scenario") === "profile-collections" ? (
             <UserProfileShell data={getCollectionProfile(searchParams)} />
           ) : searchParams.get("scenario") === "profile" ? (
             <UserProfileShell data={profile} />

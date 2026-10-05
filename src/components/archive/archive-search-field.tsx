@@ -72,7 +72,8 @@ export function ArchiveSearchField({ query, onSearch, onEditing }: Props) {
         <TextField
           label="搜索 PV"
           labelClassName="sr-only"
-          className="pl-10 pr-12 [&::-webkit-search-cancel-button]:appearance-none"
+          wrapperClassName="space-y-0"
+          className="block pl-10 pr-12 [&::-webkit-search-cancel-button]:appearance-none"
           type="search"
           ref={input}
           value={draft}

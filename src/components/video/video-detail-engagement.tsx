@@ -11,7 +11,6 @@ import VideoArchiveIcon from "@/components/icons/video/archive.svg";
 import VideoUserIcon from "@/components/icons/shared/user.svg";
 import VideoVisibilityIcon from "@/components/icons/video/visibility-dot.svg";
 import type { FavoriteEditorVideo } from "@/components/user/favorite-editor-dialog";
-import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import type {
   VideoDetail,
   VideoDictionaryItem,
@@ -20,7 +19,6 @@ import type {
 
 type VideoDetailEngagementProps = {
   video: VideoDetail;
-  favoriteState: UserArchiveVideoFavoriteState | null;
 };
 
 function isVideoViewResponse(value: unknown): value is VideoViewResponse {
@@ -33,7 +31,6 @@ function isVideoViewResponse(value: unknown): value is VideoViewResponse {
 }
 
 export function VideoDetailEngagement({
-  favoriteState,
   video,
 }: VideoDetailEngagementProps) {
   const hasRequestedViewRef = useRef(false);
@@ -82,7 +79,7 @@ export function VideoDetailEngagement({
 
   return (
     <>
-      <DeferredVideoPlayer onCosPlay={handleCosView} video={video} />
+      <DeferredVideoPlayer onCosPlay={handleCosView} preloadOnMount video={video} />
 
       <section className="flex flex-col gap-7">
         <div className="space-y-5">
@@ -141,7 +138,6 @@ export function VideoDetailEngagement({
               <VideoDetailActions
                 likeCount={likeCount}
                 likeCountLabel={likeCountLabel}
-                favoriteState={favoriteState}
                 favoriteVideo={
                   {
                     id: video.id,
