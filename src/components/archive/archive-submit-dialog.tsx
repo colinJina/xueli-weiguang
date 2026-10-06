@@ -30,9 +30,9 @@ import { TextField } from "@/components/ui/text-field";
 import { ADMIN_REQUIRED_MESSAGE } from "@/lib/auth/admin";
 import { cn } from "@/lib/utils";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
+import { getNativeVideoMimeType } from "@/lib/storage/native-video-file";
 import {
   ALLOWED_COVER_MIME_TYPES,
-  ALLOWED_VIDEO_MIME_TYPES,
   NATIVE_COVER_MAX_BYTES,
   NATIVE_VIDEO_MAX_BYTES,
 } from "@/lib/storage/types";
@@ -328,6 +328,8 @@ export function ArchiveSubmitDialog({
     };
   }, [coverPreviewUrl]);
 
+  const videoMimeType = videoFile ? getNativeVideoMimeType(videoFile) : null;
+
   const nativeDisabledReason = useMemo(() => {
     if (!allowNativeUpload) {
       return ADMIN_REQUIRED_MESSAGE;
@@ -355,8 +357,12 @@ export function ArchiveSubmitDialog({
       return "请先选择 PV 文件";
     }
 
-    if (!isAllowedFile(videoFile, ALLOWED_VIDEO_MIME_TYPES)) {
-      return "PV 仅支持 MP4/WebM";
+    if (!videoMimeType) {
+      return "PV 仅支持 MP4/WebM，请先转换格式后再上传";
+    }
+
+    if (videoFile.size <= 0) {
+      return "PV 文件不能为空";
     }
 
     if (videoFile.size > NATIVE_VIDEO_MAX_BYTES) {
@@ -380,7 +386,7 @@ export function ArchiveSubmitDialog({
     }
 
     return "";
-  }, [allowNativeUpload, coverFile, description, status, title, videoFile]);
+  }, [allowNativeUpload, coverFile, description, status, title, videoFile, videoMimeType]);
 
   if (!open) {
     return null;
@@ -491,6 +497,7 @@ export function ArchiveSubmitDialog({
     region: string;
     key: string;
     file: File;
+    contentType: string;
     onProgress: (value: number) => void;
   }) {
     input.onProgress(1);
@@ -501,7 +508,7 @@ export function ArchiveSubmitDialog({
       Key: input.key,
       Body: input.file,
       ContentLength: input.file.size,
-      ContentType: input.file.type,
+      ContentType: input.contentType,
       onProgress(progressData) {
         input.onProgress(getProgressPercent(progressData));
       },
@@ -576,6 +583,7 @@ export function ArchiveSubmitDialog({
       !allowNativeUpload ||
       nativeDisabledReason ||
       !videoFile ||
+      !videoMimeType ||
       !coverFile
     ) {
       setStatus("error");
@@ -593,7 +601,7 @@ export function ArchiveSubmitDialog({
 
     try {
       const credentialResponse = await requestUploadCredential({
-        videoMimeType: videoFile.type,
+        videoMimeType,
         videoSize: videoFile.size,
         coverMimeType: coverFile.type,
         featureOnHome,
@@ -616,6 +624,7 @@ export function ArchiveSubmitDialog({
         region: credentialResponse.region,
         key: credentialResponse.videoKey,
         file: videoFile,
+        contentType: videoMimeType,
         onProgress: setVideoProgress,
       });
       await uploadObject({
@@ -624,6 +633,7 @@ export function ArchiveSubmitDialog({
         region: credentialResponse.region,
         key: credentialResponse.coverKey,
         file: coverFile,
+        contentType: coverFile.type,
         onProgress: setCoverProgress,
       });
 
@@ -636,7 +646,7 @@ export function ArchiveSubmitDialog({
         title: trimmedTitle,
         description: trimmedDescription || null,
         videoSize: videoFile.size,
-        videoMimeType: videoFile.type,
+        videoMimeType,
         coverMimeType: coverFile.type,
         featureOnHome,
       });
@@ -788,7 +798,7 @@ export function ArchiveSubmitDialog({
                 </div>
 
                 <FileDropZone
-                  accept="video/mp4,video/webm"
+                  accept=".mp4,.webm,video/mp4,video/webm"
                   disabled={isSubmitting}
                   file={videoFile}
                   helper="拖入或点击选择，MP4/WebM，最大 50MB"
