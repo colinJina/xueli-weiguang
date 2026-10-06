@@ -46,40 +46,49 @@ async function prepareUpload(file: File) {
 }
 
 describe("mobile local PV upload", () => {
-  it.each(["", "application/octet-stream", "video/x-mp4"])(
-    "uses standard MP4 throughout upload when the browser reports %s",
-    async (type) => {
+  it.each([
+    ["", "手机.MP4", "video/mp4", false],
+    ["application/octet-stream", "手机.MP4", "video/mp4", false],
+    ["video/x-mp4", "手机.MP4", "video/mp4", false],
+    ["video/quicktime", "IMG_2566.MP4", "video/quicktime", true],
+    ["video/mp4", "IMG_2566.MP4", "video/quicktime", true],
+    ["", "IMG_2566.MOV", "video/quicktime", true],
+  ] as const)(
+    "uses the detected container throughout upload when the browser reports %s for %s",
+    async (type, name, expectedMime, quickTime) => {
       const fetchMock = vi.spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(new Response(JSON.stringify({
           submissionId: "submission-test",
           bucket: "bucket-test",
           region: "region-test",
-          videoKey: "video.mp4",
+          videoKey: quickTime ? "video.mov" : "video.mp4",
           coverKey: "cover.jpg",
           credential: {},
         }), { status: 200 }))
         .mockResolvedValueOnce(new Response("{}", { status: 200 }));
-      const file = new File(["pv"], "手机.MP4", { type });
+      const header = new Uint8Array([0,0,0,20,102,116,121,112,113,116,32,32,0,0,0,0,113,116,32,32]);
+      const file = new File([quickTime ? header : "pv"], name, { type });
       const user = await prepareUpload(file);
       expect(screen.getByLabelText("PV 文件")).toHaveAttribute(
-        "accept", ".mp4,.webm,video/mp4,video/webm",
+        "accept", ".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime",
       );
-      expect(screen.getByRole("button", { name: "提交 PV" })).toBeEnabled();
+      await waitFor(() => expect(screen.getByRole("button", { name: "提交 PV" })).toBeEnabled());
       await user.click(screen.getByRole("button", { name: "提交 PV" }));
       await waitFor(() => expect(screen.getByText("投稿已收到，等待审核")).toBeVisible());
 
       expect(fetchMock).toHaveBeenCalledTimes(2);
       expect(fetchMock.mock.calls[0]).toEqual([
         "/api/submissions/native/cos/upload-signature",
-        expect.objectContaining({ body: expect.stringContaining('"videoMimeType":"video/mp4"') }),
+        expect.objectContaining({ body: expect.stringContaining(JSON.stringify(expectedMime)) }),
       ]);
       expect(fetchMock.mock.calls[1]).toEqual([
         "/api/submissions/native/complete",
-        expect.objectContaining({ body: expect.stringContaining('"videoMimeType":"video/mp4"') }),
+        expect.objectContaining({ body: expect.stringContaining(JSON.stringify(expectedMime)) }),
       ]);
       expect(putObject).toHaveBeenNthCalledWith(1, expect.objectContaining({
         Body: file,
-        ContentType: "video/mp4",
+        Key: quickTime ? "video.mov" : "video.mp4",
+        ContentType: expectedMime,
       }));
       expect(putObject).toHaveBeenNthCalledWith(2, expect.objectContaining({
         ContentType: "image/jpeg",
@@ -87,10 +96,10 @@ describe("mobile local PV upload", () => {
     },
   );
 
-  it("keeps MOV files blocked and asks for a format conversion", async () => {
+  it("keeps AVI files blocked", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch");
-    await prepareUpload(new File(["pv"], "手机.MOV", { type: "video/quicktime" }));
-    expect(screen.getByText("PV 仅支持 MP4/WebM，请先转换格式后再上传")).toBeVisible();
+    await prepareUpload(new File(["pv"], "手机.AVI", { type: "video/x-msvideo" }));
+    expect(await screen.findByText("PV 仅支持 MP4/WebM/MOV，请选择支持的格式")).toBeVisible();
     expect(screen.getByRole("button", { name: "提交 PV" })).toBeDisabled();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(putObject).not.toHaveBeenCalled();
