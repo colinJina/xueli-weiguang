@@ -15,7 +15,7 @@ type VideoShareCardProps = {
 
 export const VideoShareCard = forwardRef<HTMLElement, VideoShareCardProps>(
   function VideoShareCard({ video, coverUrl, qrCodeUrl }, ref) {
-    
+
     const summary = getVideoShareSummary(video);
     const tones = getVisibleVideoTones(video.tones);
     return (
