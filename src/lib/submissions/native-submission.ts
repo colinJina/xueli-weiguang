@@ -769,7 +769,11 @@ export async function completeNativeSubmission(
 
     await releaseNativeSubmissionCompletion(claimContext);
     console.error("Failed to head native submission objects", error);
-    throw storageUnavailableError();
+    throw new NativeSubmissionApiError({
+      code: "STORAGE_VERIFICATION_FAILED",
+      message: "文件已上传，暂时无法确认，请点击重试",
+      status: 503,
+    });
   }
 
   if (videoHead.size !== videoSize) {
