@@ -59,6 +59,22 @@ type UploadProgressInfo = {
   percent?: number;
 };
 
+type NativeUploadAttempt = {
+  credential: NativeCosUploadCredentialResponse;
+  videoFile: File;
+  coverFile: File;
+  videoMimeType: NativeVideoMimeType;
+  videoUploaded: boolean;
+  coverUploaded: boolean;
+};
+
+class NativeUploadRequestError extends Error {
+  constructor(readonly code: NativeSubmissionApiErrorPayload["code"], message: string) {
+    super(message);
+    this.name = "NativeUploadRequestError";
+  }
+}
+
 const TITLE_MAX_LENGTH = 80;
 const DESCRIPTION_MAX_LENGTH = 500;
 
@@ -152,6 +168,12 @@ function parseNativeError(payload: NativeSubmissionApiErrorPayload | null) {
       return payload.message ?? "请检查投稿信息后重试";
     case "STORAGE_UNAVAILABLE":
       return "暂时无法上传，请稍后重试";
+    case "STORAGE_VERIFICATION_FAILED":
+      return "文件已上传，暂时无法确认，请点击重试";
+    case "SUBMISSION_COMPLETION_IN_PROGRESS":
+      return "投稿正在完成，请稍后重试";
+    case "INTERNAL_ERROR":
+      return "投稿保存失败，请点击重试";
     default:
       return "上传失败，请稍后重试";
   }
@@ -288,9 +310,11 @@ export function ArchiveSubmitDialog({
   const [message, setMessage] = useState("");
   const videoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const nativeUploadAttemptRef = useRef<NativeUploadAttempt | null>(null);
 
   useEffect(() => {
     if (!open) {
+      nativeUploadAttemptRef.current = null;
       setMode("link");
       setUrl("");
       setTitle("");
@@ -311,6 +335,7 @@ export function ArchiveSubmitDialog({
       return;
     }
     setMode("link");
+    nativeUploadAttemptRef.current = null;
     setVideoFile(null);
     setCoverFile(null);
     setCropSourceFile(null);
@@ -573,9 +598,8 @@ export function ArchiveSubmitDialog({
       | null;
 
     if (!response.ok) {
-      throw new Error(
-        parseNativeError(payload as NativeSubmissionApiErrorPayload | null),
-      );
+      const errorPayload = payload as NativeSubmissionApiErrorPayload | null;
+      throw new NativeUploadRequestError(errorPayload?.code, parseNativeError(errorPayload));
     }
 
     return payload as NativeCosUploadCredentialResponse;
@@ -605,7 +629,7 @@ export function ArchiveSubmitDialog({
       .catch(() => null)) as NativeSubmissionApiErrorPayload | null;
 
     if (!response.ok) {
-      throw new Error(parseNativeError(payload));
+      throw new NativeUploadRequestError(payload?.code, parseNativeError(payload));
     }
   }
 
@@ -629,46 +653,69 @@ export function ArchiveSubmitDialog({
 
     setStatus("submitting");
     setMessage("正在准备上传");
-    setVideoProgress(0);
-    setCoverProgress(0);
 
     try {
-      const credentialResponse = await requestUploadCredential({
-        videoMimeType,
-        videoSize: videoFile.size,
-        coverMimeType: coverFile.type,
-        featureOnHome,
-      });
+      let attempt = nativeUploadAttemptRef.current;
+      if (
+        !attempt ||
+        attempt.videoFile !== videoFile ||
+        attempt.coverFile !== coverFile ||
+        attempt.videoMimeType !== videoMimeType ||
+        ((!attempt.videoUploaded || !attempt.coverUploaded) &&
+          Date.parse(attempt.credential.expiresAt) <= Date.now())
+      ) {
+        setVideoProgress(0);
+        setCoverProgress(0);
+        const credential = await requestUploadCredential({
+          videoMimeType,
+          videoSize: videoFile.size,
+          coverMimeType: coverFile.type,
+          featureOnHome,
+        });
+        attempt = {
+          credential, videoFile, coverFile, videoMimeType,
+          videoUploaded: false, coverUploaded: false,
+        };
+        nativeUploadAttemptRef.current = attempt;
+      }
+      const credentialResponse = attempt.credential;
 
-      setMessage("正在上传 PV 和封面");
+      if (!attempt.videoUploaded || !attempt.coverUploaded) {
+        setMessage("正在上传 PV 和封面");
+        const { default: CosConstructor } = await import("cos-js-sdk-v5");
+        const cos = new CosConstructor({
+          SecretId: credentialResponse.credential.tmpSecretId,
+          SecretKey: credentialResponse.credential.tmpSecretKey,
+          SecurityToken: credentialResponse.credential.sessionToken,
+          StartTime: credentialResponse.credential.startTime,
+          ExpiredTime: credentialResponse.credential.expiredTime,
+        });
 
-      const { default: CosConstructor } = await import("cos-js-sdk-v5");
-      const cos = new CosConstructor({
-        SecretId: credentialResponse.credential.tmpSecretId,
-        SecretKey: credentialResponse.credential.tmpSecretKey,
-        SecurityToken: credentialResponse.credential.sessionToken,
-        StartTime: credentialResponse.credential.startTime,
-        ExpiredTime: credentialResponse.credential.expiredTime,
-      });
-
-      await uploadObject({
-        cos,
-        bucket: credentialResponse.bucket,
-        region: credentialResponse.region,
-        key: credentialResponse.videoKey,
-        file: videoFile,
-        contentType: videoMimeType,
-        onProgress: setVideoProgress,
-      });
-      await uploadObject({
-        cos,
-        bucket: credentialResponse.bucket,
-        region: credentialResponse.region,
-        key: credentialResponse.coverKey,
-        file: coverFile,
-        contentType: coverFile.type,
-        onProgress: setCoverProgress,
-      });
+        if (!attempt.videoUploaded) {
+          await uploadObject({
+            cos,
+            bucket: credentialResponse.bucket,
+            region: credentialResponse.region,
+            key: credentialResponse.videoKey,
+            file: videoFile,
+            contentType: videoMimeType,
+            onProgress: setVideoProgress,
+          });
+          attempt.videoUploaded = true;
+        }
+        if (!attempt.coverUploaded) {
+          await uploadObject({
+            cos,
+            bucket: credentialResponse.bucket,
+            region: credentialResponse.region,
+            key: credentialResponse.coverKey,
+            file: coverFile,
+            contentType: coverFile.type,
+            onProgress: setCoverProgress,
+          });
+          attempt.coverUploaded = true;
+        }
+      }
 
       setMessage("正在提交投稿");
 
@@ -684,6 +731,7 @@ export function ArchiveSubmitDialog({
         featureOnHome,
       });
 
+      nativeUploadAttemptRef.current = null;
       setTitle("");
       setDescription("");
       setVideoFile(null);
@@ -695,6 +743,12 @@ export function ArchiveSubmitDialog({
       setStatus("success");
       setMessage("投稿已收到，等待审核");
     } catch (error) {
+      if (
+        error instanceof NativeUploadRequestError &&
+        ["UPLOAD_SESSION_EXPIRED", "OBJECT_NOT_FOUND", "MIME_MISMATCH", "DUPLICATE_REF", "FILE_TOO_LARGE"].includes(error.code ?? "")
+      ) {
+        nativeUploadAttemptRef.current = null;
+      }
       setStatus("error");
       setMessage(
         translateSubmissionError(
@@ -911,7 +965,7 @@ export function ArchiveSubmitDialog({
                     {isSubmitting
                       ? "上传中"
                       : status === "error"
-                        ? "重新上传"
+                        ? "重试提交"
                         : "提交 PV"}
                   </span>
                 </Button>

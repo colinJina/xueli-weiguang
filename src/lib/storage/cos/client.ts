@@ -16,27 +16,22 @@ export type CosObjectHead = {
   etag: string | null;
 };
 
+const OBJECT_REQUEST_TIMEOUT_MS = 10_000;
+const COS_DOMAIN_SUFFIXES = ["myqcloud.com", "tencentcos.cn"] as const;
+
+class CosObjectRequestError extends Error {
+  constructor(readonly status: number) {
+    super(`COS object request failed with status ${status}`);
+    this.name = "CosObjectRequestError";
+  }
+}
+
 function createCosClient(config: CosServerConfig) {
   return new COS({
     SecretId: config.secretId,
     SecretKey: config.secretKey,
+    Timeout: OBJECT_REQUEST_TIMEOUT_MS,
   });
-}
-
-function getHeader(headers: Record<string, unknown> | undefined, name: string) {
-  if (!headers) {
-    return null;
-  }
-
-  const normalizedName = name.toLowerCase();
-
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === normalizedName) {
-      return Array.isArray(value) ? String(value[0] ?? "") : String(value);
-    }
-  }
-
-  return null;
 }
 
 function normalizeMimeType(value: string | null) {
@@ -57,29 +52,58 @@ export async function headCosObject(
   config: CosServerConfig,
   key: string,
 ): Promise<CosObjectHead> {
-  try {
-    const data = await createCosClient(config).headObject({
-      Bucket: config.bucket,
-      Region: config.region,
+  let lastError: unknown;
+
+  // Use native fetch for HEAD instead of the SDK's legacy request transport.
+  // Each origin gets its own Host signature; never follow a signed redirect.
+  for (const suffix of COS_DOMAIN_SUFFIXES) {
+    const host = `${config.bucket}.cos.${config.region}.${suffix}`;
+    const path = key.split("/").map(encodeURIComponent).join("/");
+    const authorization = COS.getAuthorization({
+      SecretId: config.secretId,
+      SecretKey: config.secretKey,
+      // SDK 2.15.4 handles HEAD but omits it from its Method declaration.
+      Method: "HEAD" as COS.StaticGetAuthorizationOptions["Method"],
       Key: key,
+      Headers: { host },
+      Expires: 60,
     });
 
-    const contentLength = getHeader(data.headers, "content-length");
-    const size = Number(contentLength);
+    try {
+      const response = await fetch(`https://${host}/${path}`, {
+        method: "HEAD",
+        headers: { Authorization: authorization },
+        cache: "no-store",
+        redirect: "error",
+        signal: AbortSignal.timeout(OBJECT_REQUEST_TIMEOUT_MS),
+      });
 
-    return {
-      key,
-      size: Number.isSafeInteger(size) && size >= 0 ? size : 0,
-      mimeType: normalizeMimeType(getHeader(data.headers, "content-type")),
-      etag: data.ETag ?? getHeader(data.headers, "etag"),
-    };
-  } catch (error) {
-    if (isCosNotFoundError(error)) {
-      throw new CosObjectNotFoundError(key);
+      if (response.status === 404) {
+        throw new CosObjectNotFoundError(key);
+      }
+      if (!response.ok) {
+        throw new CosObjectRequestError(response.status);
+      }
+
+      const size = Number(response.headers.get("content-length"));
+      return {
+        key,
+        size: Number.isSafeInteger(size) && size >= 0 ? size : 0,
+        mimeType: normalizeMimeType(response.headers.get("content-type")),
+        etag: response.headers.get("etag"),
+      };
+    } catch (error) {
+      if (
+        error instanceof CosObjectNotFoundError ||
+        (error instanceof CosObjectRequestError && error.status < 500)
+      ) {
+        throw error;
+      }
+      lastError = error;
     }
-
-    throw error;
   }
+
+  throw lastError;
 }
 
 export async function deleteCosObject(config: CosServerConfig, key: string) {

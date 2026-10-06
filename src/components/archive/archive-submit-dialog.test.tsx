@@ -46,6 +46,81 @@ async function prepareUpload(file: File) {
 }
 
 describe("mobile local PV upload", () => {
+  function uploadCredential(submissionId = "submission-test") {
+    return new Response(JSON.stringify({
+      submissionId,
+      bucket: "bucket-test",
+      region: "region-test",
+      videoKey: `${submissionId}/video.mp4`,
+      coverKey: `${submissionId}/cover.jpg`,
+      credential: {},
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    }));
+  }
+
+  function completionError(code: string) {
+    return new Response(JSON.stringify({ code }), { status: 503 });
+  }
+
+  it("retries saving the same uploaded files without allocating three upload slots", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(uploadCredential())
+      .mockResolvedValueOnce(completionError("STORAGE_VERIFICATION_FAILED"))
+      .mockResolvedValueOnce(completionError("INTERNAL_ERROR"))
+      .mockResolvedValueOnce(new Response("{}"));
+    const user = await prepareUpload(new File(["pv"], "phone.mp4", { type: "video/mp4" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "提交 PV" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "提交 PV" }));
+    expect(await screen.findByText("文件已上传，暂时无法确认，请点击重试")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "重试提交" }));
+    expect(await screen.findByText("投稿保存失败，请点击重试")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "重试提交" }));
+    expect(await screen.findByText("投稿已收到，等待审核")).toBeVisible();
+
+    expect(fetchMock.mock.calls.filter(([url]) => url === "/api/submissions/native/cos/upload-signature")).toHaveLength(1);
+    const completions = fetchMock.mock.calls.filter(([url]) => url === "/api/submissions/native/complete");
+    expect(completions).toHaveLength(3);
+    for (const [, options] of completions) {
+      expect(JSON.parse(String(options?.body)).submissionId).toBe("submission-test");
+    }
+    expect(putObject).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries only the cover when its upload fails after the PV succeeded", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(uploadCredential())
+      .mockResolvedValueOnce(new Response("{}"));
+    putObject.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error("Network error")).mockResolvedValueOnce({});
+    const user = await prepareUpload(new File(["pv"], "phone.mp4", { type: "video/mp4" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "提交 PV" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "提交 PV" }));
+    expect(await screen.findByText("网络异常，请稍后重试")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "重试提交" }));
+    expect(await screen.findByText("投稿已收到，等待审核")).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(putObject).toHaveBeenCalledTimes(3);
+    expect(putObject.mock.calls.map(([input]) => input.Key)).toEqual([
+      "submission-test/video.mp4", "submission-test/cover.jpg", "submission-test/cover.jpg",
+    ]);
+  });
+
+  it("starts a new upload only after the server reports the previous one expired", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(uploadCredential("old-session"))
+      .mockResolvedValueOnce(completionError("UPLOAD_SESSION_EXPIRED"))
+      .mockResolvedValueOnce(uploadCredential("new-session"))
+      .mockResolvedValueOnce(new Response("{}"));
+    const user = await prepareUpload(new File(["pv"], "phone.mp4", { type: "video/mp4" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "提交 PV" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "提交 PV" }));
+    expect(await screen.findByText("上传已过期，请重新选择文件")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "重试提交" }));
+    expect(await screen.findByText("投稿已收到，等待审核")).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(JSON.parse(String(fetchMock.mock.calls[3][1]?.body)).submissionId).toBe("new-session");
+    expect(putObject).toHaveBeenCalledTimes(4);
+  });
+
   it.each([
     ["", "手机.MP4", "video/mp4", false],
     ["application/octet-stream", "手机.MP4", "video/mp4", false],
