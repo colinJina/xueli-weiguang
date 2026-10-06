@@ -10,20 +10,21 @@ PR #23 的生产部署 b3300be 没有根目录 vercel.json 地域配置。对其
 
 地域变更与随后 COS 连接超时存在时间关联，是本轮优先回退验证的变化；仅凭这项关联仍不能声称已经证明线路故障的全部原因。
 
-## 上传接口的地域隔离
+## 恢复原生产地域
 
-- /api/submissions/native/cos/upload-signature 和 /api/submissions/native/complete 显式导出 preferredRegion = "iad1"，恢复既有上传流程原来的运行地域
-- 根目录 vercel.json 保留 sin1，其他页面和数据库读取继续沿用现有配置
+- 根目录 vercel.json 显式设为 regions=[iad1]，恢复既有生产流程原来的运行地域
+- 逐接口 preferredRegion 的隔离方案已在预览环境验证：两个接口仍返回 sin1，未生效，最终不保留这项配置
+- 所有 Node.js 函数均恢复 iad1，Supabase 数据库仍在新加坡，数据库访问重新承担与历史部署相同的跨地域路径
 - 不改变 COS 桶、COS 地域、浏览器上传路径、短期签名、公开播放地址、后台发布或数据库约束
 - 保留 MOV/QuickTime 支持、上传结果复用、完成租约和幂等保存；不回滚已验证的上传功能修复
 - 不启用 COS 全球加速，不新增环境变量或付费服务
 
 ## 验证与回滚
 
-运行 type-check、lint、相关回归测试和生产构建，再确认部署后的两个接口响应中函数执行地域为 iad1。原生提交必须经管理员登录后实际验证返回 201，不能以部署 READY 或未登录 401 检查代替完整提交成功。
+运行 type-check、lint、相关回归测试和生产构建，再确认部署后的上传签名与完成接口响应中函数执行地域为 iad1。原生提交必须经管理员登录后实际验证返回 201，不能以部署 READY 或未登录 401 检查代替完整提交成功。
 
 HEAD 失败日志包含目标 Host、VERCEL_REGION、耗时和错误码，不包含密钥、Authorization 或投稿文案，用于区分实际执行地域和网络失败阶段。
 
-若发布平台不支持逐接口地域或部署失败，不改变当前生产别名；按实际构建错误调整方案。代码回滚仅需移除两个接口的 preferredRegion，回到根目录的默认地域配置，不删除任何上传对象或投稿。
+若部署失败，不改变当前生产别名。代码回滚只需将 vercel.json 的 regions 改回 sin1；不删除任何上传对象或投稿，不回滚 MOV 兼容、完成状态机或上传结果复用。
 
 参考：[Next.js 15 Route Segment Config](https://nextjs.org/docs/15/app/api-reference/file-conventions/route-segment-config)、[Vercel 请求地域标识](https://vercel.com/docs/headers/request-headers)。

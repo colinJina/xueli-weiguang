@@ -14,8 +14,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-// Keep storage operations in the same region as native submission completion.
-export const preferredRegion = "iad1";
 
 type UploadSignatureRequestBody = {
   videoMimeType?: unknown;
