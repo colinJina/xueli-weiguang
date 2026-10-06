@@ -25,9 +25,23 @@ function successfulHead() {
   });
 }
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 
 describe("COS object verification", () => {
+  it("logs the function region and connection code without credentials", async () => {
+    vi.stubEnv("VERCEL_REGION", "sin1");
+    const error = new TypeError("fetch failed", { cause: { code: "UND_ERR_CONNECT_TIMEOUT" } });
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(error);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(headCosObject(config, key)).rejects.toBe(error);
+    expect(warn).toHaveBeenCalledWith("COS object HEAD failed", {
+      host: "test-1234567890.cos.ap-shanghai.myqcloud.com",
+      executionRegion: "sin1", elapsedMs: expect.any(Number), code: "UND_ERR_CONNECT_TIMEOUT",
+    });
+    expect(JSON.stringify(warn.mock.calls)).not.toContain(config.secretId);
+    expect(JSON.stringify(warn.mock.calls)).not.toContain(config.secretKey);
+  });
+
   it("checks the original object using a short-lived signed HEAD without cache or redirects", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(successfulHead());
     const authorization = vi.spyOn(COS, "getAuthorization");

@@ -38,6 +38,20 @@ function normalizeMimeType(value: string | null) {
   return value?.split(";")[0]?.trim().toLowerCase() || null;
 }
 
+function getRequestErrorCode(error: unknown): string {
+  if (error instanceof CosObjectRequestError) {
+    return `HTTP_${error.status}`;
+  }
+  const cause = error instanceof Error ? error.cause : null;
+  if (cause && typeof cause === "object" && "code" in cause && typeof cause.code === "string") {
+    return cause.code;
+  }
+  if (error && typeof error === "object" && "code" in error && typeof error.code === "string") {
+    return error.code;
+  }
+  return error instanceof Error ? error.name : "UNKNOWN";
+}
+
 function isCosNotFoundError(error: unknown) {
   if (!error || typeof error !== "object") {
     return false;
@@ -69,6 +83,7 @@ export async function headCosObject(
       Expires: 60,
     });
 
+    const startedAt = Date.now();
     try {
       const response = await fetch(`https://${host}/${path}`, {
         method: "HEAD",
@@ -93,6 +108,12 @@ export async function headCosObject(
         etag: response.headers.get("etag"),
       };
     } catch (error) {
+      console.warn("COS object HEAD failed", {
+        host,
+        executionRegion: process.env.VERCEL_REGION ?? null,
+        elapsedMs: Date.now() - startedAt,
+        code: getRequestErrorCode(error),
+      });
       if (
         error instanceof CosObjectNotFoundError ||
         (error instanceof CosObjectRequestError && error.status < 500)
