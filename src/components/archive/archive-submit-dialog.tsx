@@ -30,11 +30,12 @@ import { TextField } from "@/components/ui/text-field";
 import { ADMIN_REQUIRED_MESSAGE } from "@/lib/auth/admin";
 import { cn } from "@/lib/utils";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
-import { getNativeVideoMimeType } from "@/lib/storage/native-video-file";
+import { inspectNativeVideoFile } from "@/lib/storage/native-video-file";
 import {
   ALLOWED_COVER_MIME_TYPES,
   NATIVE_COVER_MAX_BYTES,
   NATIVE_VIDEO_MAX_BYTES,
+  type NativeVideoMimeType,
 } from "@/lib/storage/types";
 import {
   NATIVE_PENDING_SUBMISSION_LIMIT,
@@ -328,7 +329,33 @@ export function ArchiveSubmitDialog({
     };
   }, [coverPreviewUrl]);
 
-  const videoMimeType = videoFile ? getNativeVideoMimeType(videoFile) : null;
+  const [videoInspection, setVideoInspection] = useState<{
+    file: File;
+    mimeType: NativeVideoMimeType | null;
+    error: boolean;
+  } | null>(null);
+  useEffect(() => {
+    if (!videoFile) {
+      setVideoInspection(null);
+      return;
+    }
+    let cancelled = false;
+    void inspectNativeVideoFile(videoFile).then(
+      (mimeType) => {
+        if (!cancelled) {
+          setVideoInspection({ file: videoFile, mimeType, error: false });
+        }
+      },
+      () => {
+        if (!cancelled) {
+          setVideoInspection({ file: videoFile, mimeType: null, error: true });
+        }
+      },
+    );
+    return () => { cancelled = true; };
+  }, [videoFile]);
+  const currentVideoInspection = videoInspection?.file === videoFile ? videoInspection : null;
+  const videoMimeType = currentVideoInspection?.mimeType ?? null;
 
   const nativeDisabledReason = useMemo(() => {
     if (!allowNativeUpload) {
@@ -357,16 +384,22 @@ export function ArchiveSubmitDialog({
       return "请先选择 PV 文件";
     }
 
-    if (!videoMimeType) {
-      return "PV 仅支持 MP4/WebM，请先转换格式后再上传";
-    }
-
     if (videoFile.size <= 0) {
       return "PV 文件不能为空";
     }
 
     if (videoFile.size > NATIVE_VIDEO_MAX_BYTES) {
       return "PV 文件不能超过 50MB";
+    }
+
+    if (!currentVideoInspection) {
+      return "正在识别 PV 格式";
+    }
+    if (currentVideoInspection.error) {
+      return "无法读取 PV 文件，请重新选择";
+    }
+    if (!videoMimeType) {
+      return "PV 仅支持 MP4/WebM/MOV，请选择支持的格式";
     }
 
     if (!coverFile) {
@@ -386,7 +419,7 @@ export function ArchiveSubmitDialog({
     }
 
     return "";
-  }, [allowNativeUpload, coverFile, description, status, title, videoFile, videoMimeType]);
+  }, [allowNativeUpload, coverFile, currentVideoInspection, description, status, title, videoFile, videoMimeType]);
 
   if (!open) {
     return null;
@@ -798,10 +831,10 @@ export function ArchiveSubmitDialog({
                 </div>
 
                 <FileDropZone
-                  accept=".mp4,.webm,video/mp4,video/webm"
+                  accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime"
                   disabled={isSubmitting}
                   file={videoFile}
-                  helper="拖入或点击选择，MP4/WebM，最大 50MB"
+                  helper="拖入或点击选择，MP4/WebM/MOV，最大 50MB"
                   icon={<VideoIcon />}
                   inputRef={videoInputRef}
                   label="PV 文件"

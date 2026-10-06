@@ -4,6 +4,11 @@ import { getNativeVideoMimeType } from "@/lib/storage/native-video-file";
 
 describe("native PV file format compatibility", () => {
   it.each([
+    ["PV.MOV", "video/quicktime", "video/quicktime"],
+    ["pv.mov", "", "video/quicktime"],
+    ["pv.mov", "video/mp4", "video/quicktime"],
+    ["IMG_2566.MP4", "video/quicktime", "video/quicktime"],
+    ["pv.mov", "video/x-quicktime", "video/quicktime"],
     ["PV.MP4", "", "video/mp4"],
     ["PV.MP4", "application/octet-stream", "video/mp4"],
     ["pv.mp4", "video/x-mp4", "video/mp4"],
@@ -19,10 +24,8 @@ describe("native PV file format compatibility", () => {
   });
 
   it.each([
-    ["pv.MOV", "video/quicktime"],
-    ["pv.mov", "video/mp4"],
     ["pv.avi", "video/x-msvideo"],
-    ["pv.mp4", "video/quicktime"],
+    ["pv.mov", "video/webm"],
     ["pv.mp4", "text/plain"],
     ["pv.mp4", "video/webm"],
     ["pv.webm", "video/mp4"],
@@ -31,4 +34,10 @@ describe("native PV file format compatibility", () => {
   ])("rejects unsupported or conflicting %s with type %s", (name, type) => {
     expect(getNativeVideoMimeType({ name, type })).toBeNull();
   });
+});
+
+// The first 20 bytes of IMG_2566.MP4, without any personal metadata.
+const quickTimeHeader = new Uint8Array([0,0,0,20,102,116,121,112,113,116,32,32,0,0,0,0,113,116,32,32]).buffer;
+it.each(["video/mp4", "video/quicktime", "", "application/octet-stream"])("identifies identical QuickTime bytes regardless of browser label %s", (type) => {
+  expect(getNativeVideoMimeType({name: "IMG_2566.MP4", type}, quickTimeHeader)).toBe("video/quicktime");
 });
