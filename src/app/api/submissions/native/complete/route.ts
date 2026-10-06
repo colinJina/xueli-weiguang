@@ -14,6 +14,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
+// Preserve the region used by the previously working COS submission flow.
+export const preferredRegion = "iad1";
 
 type CompleteNativeSubmissionRequestBody = {
   submissionId?: unknown;
