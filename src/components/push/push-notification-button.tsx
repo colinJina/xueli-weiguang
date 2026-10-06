@@ -20,7 +20,7 @@ export function PushNotificationButton({ className }: { className?: string }) {
   }
 
   const isDisabled = !isReady || isBusy || permission === "unsupported";
-  const label = isSubscribed ? "管理新作品通知" : "开启新作品通知";
+  const label = isSubscribed ? "管理新 PV 通知" : "开启新 PV 通知";
 
   return (
     <IconButton

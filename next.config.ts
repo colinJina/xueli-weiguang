@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
+import { getCosCoverImagePatterns } from "./src/lib/storage/cos/image-patterns";
+
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_BROWSER_TEST === "1" ? ".next-browser" : ".next",
   reactStrictMode: true,
   async headers() {
     return [
@@ -37,6 +40,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      ...getCosCoverImagePatterns({
+        COS_CDN_DOMAIN: process.env.COS_CDN_DOMAIN,
+        COS_BUCKET: process.env.COS_BUCKET,
+        COS_REGION: process.env.COS_REGION,
+      }),
       {
         hostname: "**.hdslb.com",
         protocol: "https",

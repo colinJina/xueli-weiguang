@@ -1,29 +1,37 @@
-import * as React from "react";
+"use client";
+
+import type { ComponentProps } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "radix-ui";
 
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center border font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 border font-semibold transition duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
+        unstyled: "border-0 bg-transparent p-0 font-normal",
+        link: "rounded-sm border-0 bg-transparent p-0 font-normal text-inherit underline-offset-2 hover:text-foreground hover:underline",
+        sidebar:
+          "justify-start gap-4 rounded-lg border-transparent bg-transparent text-muted-foreground hover:bg-white/[0.035] hover:text-foreground aria-pressed:border-white/10 aria-pressed:bg-white/[0.07] aria-pressed:text-foreground",
         primary:
-          "rounded-md border-transparent bg-reverse text-black-soft  hover:bg-white",
+          "rounded-md border-transparent bg-primary text-primary-foreground hover:bg-white",
         secondary:
           "rounded-md border-border bg-surface text-foreground hover:border-borderStrong hover:bg-panelHover",
         ghost:
-          "rounded-md border-transparent bg-transparent text-muted hover:text-foreground",
+          "rounded-md border-transparent bg-transparent text-muted-foreground hover:text-foreground",
         pill: "rounded-full border-border bg-surface text-muted hover:border-borderStrong hover:bg-panelHover hover:text-foreground",
         pillActive:
           "rounded-full border-white/15 bg-reverse text-black-soft hover:bg-white",
       },
       size: {
-        default: "min-h-11 px-5 py-3 text-sm",
+        default: "min-h-11 px-5 py-2 text-sm",
         sm: "min-h-9 px-3.5 py-2 text-xs",
         md: "min-h-10 px-4 py-2 text-sm",
         lg: "min-h-12 px-6 py-3.5 text-base",
         hero: "min-h-14 px-8 py-3 text-[1.35rem] tracking-[-0.03em]",
+        icon: "h-11 w-11 p-0",
       },
     },
     defaultVariants: {
@@ -34,22 +42,25 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+  extends ComponentProps<"button">, VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
-    return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    );
-  },
-);
-
-Button.displayName = "Button";
+function Button({
+  asChild = false,
+  className,
+  variant,
+  size,
+  ...props
+}: ButtonProps) {
+  const Component = asChild ? Slot.Root : "button";
+  return (
+    <Component
+      className={cn(buttonVariants({ variant, size, className }))}
+      data-slot="button"
+      {...props}
+    />
+  );
+}
 
 export { Button, buttonVariants };

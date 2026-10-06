@@ -125,7 +125,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   if (!isVideoId(id)) {
     return interactionError(
       "VALIDATION_FAILED",
-      "视频标识无效，请刷新后再试。",
+      "PV 标识无效，请刷新后再试",
       400,
     );
   }
@@ -141,7 +141,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     console.error("Failed to load video before recording view", videoError);
     return interactionError(
       "METRICS_UNAVAILABLE",
-      "播放数据暂时无法记录，请稍后再试。",
+      "播放数据暂时无法记录，请稍后再试",
       503,
     );
   }
@@ -149,13 +149,13 @@ export async function POST(request: Request, { params }: RouteContext) {
   const videoRow = video as VideoRow | null;
 
   if (!videoRow || !videoRow.published_at) {
-    return interactionError("VIDEO_NOT_FOUND", "视频不存在或尚未公开。", 404);
+    return interactionError("VIDEO_NOT_FOUND", "PV 不存在或尚未公开", 404);
   }
 
   if (videoRow.storage_provider !== "cos") {
     return interactionError(
       "INTERACTION_UNAVAILABLE",
-      "该视频暂不支持站内播放统计。",
+      "该 PV 暂不支持站内播放统计",
       409,
     );
   }
@@ -170,7 +170,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     console.error("Failed to create video view bucket hash", error);
     return interactionError(
       "METRICS_UNAVAILABLE",
-      "播放数据暂时无法记录，请稍后再试。",
+      "播放数据暂时无法记录，请稍后再试",
       503,
     );
   }
@@ -188,7 +188,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     console.error("Failed to record video view", error);
     return interactionError(
       "METRICS_UNAVAILABLE",
-      "播放数据暂时无法记录，请稍后再试。",
+      "播放数据暂时无法记录，请稍后再试",
       503,
     );
   }

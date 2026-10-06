@@ -21,25 +21,17 @@ import { useAuth } from "@/lib/auth/use-auth";
 import type { HomeHeroFeature, HomeSiteStatItem } from "@/lib/home/types";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
 
-type HomeNavigationItem = {
-  href: string;
-  icon: "explore" | "library" | "profile";
-  label: string;
-};
-
 type HomePageShellProps = {
   dataUnavailable?: boolean;
   featuredItems: ArchiveVideoItem[];
   hero: HomeHeroFeature | null;
   metaItems: readonly HomeSiteStatItem[];
-  navigation: readonly HomeNavigationItem[];
 };
 
 export function HomePageShell({
   dataUnavailable = false,
   featuredItems,
   hero,
-  navigation,
   metaItems,
 }: HomePageShellProps) {
   const [showIntro, setShowIntro] = useState(homeIntroInitialState.showIntro);
@@ -98,11 +90,9 @@ export function HomePageShell({
   }
 
   return (
-    <div className="bg-[#090909] pb-12 sm:pb-16 lg:pb-20">
+    <div className="bg-background pb-12 sm:pb-16 lg:pb-20">
       <HomeIntroLoader visible={showIntro} />
       <HomeHeader
-        motionReady={motionReady}
-        navigation={navigation}
         onLoginClick={openLogin}
         onLogout={logout}
         onRegisterClick={openRegister}
@@ -113,7 +103,7 @@ export function HomePageShell({
       <main>
         <HomeHero hero={hero} />
         <HomeMetaStrip items={metaItems} motionReady={motionReady} />
-        <div className="mx-auto w-full max-w-[1520px] px-4 pt-12 sm:px-6 sm:pt-10 lg:px-6 xl:px-8">
+        <div className="mx-auto w-full max-w-content px-4 pt-12 sm:px-6 sm:pt-10 lg:px-8 xl:px-8">
           <HomeFeaturedGrid
             dataUnavailable={dataUnavailable}
             items={featuredItems}

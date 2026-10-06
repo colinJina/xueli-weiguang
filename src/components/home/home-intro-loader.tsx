@@ -14,11 +14,11 @@ export function HomeIntroLoader({ visible }: HomeIntroLoaderProps) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[80] grid place-items-center bg-[#090909]" 
+          className="fixed inset-0 z-[80] grid place-items-center bg-background"
           initial={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            y: "-100%", 
+            y: "-100%",
             transition: { duration: 1.2, ease: homeEase },
           }}
         >
@@ -40,7 +40,7 @@ export function HomeIntroLoader({ visible }: HomeIntroLoaderProps) {
                 hidden: {},
                 visible: {
                   transition: { staggerChildren: 0.18, delayChildren: 1.35 },
-                }, 
+                },
               }}
             >
               {titleText.map((char, index) => (
@@ -60,29 +60,6 @@ export function HomeIntroLoader({ visible }: HomeIntroLoaderProps) {
                   {char}
                 </motion.span>
               ))}
-            </motion.div>
-
-            <motion.div className="flex items-center justify-center gap-3 overflow-hidden text-[#8b8e97] sm:gap-4">
-              <motion.span
-                className="h-px w-7 bg-white/20 sm:w-10"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 1, ease: homeEase, delay: 2.25 }}
-              />
-              <motion.span
-                className="font-sans text-[0.68rem] tracking-[0.2em] text-[#8b8e97] sm:text-[0.75rem] sm:tracking-[0.3em]"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.75, ease: homeEase, delay: 2.45 }}
-              >
-                PV WORKS ARCHIVE
-              </motion.span>
-              <motion.span
-                className="h-px w-7 bg-white/20 sm:w-10"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 1, ease: homeEase, delay: 2.25 }}
-              />
             </motion.div>
           </div>
         </motion.div>

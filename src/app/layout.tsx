@@ -7,7 +7,7 @@ import "./globals.css";
 import "react-image-crop/dist/ReactCrop.css";
 export const metadata: Metadata = {
   title: "雪笠微光",
-  description: "雪笠微光",
+  description: "收藏与浏览 PV",
 };
 
 export default function RootLayout({

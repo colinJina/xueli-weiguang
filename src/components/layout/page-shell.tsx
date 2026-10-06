@@ -19,7 +19,7 @@ export function PageShell({
 }: PageShellProps) {
   return (
     <section className={cn("page-container py-12 sm:py-16", className)}>
-      <div className="mb-10 space-y-4 border-b border-white/8 pb-8">
+      <div className="mb-10 space-y-4 border-b border-white/[0.08] pb-8">
         <p className="eyebrow">{eyebrow}</p>
         <h1 className="font-sans text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
           {title}

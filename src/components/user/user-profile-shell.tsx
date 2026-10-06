@@ -1,42 +1,59 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ArchiveSubmitDialog } from "@/components/archive/archive-submit-dialog";
+import { AccountActions } from "@/components/auth/account-actions";
+import { SourceBadge } from "@/components/video/source-badge";
+import { Chip } from "@/components/ui/chip";
+import { StatePanel } from "@/components/ui/state-panel";
+import FilterIcon from "@/components/icons/shared/filter.svg";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { FixedBackButton } from "@/components/layout/fixed-back-button";
 import {
   FavoriteEditorDialog,
   type FavoriteEditorVideo,
 } from "@/components/user/favorite-editor-dialog";
+import { ArchiveItemMenu } from "@/components/user/archive-item-menu";
+import { CreateCollectionForm } from "@/components/user/create-collection-form";
+import { CompactCollectionMenu } from "@/components/user/compact-collection-menu";
+import { FavoriteSelectionDialog } from "@/components/user/favorite-selection-dialog";
+import { TextField } from "@/components/ui/text-field";
 import { UserTagManagerDialog } from "@/components/user/user-tag-manager-dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { chipVariants } from "@/components/ui/chip";
-import { FormMessage } from "@/components/ui/form-message";
+import { FilterButton } from "@/components/ui/filter-button";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { IconButton } from "@/components/ui/icon-button";
-import BilibiliSourceIcon from "@/components/icons/source/bilibili.svg";
-import GenericSourceIcon from "@/components/icons/source/generic-play.svg";
-import YoutubeSourceIcon from "@/components/icons/source/youtube.svg";
-import AlertIcon from "@/components/icons/shared/alert-circle.svg";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import EditIcon from "@/components/icons/shared/edit-16.svg";
 import ClearFilterIcon from "@/components/icons/user/clear-filter.svg";
-import CloseIcon from "@/components/icons/user/close.svg";
+import CloseIcon from "@/components/icons/shared/close-16.svg";
 import FolderActiveSvgIcon from "@/components/icons/user/folder-active.svg";
 import FolderSvgIcon from "@/components/icons/user/folder.svg";
 import GridIcon from "@/components/icons/user/grid.svg";
-import HeartIcon from "@/components/icons/user/heart.svg";
-import UserArchiveIcon from "@/components/icons/user/empty-archive.svg";
+import HeartIcon from "@/components/icons/shared/heart.svg";
 import UserChevronLeftIcon from "@/components/icons/user/chevron-left.svg";
 import UserChevronRightIcon from "@/components/icons/user/chevron-right.svg";
 import EyeIcon from "@/components/icons/user/eye.svg";
 import ListIcon from "@/components/icons/user/list.svg";
-import PlusIcon from "@/components/icons/user/plus-20.svg";
-import SearchIcon from "@/components/icons/user/search.svg";
+import UserArchiveIcon from "@/components/icons/shared/empty.svg";
+import SearchIcon from "@/components/icons/shared/search.svg";
 import { useAuth } from "@/lib/auth/use-auth";
-import { requestUserArchiveMutation } from "@/lib/user-archive/client-api";
-import { COLLECTION_NAME_MAX_LENGTH } from "@/lib/user-archive/limits";
 import type {
   UserArchiveItem,
   UserArchivePageData,
@@ -56,24 +73,9 @@ type EditingTarget = {
   video: FavoriteEditorVideo;
 } | null;
 
-type MutationResult = {
-  id: string;
-};
-
-function getVideoSourceIcon(platform: string | null) {
-  if (platform === "bilibili") {
-    return BilibiliSourceIcon;
-  }
-
-  if (platform === "youtube") {
-    return YoutubeSourceIcon;
-  }
-
-  return GenericSourceIcon;
-}
-
 function SidebarChevronIcon({ direction }: { direction: "left" | "right" }) {
-  const Icon = direction === "left" ? UserChevronLeftIcon : UserChevronRightIcon;
+  const Icon =
+    direction === "left" ? UserChevronLeftIcon : UserChevronRightIcon;
   return <Icon aria-hidden="true" className="h-5 w-5" />;
 }
 
@@ -111,6 +113,7 @@ function createVideoSummary(item: UserArchiveItem): FavoriteEditorVideo {
 }
 
 function writeTagIdsParam(params: URLSearchParams, tagIds: readonly string[]) {
+  params.delete("tags");
   if (tagIds.length > 0) {
     params.set("tagIds", tagIds.join(","));
     return;
@@ -120,6 +123,7 @@ function writeTagIdsParam(params: URLSearchParams, tagIds: readonly string[]) {
 }
 
 function writeTagQueryParam(params: URLSearchParams, tagQuery: string) {
+  params.delete("q");
   const normalizedQuery = tagQuery.trim();
 
   if (normalizedQuery) {
@@ -140,6 +144,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     isReady,
     isAuthenticated,
     isAdmin,
+    logout,
     dialogMode,
     openLogin,
     openRegister,
@@ -147,40 +152,30 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     switchMode,
   } = useAuth();
   const [draftTagQuery, setDraftTagQuery] = useState(data.filters.tagQuery);
+  const [draftKeyword, setDraftKeyword] = useState(data.filters.keyword);
+  const [favoriteTarget, setFavoriteTarget] =
+    useState<FavoriteEditorVideo | null>(null);
   const [editingTarget, setEditingTarget] = useState<EditingTarget>(null);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [continueToSubmit, setContinueToSubmit] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const uploadAfterSidebarClose = useRef(false);
+  const desktopSidebar = useMediaQuery("(min-width: 1024px)");
   const canSubmit = data.isAuthenticated || (isReady && isAuthenticated);
   const allowNativeUpload = data.isAdmin || isAdmin;
 
   useEffect(() => {
     setDraftTagQuery(data.filters.tagQuery);
-  }, [data.filters.tagQuery]);
+    setDraftKeyword(data.filters.keyword);
+  }, [data.filters.tagQuery, data.filters.keyword]);
 
   useEffect(() => {
-    if (!mobileSidebarOpen) {
-      return;
+    if (desktopSidebar) {
+      setMobileSidebarOpen(false);
     }
-
-    const previousOverflow = document.body.style.overflow;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMobileSidebarOpen(false);
-      }
-    }
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [mobileSidebarOpen]);
+  }, [desktopSidebar]);
 
   const replaceParams = useCallback(
     (mutator: (params: URLSearchParams) => void) => {
@@ -206,6 +201,8 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
       }
       params.delete("tagIds");
       params.delete("tagQuery");
+      params.delete("tags");
+      params.delete("q");
     });
     setDraftTagQuery("");
   }
@@ -236,11 +233,25 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
 
   function clearFilters() {
     replaceParams((params) => {
-      params.delete("collectionId");
       params.delete("tagIds");
       params.delete("tagQuery");
+      params.delete("q");
+      params.delete("tags");
+      params.delete("keyword");
     });
     setDraftTagQuery("");
+    setDraftKeyword("");
+  }
+
+  function submitKeywordSearch() {
+    replaceParams((params) => {
+      const keyword = draftKeyword.trim();
+      if (keyword) {
+        params.set("keyword", keyword);
+      } else {
+        params.delete("keyword");
+      }
+    });
   }
 
   function submitTagSearch() {
@@ -249,6 +260,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
     if (!query) {
       replaceParams((params) => {
         params.delete("tagQuery");
+        params.delete("q");
       });
       return;
     }
@@ -277,6 +289,7 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
 
       writeTagIdsParam(params, nextTagIds);
       params.delete("tagQuery");
+      params.delete("q");
     });
   }
 
@@ -317,14 +330,18 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
   }
 
   function handleMobileUploadClick() {
+    uploadAfterSidebarClose.current = true;
     setMobileSidebarOpen(false);
-    handleUploadClick();
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <FixedBackButton
-        className={cn(sidebarCollapsed ? "lg:left-[96px] top-[50px]" : "lg:left-[316px] top-[50px]")}
+        className={cn(
+          sidebarCollapsed
+            ? "lg:left-[96px] top-[50px]"
+            : "lg:left-[316px] top-[50px]",
+        )}
         fallbackHref="/archive"
       />
 
@@ -351,69 +368,86 @@ export function UserProfileShell({ data }: UserProfileShellProps) {
         )}
       >
         <main className="px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pt-10">
-          <div className="mb-5 flex items-center lg:hidden">
-            <Button
-              aria-controls="user-profile-mobile-sidebar"
-              aria-expanded={mobileSidebarOpen}
-              className="gap-2"
-              onClick={() => setMobileSidebarOpen(true)}
-              size="sm"
-              type="button"
-              variant="secondary"
+          <Sheet
+            open={mobileSidebarOpen && !desktopSidebar}
+            onOpenChange={setMobileSidebarOpen}
+          >
+            <div className="mb-5 flex items-center pl-14 lg:hidden">
+              <SheetTrigger asChild>
+                <Button
+                  aria-controls="user-profile-mobile-sidebar"
+                  aria-expanded={mobileSidebarOpen}
+                  className="gap-2"
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  <ListIcon />
+                  收藏夹
+                </Button>
+              </SheetTrigger>
+            </div>
+            <SheetContent
+              className="px-4 py-5"
+              id="user-profile-mobile-sidebar"
+              side="left"
+              onCloseAutoFocus={() => {
+                if (uploadAfterSidebarClose.current) {
+                  uploadAfterSidebarClose.current = false;
+                  // Let Radix restore the sheet trigger before opening the next dialog.
+                  queueMicrotask(handleUploadClick);
+                }
+              }}
             >
-              <ListIcon />
-              收藏夹
-            </Button>
-          </div>
+              <SheetTitle className="sr-only">收藏夹菜单</SheetTitle>
+              <SheetDescription className="sr-only">
+                选择收藏夹，或投稿 PV
+              </SheetDescription>
+              <SidebarContent
+                data={data}
+                onCollectionSelect={handleMobileCollectionSelect}
+                onRequestClose={() => setMobileSidebarOpen(false)}
+                onUploadClick={handleMobileUploadClick}
+                onUserCollectionCreated={refreshAfterMutation}
+              />
+            </SheetContent>
+          </Sheet>
           <FilterRow
             data={data}
+            draftKeyword={draftKeyword}
+            onKeywordChange={setDraftKeyword}
+            onKeywordSubmit={submitKeywordSearch}
             draftTagQuery={draftTagQuery}
             isPending={isPending}
             onClear={clearFilters}
-            onLoginClick={openLogin}
             onManageTags={() => setTagManagerOpen(true)}
-            onRegisterClick={openRegister}
+            accountActions={<AccountActions user={user} onLoginClick={openLogin} onRegisterClick={openRegister} onLogout={logout} />}
             onSearchChange={setDraftTagQuery}
             onSearchKeyDown={handleSearchKeyDown}
             onSearchSubmit={submitTagSearch}
             onTagToggle={toggleTag}
             onViewChange={setView}
           />
-          <CardGrid data={data} onEditItem={openEditor} />
+          <CardGrid
+            data={data}
+            onAdjustItem={(item) => setFavoriteTarget(createVideoSummary(item))}
+            onEditItem={openEditor}
+          />
         </main>
       </div>
 
-      {mobileSidebarOpen ? (
-        <div
-          aria-label="收藏夹菜单"
-          aria-modal="true"
-          className="fixed inset-0 z-50 lg:hidden"
-          role="dialog"
-        >
-          <button
-            aria-label="关闭收藏夹菜单"
-            className="absolute inset-0 bg-black/65"
-            onClick={() => setMobileSidebarOpen(false)}
-            type="button"
-          />
-          <aside
-            className="relative z-10 flex h-full w-[min(88vw,320px)] flex-col border-r border-border bg-panel px-4 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.28)]"
-            id="user-profile-mobile-sidebar"
-          >
-            <SidebarContent
-              data={data}
-              onCollectionSelect={handleMobileCollectionSelect}
-              onRequestClose={() => setMobileSidebarOpen(false)}
-              onUploadClick={handleMobileUploadClick}
-              onUserCollectionCreated={refreshAfterMutation}
-            />
-          </aside>
-        </div>
+      {favoriteTarget ? (
+        <FavoriteSelectionDialog
+          onClose={() => setFavoriteTarget(null)}
+          onCollectionCreated={refreshAfterMutation}
+          onSaved={refreshAfterMutation}
+          open
+          video={favoriteTarget}
+        />
       ) : null}
 
       {editingTarget ? (
         <FavoriteEditorDialog
-          collections={data.collections}
           initialCollectionId={editingTarget.initialCollectionId}
           memberships={editingTarget.memberships}
           onChanged={refreshAfterMutation}
@@ -491,52 +525,34 @@ function SidebarContent({
 
         <CompactProfileSummary data={data} />
 
-        <IconButton
-          aria-label="推荐投稿"
-          className="mt-5"
-          onClick={onUploadClick}
-          size="lg"
-          variant="surface"
-        >
-          <PlusIcon />
-        </IconButton>
+        <ArchiveSubmitTrigger className="mt-5" iconOnly isAuthenticated={data.isAuthenticated} onRequestLogin={onUploadClick} onRequestSubmit={onUploadClick} />
 
         <nav className="mt-5 flex min-h-0 w-full flex-1 flex-col items-center gap-3">
-          <IconButton
-            aria-label={`全部视频，${data.allItemCount} 条`}
-            aria-pressed={data.activeCollection.isAll}
-            className={cn(
-              data.activeCollection.isAll &&
-                "border-white/10 bg-white/[0.08] text-foreground",
-            )}
-            onClick={() => onCollectionSelect(null)}
-            size="lg"
-            variant="ghost"
-          >
-            <GridIcon />
-          </IconButton>
-
-          <div className="min-h-0 w-full flex-1 overflow-y-auto px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <div className="space-y-2">
-              {data.collections.map((collection) => (
-                <IconButton
-                  aria-label={`${collection.name}，${collection.itemCount} 条收藏`}
-                  aria-pressed={collection.active}
-                  className={cn(
-                    "w-full",
-                    collection.active &&
-                      "border-white/10 bg-white/[0.08] text-foreground",
-                  )}
-                  key={collection.id}
-                  onClick={() => onCollectionSelect(collection.id)}
-                  size="lg"
-                  variant="ghost"
-                >
-                  <FolderIcon active={collection.active} />
-                </IconButton>
-              ))}
-            </div>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                aria-label={`全部收藏，${data.allItemCount} 个 PV`}
+                aria-pressed={data.activeCollection.isAll}
+                className={cn(
+                  data.activeCollection.isAll &&
+                    "border-white/10 bg-white/[0.08] text-foreground",
+                )}
+                onClick={() => onCollectionSelect(null)}
+                size="lg"
+                variant="ghost"
+              >
+                <GridIcon />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              全部收藏 · {data.allItemCount} 个 PV
+            </TooltipContent>
+          </Tooltip>
+          <CompactCollectionMenu
+            activeCollection={data.activeCollection}
+            collections={data.collections}
+            onCollectionSelect={onCollectionSelect}
+          />
         </nav>
       </div>
     );
@@ -573,21 +589,18 @@ function SidebarContent({
         onRequestSubmit={onUploadClick}
       />
       <nav className="mt-8 flex min-h-0 flex-1 flex-col gap-5">
-        <button
+        <Button
+          size="md"
+          variant="sidebar"
           aria-pressed={data.activeCollection.isAll}
-          className={cn(
-            "flex w-full items-center gap-4 rounded-lg border px-5 py-3 text-left text-base font-medium",
-            data.activeCollection.isAll
-              ? "border-white/10 bg-white/[0.07] text-foreground"
-              : "border-transparent text-muted hover:bg-white/[0.035] hover:text-foreground",
-          )}
+          className="w-full px-5 py-3 text-left text-base font-medium"
           onClick={() => onCollectionSelect(null)}
           type="button"
         >
           <GridIcon />
-          <span className="min-w-0 flex-1 truncate">全部视频</span>
+          <span className="min-w-0 flex-1 truncate">全部收藏</span>
           <span className="text-xs text-subtle">{data.allItemCount}</span>
-        </button>
+        </Button>
 
         <div className="flex min-h-0 flex-1 flex-col">
           <p className="px-3 font-sans text-xs uppercase tracking-[0.18em] text-subtle">
@@ -595,14 +608,11 @@ function SidebarContent({
           </p>
           <div className="mt-4 min-h-[140px] flex-1 space-y-2 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {data.collections.map((collection) => (
-              <button
+              <Button
+                size="md"
+                variant="sidebar"
                 aria-pressed={collection.active}
-                className={cn(
-                  "flex w-full items-center gap-4 rounded-lg border px-4 py-3 text-left text-base font-semibold transition",
-                  collection.active
-                    ? "border-white/10 bg-white/[0.07] text-foreground"
-                    : "border-transparent text-muted hover:bg-white/[0.035] hover:text-foreground",
-                )}
+                className="w-full px-4 py-3 text-left text-base"
                 key={collection.id}
                 onClick={() => onCollectionSelect(collection.id)}
                 type="button"
@@ -614,13 +624,11 @@ function SidebarContent({
                 <span className="text-xs text-subtle">
                   {collection.itemCount}
                 </span>
-              </button>
+              </Button>
             ))}
 
             {data.collections.length === 0 ? (
-              <p className="px-3 py-3 text-sm leading-6 text-muted">
-                还没有收藏夹。
-              </p>
+              <StatePanel compact title="还没有收藏夹" />
             ) : null}
           </div>
         </div>
@@ -633,24 +641,23 @@ function SidebarContent({
   );
 }
 
-function CompactProfileSummary({ data }: { data: UserArchivePageData }) {
-  const profile = data.profile;
+function ProfileAvatar({ data }: { data: UserArchivePageData }) {
+  return (
+    <Avatar aria-hidden="true">
+      <AvatarImage
+        alt=""
+        referrerPolicy="no-referrer"
+        src={data.profile?.avatarUrl ?? undefined}
+      />
+      <AvatarFallback>{data.profile?.initial ?? "U"}</AvatarFallback>
+    </Avatar>
+  );
+}
 
+function CompactProfileSummary({ data }: { data: UserArchivePageData }) {
   return (
     <div className="mt-5 flex justify-center">
-      {profile?.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          className="h-11 w-11 rounded-full border border-white/10 object-cover"
-          referrerPolicy="no-referrer"
-          src={profile.avatarUrl}
-        />
-      ) : (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-foreground text-base font-black text-background">
-          {profile?.initial ?? "U"}
-        </span>
-      )}
+      <ProfileAvatar data={data} />
     </div>
   );
 }
@@ -660,22 +667,10 @@ function ProfileSummary({ data }: { data: UserArchivePageData }) {
 
   return (
     <div className="flex items-center gap-4 px-3 mb-4">
-      {profile?.avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          className="h-11 w-11 rounded-full border border-white/10 object-cover"
-          referrerPolicy="no-referrer"
-          src={profile.avatarUrl}
-        />
-      ) : (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-foreground text-base font-black text-background">
-          {profile?.initial ?? "U"}
-        </span>
-      )}
+      <ProfileAvatar data={data} />
       <div className="min-w-0">
         <p className="truncate text-base font-bold text-foreground">
-          {profile?.displayName ?? "未登录档案"}
+          {profile?.displayName ?? "未登录"}
         </p>
         <p className="mt-1 truncate text-sm text-subtle">
           {profile?.headline ?? "登录后管理收藏夹与标签"}
@@ -685,93 +680,17 @@ function ProfileSummary({ data }: { data: UserArchivePageData }) {
   );
 }
 
-function CreateCollectionForm({ onCreated }: { onCreated: () => void }) {
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedName = name.trim();
-
-    if (!trimmedName) {
-      setMessage("请输入收藏夹名称。");
-      return;
-    }
-
-    setSubmitting(true);
-    setMessage(null);
-
-    try {
-      await requestUserArchiveMutation<MutationResult>(
-        "/api/user/collections",
-        {
-          method: "POST",
-          body: JSON.stringify({ name: trimmedName }),
-        },
-        "收藏夹创建失败，请稍后重试。",
-      );
-      setName("");
-      onCreated();
-    } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "收藏夹创建失败，请稍后重试。",
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <form
-      className="space-y-3 rounded-lg border border-white/8 bg-white/[0.025] p-3"
-      onSubmit={handleSubmit}
-    >
-      <label className="block space-y-2">
-        <span className="font-sans text-[11px] uppercase tracking-[0.18em] text-subtle">
-          新建收藏夹
-        </span>
-        <input
-          className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-foreground outline-none transition placeholder:text-subtle focus:border-borderStrong"
-          disabled={submitting}
-          maxLength={COLLECTION_NAME_MAX_LENGTH}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="收藏夹名称"
-          value={name}
-        />
-      </label>
-      {message ? (
-        <FormMessage icon={<AlertIcon />} variant="error">
-          {message}
-        </FormMessage>
-      ) : null}
-      <Button
-        className="w-full gap-2"
-        disabled={submitting}
-        size="sm"
-        type="submit"
-        variant="secondary"
-      >
-        <PlusIcon />
-        新建收藏夹
-      </Button>
-    </form>
-  );
-}
-
 function TopBar({
   className,
   data,
   isPending,
-  onLoginClick,
-  onRegisterClick,
+  accountActions,
   onViewChange,
 }: {
   className?: string;
   data: UserArchivePageData;
   isPending: boolean;
-  onLoginClick: () => void;
-  onRegisterClick: () => void;
+  accountActions: ReactNode;
   onViewChange: (view: UserArchiveView) => void;
 }) {
   return (
@@ -786,21 +705,7 @@ function TopBar({
       </div>
 
       <div className="flex items-center justify-between gap-3 sm:ml-auto">
-        {!data.isAuthenticated ? (
-          <div className="hidden items-center gap-2 sm:flex">
-            <Button
-              onClick={onLoginClick}
-              size="sm"
-              type="button"
-              variant="secondary"
-            >
-              登录
-            </Button>
-            <Button onClick={onRegisterClick} size="sm" type="button">
-              注册
-            </Button>
-          </div>
-        ) : null}
+        {accountActions}
 
         <div
           className={cn(
@@ -840,12 +745,14 @@ function TopBar({
 
 function FilterRow({
   data,
+  draftKeyword,
+  onKeywordChange,
+  onKeywordSubmit,
   draftTagQuery,
   isPending,
   onClear,
-  onLoginClick,
   onManageTags,
-  onRegisterClick,
+  accountActions,
   onSearchChange,
   onSearchKeyDown,
   onSearchSubmit,
@@ -853,123 +760,165 @@ function FilterRow({
   onViewChange,
 }: {
   data: UserArchivePageData;
+  draftKeyword: string;
+  onKeywordChange: (value: string) => void;
+  onKeywordSubmit: () => void;
   draftTagQuery: string;
   isPending: boolean;
   onClear: () => void;
-  onLoginClick: () => void;
   onManageTags: () => void;
-  onRegisterClick: () => void;
+  accountActions: ReactNode;
   onSearchChange: (value: string) => void;
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onSearchSubmit: () => void;
   onTagToggle: (tagId: string) => void;
   onViewChange: (view: UserArchiveView) => void;
 }) {
-  const hasFilters =
-    data.filters.collectionId !== null ||
-    data.filters.tagIds.length > 0 ||
-    data.filters.tagQuery.length > 0;
-  const sortedTags = data.tags
-    .map((tag, index) => ({ index, tag }))
-    .sort((current, next) => {
-      if (current.tag.active !== next.tag.active) {
-        return current.tag.active ? -1 : 1;
-      }
-
-      return current.index - next.index;
-    })
-    .map(({ tag }) => tag);
-
+  const activeTagFilters =
+    data.filters.tagIds.length > 0 || Boolean(data.filters.tagQuery);
+  const [filtersOpen, setFiltersOpen] = useState(activeTagFilters);
+  useEffect(() => {
+    if (activeTagFilters) {
+      setFiltersOpen(true);
+    }
+  }, [activeTagFilters]);
+  const hasFilters = activeTagFilters || Boolean(data.filters.keyword);
   return (
     <section className={cn("mb-7 space-y-4", isPending && "opacity-70")}>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="order-2 flex flex-wrap items-center gap-3 lg:order-1">
-          <button
-            className="flex items-center gap-2 text-sm text-subtle transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-80"
-            disabled={!hasFilters}
-            onClick={onClear}
-            type="button"
-          >
-            <ClearFilterIcon aria-hidden="true" className="h-4 w-4" />
-            <span>清空筛选</span>
-          </button>
-
-          {data.isAuthenticated ? (
-            <Button
-              className="gap-2"
-              onClick={onManageTags}
-              size="sm"
-              type="button"
-              variant="secondary"
-            >
-              <EditIcon />
-              管理标签
-            </Button>
-          ) : null}
-
-          <div className="relative block w-full min-w-[240px] max-w-[350px] sm:w-[350px]">
-            <input
-              className="h-12 w-full rounded-full border border-border bg-white/[0.1] px-5 pr-14 text-base font-semibold text-foreground outline-none transition placeholder:text-muted focus:border-borderStrong focus:bg-white/[0.13]"
-              onChange={(event) => onSearchChange(event.target.value)}
-              onKeyDown={onSearchKeyDown}
-              type="search"
-              value={draftTagQuery}
-            />
-            <IconButton
-              aria-label="提交标签搜索"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground"
-              onClick={onSearchSubmit}
-              size="sm"
-              variant="ghost"
-            >
-              <SearchIcon />
-            </IconButton>
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="lg:pl-12">
+          <h1 className="text-2xl font-black tracking-tight text-foreground">
+            {data.activeCollection.name}
+          </h1>
+          <p className="mt-1 text-sm text-subtle">{data.totalCount} 个 PV</p>
         </div>
-
         <TopBar
-          className="order-1 lg:order-2 lg:ml-auto lg:w-auto"
+          className="lg:w-auto"
           data={data}
           isPending={isPending}
-          onLoginClick={onLoginClick}
-          onRegisterClick={onRegisterClick}
+          accountActions={accountActions}
           onViewChange={onViewChange}
         />
       </div>
-
-      <div className="flex max-h-[104px] min-h-11 min-w-0 flex-wrap items-start gap-2 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {sortedTags.map((tag) => (
-          <button
-            className={chipVariants({
-              size: "sm",
-              variant: tag.active ? "selected" : "default",
-            })}
-            key={tag.id}
-            onClick={() => onTagToggle(tag.id)}
+      <div className="flex flex-wrap items-end gap-3">
+        <form
+          className="flex min-w-0 flex-1 items-end gap-2 sm:max-w-md"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onKeywordSubmit();
+          }}
+        >
+          <TextField
+            className="h-10"
+            label="搜索收藏的 PV"
+            labelClassName="sr-only"
+            maxLength={80}
+            onChange={(event) => onKeywordChange(event.target.value)}
+            placeholder="输入 PV 标题"
+            type="search"
+            value={draftKeyword}
+            wrapperClassName="min-w-0 flex-1"
+          />
+          <IconButton aria-label="搜索 PV 标题" type="submit" variant="surface">
+            <SearchIcon aria-hidden="true" />
+          </IconButton>
+        </form>
+        <Button
+          aria-controls="user-archive-tag-filters"
+          aria-expanded={filtersOpen}
+          className="gap-2"
+          onClick={() => setFiltersOpen((value) => !value)}
+          size="sm"
+          type="button"
+          variant="secondary"
+        >
+          <FilterIcon aria-hidden="true" className="h-4 w-4" />
+          筛选
+          {data.filters.tagIds.length > 0
+            ? " (" + data.filters.tagIds.length + ")"
+            : ""}
+        </Button>
+        {hasFilters ? (
+          <Button
+            className="gap-2"
+            onClick={onClear}
+            size="sm"
             type="button"
+            variant="ghost"
           >
-            <span>{tag.name}</span>
-            <span className="font-sans text-[0.68rem] opacity-70">
-              {tag.itemCount}
-            </span>
-          </button>
-        ))}
-
-          {data.tags.length === 0 ? (
-            <span className="rounded-full border border-white/10 px-4 py-2 text-sm text-subtle">
-              当前收藏夹暂无可筛选标签
-            </span>
-          ) : null}
+            <ClearFilterIcon aria-hidden="true" className="h-4 w-4" />
+            清除筛选
+          </Button>
+        ) : null}
       </div>
+      {filtersOpen ? (
+        <div
+          className="space-y-4 rounded-lg border border-border bg-panel p-4"
+          id="user-archive-tag-filters"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex items-end gap-2">
+              <TextField
+                className="h-10"
+                label="查找个人标签"
+                maxLength={80}
+                onChange={(event) => onSearchChange(event.target.value)}
+                onKeyDown={onSearchKeyDown}
+                placeholder="例如：构图"
+                type="search"
+                value={draftTagQuery}
+              />
+              <IconButton
+                aria-label="查找标签"
+                onClick={onSearchSubmit}
+                type="button"
+                variant="surface"
+              >
+                <SearchIcon aria-hidden="true" />
+              </IconButton>
+            </div>
+            {data.isAuthenticated ? (
+              <Button
+                className="gap-2"
+                onClick={onManageTags}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <EditIcon aria-hidden="true" />
+                管理标签
+              </Button>
+            ) : null}
+          </div>
+          <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto">
+            {data.tags.map((tag) => (
+              <FilterButton
+                active={tag.active}
+                key={tag.id}
+                onClick={() => onTagToggle(tag.id)}
+                type="button"
+              >
+                {tag.name}
+                <span className="text-xs opacity-70">{tag.itemCount}</span>
+              </FilterButton>
+            ))}
+            {data.tags.length === 0 ? (
+              <StatePanel compact title="暂无匹配的标签" />
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
 
 function CardGrid({
   data,
+  onAdjustItem,
   onEditItem,
 }: {
   data: UserArchivePageData;
+  onAdjustItem: (item: UserArchiveItem) => void;
   onEditItem: (item: UserArchiveItem) => void;
 }) {
   if (!data.isAuthenticated) {
@@ -978,6 +927,14 @@ function CardGrid({
 
   if (data.items.length === 0) {
     return <ArchiveEmptyState />;
+  }
+
+  const folderNames = new Map<string, string[]>();
+  for (const item of data.allItems) {
+    folderNames.set(item.videoId, [
+      ...(folderNames.get(item.videoId) ?? []),
+      item.collectionName,
+    ]);
   }
 
   return (
@@ -990,8 +947,18 @@ function CardGrid({
     >
       {data.items.map((item) => (
         <ArchiveCard
+          collectionLabel={
+            data.activeCollection.isAll &&
+            (folderNames.get(item.videoId)?.length ?? 0) > 1
+              ? item.collectionName +
+                " 等 " +
+                folderNames.get(item.videoId)?.length +
+                " 个收藏夹"
+              : item.collectionName
+          }
           item={item}
-          key={item.id}
+          key={item.videoId}
+          onAdjust={() => onAdjustItem(item)}
           onEdit={() => onEditItem(item)}
           view={data.filters.view}
         />
@@ -1001,19 +968,24 @@ function CardGrid({
 }
 
 function ArchiveCard({
+  collectionLabel,
   item,
+  onAdjust,
   onEdit,
   view,
 }: {
+  collectionLabel: string;
   item: UserArchiveItem;
+  onAdjust: () => void;
   onEdit: () => void;
   view: UserArchiveView;
 }) {
   const listView = view === "list";
-  const SourceIcon = getVideoSourceIcon(item.storageProvider);
   const mediaClassName = cn(
     "relative block overflow-hidden bg-surface",
-    listView ? "h-full min-h-[144px]" : "aspect-video",
+    listView
+      ? "h-full min-h-[144px] rounded-l-lg"
+      : "aspect-video rounded-t-lg",
   );
   const mediaContent = (
     <>
@@ -1021,25 +993,22 @@ function ArchiveCard({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           alt=""
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+          className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.015]"
           loading="lazy"
           referrerPolicy="no-referrer"
           src={item.coverUrl}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-surface">
-          <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
+          <UserArchiveIcon
+            aria-hidden="true"
+            className="h-12 w-12 text-subtle"
+          />
         </div>
       )}
 
       <div className="absolute bottom-2 right-2 flex min-w-0 items-end justify-end sm:bottom-3 sm:right-3">
-        <span className="inline-flex h-[26px] max-w-full items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-2.5 text-[0.7rem] font-medium tracking-[0.04em] text-white backdrop-blur-sm sm:h-[30px] sm:px-3 sm:text-[0.72rem]">
-          <SourceIcon
-            aria-hidden="true"
-            className="h-[14px] w-[14px] sm:h-[16px] sm:w-[16px]"
-          />
-          <span className="min-w-0 truncate">{item.sourceLabel}</span>
-        </span>
+        <SourceBadge platform={item.storageProvider} label={item.sourceLabel} />
       </div>
     </>
   );
@@ -1057,10 +1026,10 @@ function ArchiveCard({
   return (
     <article
       className={cn(
-        "group overflow-hidden rounded-xl border border-white/[0.07] bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-white/14",
+        "group rounded-lg border border-border bg-panel transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.14]",
         listView
           ? "grid grid-cols-[112px,1fr] sm:grid-cols-[180px,1fr]"
-          : "flex min-h-[352px] flex-col",
+          : "flex flex-col",
       )}
     >
       {item.href ? (
@@ -1075,13 +1044,13 @@ function ArchiveCard({
           {mediaContent}
         </Link>
       ) : (
-        <div aria-label="视频已下架" className={mediaClassName} role="img">
+        <div aria-label="PV 已下架" className={mediaClassName} role="img">
           {mediaContent}
         </div>
       )}
 
       <div
-        className={cn("flex flex-1 flex-col", listView ? "p-4 sm:p-5" : "p-5")}
+        className="flex flex-1 flex-col p-4"
       >
         <div className="flex items-start justify-between gap-3">
           {item.href ? (
@@ -1092,21 +1061,12 @@ function ArchiveCard({
             <div className="min-w-0 flex-1">{title}</div>
           )}
 
-          <IconButton
-            aria-label={item.isAvailable ? "编辑收藏记录" : "管理下架收藏记录"}
-            onClick={onEdit}
-            size="sm"
-            variant="surface"
-          >
-            <EditIcon aria-hidden="true" />
-          </IconButton>
+          <ArchiveItemMenu
+            onAdjust={onAdjust}
+            onEdit={onEdit}
+            readOnly={!item.isAvailable}
+          />
         </div>
-
-        {item.note ? (
-          <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted">
-            {item.note}
-          </p>
-        ) : null}
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6 text-sm text-muted">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
@@ -1120,14 +1080,10 @@ function ArchiveCard({
             </span>
           </div>
 
-          <span className="inline-flex min-w-0 items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs text-subtle">
+          <Chip size="xs">
             <FolderIcon />
-            <span className="max-w-[120px] truncate">
-              {item.collectionName}
-            </span>
-          </span>
-
-          {/* 注：这里移除了原本在底部的 sourceLabel 渲染 */}
+            <span className="max-w-[120px] truncate">{collectionLabel}</span>
+          </Chip>
         </div>
       </div>
     </article>
@@ -1135,38 +1091,8 @@ function ArchiveCard({
 }
 
 function GuestEmptyState() {
-  return (
-    <section className="flex min-h-[360px] items-center justify-center rounded-xl border border-border bg-panel px-6 py-10 text-center">
-      <div className="max-w-md space-y-4">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
-          <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
-        </div>
-        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-          登录后打开你的档案
-        </h2>
-        <p className="text-sm leading-6 text-muted">
-          收藏夹、私有标签和收藏记录只对当前账号可见。
-        </p>
-      </div>
-    </section>
-  );
+  return <StatePanel align="center" title="登录后打开我的收藏" description="收藏夹、个人标签和收藏记录只对当前账号可见" />;
 }
-
 function ArchiveEmptyState() {
-  return (
-    <section className="flex min-h-[360px] items-center justify-center rounded-xl border border-border bg-panel px-6 py-10 text-center">
-      <div className="max-w-md space-y-4">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
-          <UserArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
-        </div>
-        <h2 className="text-2xl font-black tracking-[-0.04em] text-foreground">
-          当前范围暂无收藏
-        </h2>
-        <p className="text-sm leading-6 text-muted">
-          可以从视频详情页收藏公开视频，或清空当前标签筛选。
-        </p>
-      </div>
-    </section>
-  );
+  return <StatePanel align="center" title="当前范围暂无收藏" description="可以从 PV 详情页收藏 PV，或清除搜索与筛选" />;
 }
-

@@ -10,8 +10,7 @@ import type {
   VideoDictionaryItem,
   VideoDictionaryRow,
   VideoStorageProvider,
-  ToneFamilyItem,
-  ToneFamilyRow,
+  VideoToneItem,
 } from "@/lib/videos/types";
 
 export { formatCompactNumber } from "@/lib/videos/metrics";
@@ -19,16 +18,23 @@ export { formatCompactNumber } from "@/lib/videos/metrics";
 type VideoRelations = {
   category: VideoDictionaryItem | null;
   tags: VideoDictionaryItem[];
-  tones: VideoDictionaryItem[];
+  tones: VideoToneItem[];
 };
 
 const sourceLabels: Record<VideoStorageProvider, string> = {
   bilibili: "Bilibili",
-  cos: "原创",
+  cos: "站内 PV",
   youtube: "YouTube",
 };
 
-const cardSizePattern: ArchiveCardSize[] = ["medium", "tall", "short", "medium", "tall", "short"];
+const cardSizePattern: ArchiveCardSize[] = [
+  "medium",
+  "tall",
+  "short",
+  "medium",
+  "tall",
+  "short",
+];
 
 export function formatPublishedDate(value: string | null) {
   if (!value) {
@@ -52,31 +58,21 @@ function getSourceLabel(platform: VideoStorageProvider) {
   return sourceLabels[platform] ?? platform;
 }
 
-function getFallbackCategory(category: VideoDictionaryItem | null): VideoDictionaryItem {
+function getFallbackCategory(
+  category: VideoDictionaryItem | null,
+): VideoDictionaryItem {
   return category ?? { id: "uncategorized", name: "未分类" };
 }
 
-export function serializeDictionaryItem(row: VideoDictionaryRow): VideoDictionaryItem {
+export function serializeDictionaryItem(
+  row: VideoDictionaryRow,
+): VideoDictionaryItem {
   const colorHex = normalizeToneColorHex(row.color_hex);
 
   return {
     id: row.id,
     name: row.name,
     ...(colorHex ? { colorHex } : {}),
-    ...(row.family_id ? { familyId: row.family_id } : {}),
-  };
-}
-
-export function serializeToneFamilyItem(row: ToneFamilyRow): ToneFamilyItem {
-  const colorHex = normalizeToneColorHex(row.color_hex) ?? "#737373";
-
-  return {
-    id: row.id,
-    key: row.key,
-    name: row.name,
-    colorHex,
-    sortOrder: row.sort_order,
-    isActive: row.is_active,
   };
 }
 
@@ -85,14 +81,18 @@ function normalizeMediaUrl(value: string | null) {
     return null;
   }
 
-  return value.startsWith("http://") ? `https://${value.slice("http://".length)}` : value;
+  return value.startsWith("http://")
+    ? `https://${value.slice("http://".length)}`
+    : value;
 }
 
 function resolvePublicMediaUrl(
   storageProvider: VideoStorageProvider,
   value: string | null | undefined,
 ) {
-  return storageProvider === "cos" ? resolveCosPublicUrl(value) : normalizeMediaUrl(value ?? null);
+  return storageProvider === "cos"
+    ? resolveCosPublicUrl(value)
+    : normalizeMediaUrl(value ?? null);
 }
 
 export function serializeArchiveVideo(
@@ -101,7 +101,9 @@ export function serializeArchiveVideo(
   index: number,
 ): ArchiveVideoItem {
   const category = getFallbackCategory(relations.category);
-  const storageProvider = normalizeStorageProvider(row.storage_provider ?? row.platform);
+  const storageProvider = normalizeStorageProvider(
+    row.storage_provider ?? row.platform,
+  );
   const viewCountLabel = formatCompactNumber(row.view_count);
   const likeCountLabel = formatCompactNumber(row.like_count);
 
@@ -125,8 +127,13 @@ export function serializeArchiveVideo(
   };
 }
 
-export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelations): VideoDetail {
-  const storageProvider = normalizeStorageProvider(row.storage_provider ?? row.platform);
+export function serializeVideoDetail(
+  row: VideoBaseRow,
+  relations: VideoRelations,
+): VideoDetail {
+  const storageProvider = normalizeStorageProvider(
+    row.storage_provider ?? row.platform,
+  );
 
   return {
     id: row.id,
@@ -149,7 +156,8 @@ export function serializeVideoDetail(row: VideoBaseRow, relations: VideoRelation
     coverImageUrl: resolvePublicMediaUrl(storageProvider, row.cover_url),
     embedUrl: row.embed_url ?? "",
     playbackRef: row.playback_ref ?? null,
-    playbackUrl: storageProvider === "cos" ? resolveCosPublicUrl(row.playback_ref) : null,
+    playbackUrl:
+      storageProvider === "cos" ? resolveCosPublicUrl(row.playback_ref) : null,
     sourceUrl: normalizeMediaUrl(row.source_url),
   };
 }

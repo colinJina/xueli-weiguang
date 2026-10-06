@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     background_color: "#050505",
-    description: "雪笠微光 · PV WORKS ARCHIVE",
+    description: "收藏与浏览 PV",
     display: "standalone",
     icons: [
       {

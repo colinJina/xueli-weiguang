@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DialogShell } from "@/components/ui/dialog-shell";
 import { FormMessage } from "@/components/ui/form-message";
@@ -88,12 +89,12 @@ export function UserTagManagerDialog({
     const name = newTagName.trim();
 
     if (!name) {
-      setError("请输入标签名称。");
+      setError("请输入标签名称");
       return;
     }
 
     setIsSubmitting(true);
-    setNotice({ variant: "loading", message: "正在创建标签。" });
+    setNotice({ variant: "loading", message: "正在创建标签" });
 
     try {
       const result = await requestUserArchiveMutation<MutationResult>(
@@ -102,7 +103,7 @@ export function UserTagManagerDialog({
           method: "POST",
           body: JSON.stringify({ name }),
         },
-        "标签创建失败，请稍后重试。",
+        "标签创建失败，请稍后重试",
       );
 
       setLocalTags((current) => [
@@ -116,10 +117,12 @@ export function UserTagManagerDialog({
         },
       ]);
       setNewTagName("");
-      setNotice({ variant: "success", message: "标签已创建。" });
+      setNotice({ variant: "success", message: "标签已创建" });
       onChanged();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "标签创建失败，请稍后重试。");
+      setError(
+        error instanceof Error ? error.message : "标签创建失败，请稍后重试",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -129,12 +132,12 @@ export function UserTagManagerDialog({
     const name = editingName.trim();
 
     if (!name) {
-      setError("请输入标签名称。");
+      setError("请输入标签名称");
       return;
     }
 
     setIsSubmitting(true);
-    setNotice({ variant: "loading", message: "正在更新标签。" });
+    setNotice({ variant: "loading", message: "正在更新标签" });
 
     try {
       await requestUserArchiveMutation<MutationResult>(
@@ -143,7 +146,7 @@ export function UserTagManagerDialog({
           method: "PATCH",
           body: JSON.stringify({ name }),
         },
-        "标签更新失败，请稍后重试。",
+        "标签更新失败，请稍后重试",
       );
 
       setLocalTags((current) =>
@@ -151,10 +154,12 @@ export function UserTagManagerDialog({
       );
       setEditingId(null);
       setEditingName("");
-      setNotice({ variant: "success", message: "标签已更新。" });
+      setNotice({ variant: "success", message: "标签已更新" });
       onChanged();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "标签更新失败，请稍后重试。");
+      setError(
+        error instanceof Error ? error.message : "标签更新失败，请稍后重试",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -162,7 +167,7 @@ export function UserTagManagerDialog({
 
   async function handleDelete(tagId: string) {
     setIsSubmitting(true);
-    setNotice({ variant: "loading", message: "正在删除标签并解除绑定。" });
+    setNotice({ variant: "loading", message: "正在删除标签并解除绑定" });
 
     try {
       await requestUserArchiveMutation<MutationResult>(
@@ -170,14 +175,19 @@ export function UserTagManagerDialog({
         {
           method: "DELETE",
         },
-        "标签删除失败，请稍后重试。",
+        "标签删除失败，请稍后重试",
       );
 
       setLocalTags((current) => current.filter((tag) => tag.id !== tagId));
-      setNotice({ variant: "success", message: "标签已删除，并从相关收藏记录解绑。" });
+      setNotice({
+        variant: "success",
+        message: "标签已删除，并从相关收藏记录解绑",
+      });
       onChanged();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "标签删除失败，请稍后重试。");
+      setError(
+        error instanceof Error ? error.message : "标签删除失败，请稍后重试",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -187,10 +197,10 @@ export function UserTagManagerDialog({
     <DialogShell
       className="max-h-[calc(100vh-2rem)] overflow-y-auto"
       closeLabel="关闭标签管理"
-      description="标签只属于当前登录用户。删除标签会从所有收藏记录中解绑，不会删除视频或收藏夹。"
+      description="标签只属于当前登录用户，删除标签会从所有收藏记录中解绑，不会删除 PV 或收藏夹"
       maxWidthClassName="max-w-[640px]"
       onClose={onClose}
-      title="管理私有标签"
+      title="管理个人标签"
     >
       <form className="mt-6 flex gap-3" onSubmit={handleCreate}>
         <TextField
@@ -202,7 +212,11 @@ export function UserTagManagerDialog({
           value={newTagName}
           wrapperClassName="flex-1"
         />
-        <Button className="mt-[30px] shrink-0 gap-2" disabled={isSubmitting} type="submit">
+        <Button
+          className="mt-[30px] shrink-0 gap-2"
+          disabled={isSubmitting}
+          type="submit"
+        >
           <PlusIcon />
           新建
         </Button>
@@ -215,7 +229,8 @@ export function UserTagManagerDialog({
           return (
             <div className="flex items-center gap-3 p-3" key={tag.id}>
               {editing ? (
-                <input
+                <Input
+                  aria-label="标签名称"
                   className="h-10 min-w-0 flex-1 rounded-md border border-border bg-panel px-3 text-sm text-foreground outline-none focus:border-borderStrong"
                   disabled={isSubmitting}
                   maxLength={TAG_NAME_MAX_LENGTH}
@@ -224,8 +239,12 @@ export function UserTagManagerDialog({
                 />
               ) : (
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">{tag.name}</p>
-                  <p className="mt-1 text-xs text-subtle">{tag.itemCount} 条使用</p>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {tag.name}
+                  </p>
+                  <p className="mt-1 text-xs text-subtle">
+                    {tag.itemCount} 条使用
+                  </p>
                 </div>
               )}
 
@@ -269,7 +288,7 @@ export function UserTagManagerDialog({
         })}
 
         {localTags.length === 0 ? (
-          <p className="p-5 text-sm leading-6 text-muted">还没有私有标签。</p>
+          <p className="p-5 text-sm leading-6 text-muted">还没有个人标签</p>
         ) : null}
       </div>
 
@@ -281,4 +300,3 @@ export function UserTagManagerDialog({
     </DialogShell>
   );
 }
-

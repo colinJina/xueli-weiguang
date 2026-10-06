@@ -21,7 +21,7 @@ const YOUTUBE_HOSTS = new Set([
 ]);
 const YOUTUBE_SHORT_HOSTS = new Set(["youtu.be", "www.youtu.be"]);
 const YOUTUBE_VIDEO_PATHS = new Set(["shorts", "embed"]);
-const YOUTUBE_URL_ERROR_MESSAGE = "请提供有效的 YouTube 视频链接。";
+const YOUTUBE_URL_ERROR_MESSAGE = "请提供有效的 YouTube PV 链接";
 
 function buildCanonicalUrl(videoId: string) {
   return `https://www.youtube.com/watch?v=${videoId}`;

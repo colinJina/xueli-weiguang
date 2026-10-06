@@ -1,30 +1,32 @@
 import { VideoArchiveCard } from "@/components/archive/video-archive-card";
-import EmptyArchiveIcon from "@/components/icons/archive/empty-archive.svg";
+import { ArchiveVirtualGrid } from "@/components/archive/archive-virtual-grid";
+import { StatePanel } from "@/components/ui/state-panel";
+import { Button } from "@/components/ui/button";
 import type { ArchiveVideoItem } from "@/lib/videos/types";
 
 type ArchiveGridProps = {
   items: ArchiveVideoItem[];
+  hasMore?: boolean;
+  query?: string;
+  onClearSearch?: () => void;
 };
 
-export function ArchiveGrid({ items }: ArchiveGridProps) {
+export function ArchiveGrid({ items, hasMore = false, query = "", onClearSearch }: ArchiveGridProps) {
   if (items.length === 0) {
     return (
-      <div className="flex min-h-[420px] flex-col justify-center rounded-3xl border border-white/[0.06] bg-white/[0.02] px-11 py-10 max-md:min-h-[320px] max-md:px-6 max-md:py-7">
-        <EmptyArchiveIcon aria-hidden="true" className="h-12 w-12 text-subtle" />
-        <p className="mt-5 font-sans text-[0.72rem] tracking-[0.18em] text-subtle">NO MATCH</p>
-        <h2 className="mt-[18px] text-3xl font-bold tracking-[-0.04em] text-foreground">
-          当前筛选下没有可展示的作品
-        </h2>
-        <p className="mt-3.5 max-w-[560px] text-base leading-[1.8] text-muted">
-          调整类型、标签或色调后，这里会重新排列聚合页卡片。
-        </p>
-      </div>
+      <StatePanel title="暂无符合条件的 PV" description={query ? "尝试调整关键词、分类、标签或颜色筛选" : "尝试调整分类、标签或色调筛选"}>
+        {query && onClearSearch ? <Button variant="secondary" onClick={onClearSearch}>清除搜索</Button> : null}
+      </StatePanel>
     );
+  }
+
+  if (items.length > 72) {
+    return <ArchiveVirtualGrid items={items} hasMore={hasMore} />;
   }
 
   return (
     <div
-      className="grid grid-cols-1 items-start gap-[18px] md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 xl:gap-6"
+      className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 xl:gap-6"
       role="list"
     >
       {items.map((item) => (

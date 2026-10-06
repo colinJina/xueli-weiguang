@@ -49,7 +49,7 @@ function formatMonthDay(value: string | null | undefined) {
 
 function createFallbackStats(totalCount: number): HomeSiteStatItem[] {
   return [
-    { label: "已收录作品", value: formatCount(totalCount) },
+    { label: "已收录 PV", value: formatCount(totalCount) },
     { label: "涵盖分类", value: "读取中" },
     { label: "最近更新", value: "未记录" },
   ];
@@ -66,7 +66,7 @@ async function getHomeSiteStats(): Promise<HomeSiteStatItem[] | null> {
   const row = data as HomeSiteStatsRow;
 
   return [
-    { label: "已收录作品", value: formatCount(row.published_video_count) },
+    { label: "已收录 PV", value: formatCount(row.published_video_count) },
     { label: "涵盖分类", value: formatCount(row.published_category_count) },
     { label: "最近更新", value: formatMonthDay(row.latest_published_at) },
   ];

@@ -1,29 +1,5 @@
-import HomeCogIcon from "@/components/icons/home/cog.svg";
-import VideoUserIcon from "@/components/icons/video/user.svg";
-import { SiteBrand } from "@/components/layout/site-brand";
-import { PushNotificationButton } from "@/components/push/push-notification-button";
-import { IconButton } from "@/components/ui/icon-button";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export function VideoDetailNav() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-white/6 bg-[rgba(10,10,11,0.94)] backdrop-blur-[14px]">
-      <div className="page-container flex h-[60px] items-center justify-between gap-4">
-        <SiteBrand
-          className="shrink-0"
-          subtitleClassName="hidden"
-          titleClassName="text-[1.75rem] font-black tracking-[-0.05em]"
-        />
-
-        <div className="flex shrink-0 items-center gap-2">
-          <PushNotificationButton />
-          <IconButton aria-label="设置" variant="ghost">
-            <HomeCogIcon aria-hidden="true" className="h-[1.1rem] w-[1.1rem]" />
-          </IconButton>
-          <IconButton aria-label="个人中心" variant="ghost">
-            <VideoUserIcon aria-hidden="true" className="h-[1.15rem] w-[1.15rem]" />
-          </IconButton>
-        </div>
-      </div>
-    </header>
-  );
+  return <SiteHeader />;
 }

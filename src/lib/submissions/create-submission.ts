@@ -37,7 +37,7 @@ function mapQuotaDatabaseError(error: { code?: string; message?: string }) {
     message.includes("bilibili_pending_submission_limit_exceeded")
   ) {
     return new SubmissionQuotaExceededError(
-      `当前有 ${EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿。`,
+      `当前有 ${EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿`,
     );
   }
 
@@ -46,7 +46,7 @@ function mapQuotaDatabaseError(error: { code?: string; message?: string }) {
     message.includes("bilibili_daily_submission_limit_exceeded")
   ) {
     return new SubmissionQuotaExceededError(
-      `24 小时内最多只能提交 ${EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT} 条外部视频链接。`,
+      `24 小时内最多只能提交 ${EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT} 条外个 PV 链接`,
     );
   }
 
@@ -91,13 +91,13 @@ async function ensureExternalLinkSubmissionQuota(
 
   if (pendingCount >= EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT) {
     throw new SubmissionQuotaExceededError(
-      `当前有 ${EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿。`,
+      `当前有 ${EXTERNAL_LINK_PENDING_SUBMISSION_LIMIT} 条待审投稿，审核完成后可继续投稿`,
     );
   }
 
   if (dailyCount >= EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT) {
     throw new SubmissionQuotaExceededError(
-      `24 小时内最多只能提交 ${EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT} 条外部视频链接。`,
+      `24 小时内最多只能提交 ${EXTERNAL_LINK_DAILY_SUBMISSION_LIMIT} 条外个 PV 链接`,
     );
   }
 }
@@ -123,7 +123,7 @@ export async function createSubmission(
 
   if (error) {
     if (error.code === "23505") {
-      throw new DuplicateSubmissionError("该视频已投稿，请勿重复提交。");
+      throw new DuplicateSubmissionError("该 PV 已投稿，请勿重复提交");
     }
 
     const quotaError = mapQuotaDatabaseError(error);

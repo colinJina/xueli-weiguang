@@ -1,185 +1,198 @@
 "use client";
 
-import type { MouseEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
+import type { ReactNode } from "react";
+import { ArchiveColorPalette } from "@/components/archive/archive-color-palette";
 import { ArchiveHorizontalWheelScroll } from "@/components/archive/archive-horizontal-wheel-scroll";
-import { InlineLoadingMark } from "@/components/ui/inline-loading-mark";
-import { buildArchiveHref, selectSingleToneKey } from "@/lib/videos/archive-href";
-import type { ArchiveFilters, ToneFamilyItem, VideoDictionaryItem } from "@/lib/videos/types";
+import type { ArchiveChangeOptions } from "@/components/archive/use-archive-videos";
+import { FilterButton } from "@/components/ui/filter-button";
+import { IconButton } from "@/components/ui/icon-button";
+import CloseIcon from "@/components/icons/shared/close-16.svg";
+import { selectSingleToneKey } from "@/lib/videos/archive-href";
+import type { FilterPatch } from "@/lib/videos/archive-href";
+import { ARCHIVE_MAX_TAG_FILTERS } from "@/lib/videos/archive-filters";
+import { TONE_PRESETS } from "@/lib/videos/tone-options";
+import type { ArchiveDictionaries, ArchiveFilters } from "@/lib/videos/types";
 import { cn } from "@/lib/utils";
 
-type ArchiveFilterBarProps = {
-  categories: readonly VideoDictionaryItem[];
+type Props = ArchiveDictionaries & {
   filters: ArchiveFilters;
-  toneFamilies: readonly ToneFamilyItem[];
+  onChange: (patch: FilterPatch, options?: ArchiveChangeOptions) => void;
 };
 
-const filterPillClass =
-  "inline-flex min-h-[34px] shrink-0 items-center rounded-full border px-[15px] text-[0.84rem] font-semibold transition duration-200 hover:border-white/15 hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90";
-
-export function ArchiveFilterBar({ categories, filters, toneFamilies }: ArchiveFilterBarProps) {
-  const [pendingToneKey, setPendingToneKey] = useState<string | null>(null);
-  const activeToneFamilies = toneFamilies.filter((tone) => tone.isActive);
-  const isTonePending = pendingToneKey !== null;
-  const currentToneKey = filters.toneKeys.join(",");
-
-  useEffect(() => {
-    setPendingToneKey(null);
-  }, [currentToneKey]);
-
-  function handleToneClick(event: MouseEvent<HTMLAnchorElement>, toneKey: string) {
-    if (isTonePending) {
-      event.preventDefault();
-      return;
-    }
-
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
-      return;
-    }
-
-    setPendingToneKey(toneKey);
-  }
-
+export function ArchiveFilterBar({
+  categories,
+  tags,
+  filters,
+  onChange,
+}: Props) {
+  const hasFilters =
+    filters.categoryId ||
+    filters.tagIds.length ||
+    filters.toneKeys.length ||
+    filters.colors.length;
   return (
-    <div className="grid gap-4 overflow-hidden border-b border-white/[0.06] py-[14px] pb-5 lg:grid-cols-2 lg:gap-8">
-      <FilterRow contentClassName="w-full max-w-full lg:w-[34rem]" label="类型" scrollable>
-        <div className="inline-flex min-w-max items-center gap-2.5 pr-1">
-          <FilterLink
-            active={!filters.categoryId}
-            href={buildArchiveHref(filters, { categoryId: null })}
-          >
-            全部
-          </FilterLink>
-          {categories.map((category) => (
-            <FilterLink
-              active={filters.categoryId === category.id}
-              href={buildArchiveHref(filters, { categoryId: category.id })}
-              key={category.id}
-            >
-              {category.name}
-            </FilterLink>
-          ))}
-        </div>
-      </FilterRow>
-
-      <FilterRow align="end" label="色调">
-        {activeToneFamilies.map((tone) => {
-          const isActive = filters.toneKeys.includes(tone.key);
-          const isPending = pendingToneKey === tone.key;
-
-          return (
-            <Link
-              aria-label={isActive ? `清除${tone.name}色调筛选` : `筛选${tone.name}色调`}
-              aria-busy={isPending || undefined}
-              aria-disabled={isTonePending && !isPending ? true : undefined}
-              aria-pressed={isActive}
-              className={cn(
-                "group relative inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full transition duration-200 hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/90",
-                isActive && "bg-white/[0.08]",
-                isTonePending && !isPending && "pointer-events-none opacity-35",
-                isPending && "bg-white/[0.09]",
-              )}
-              href={buildArchiveHref(filters, {
-                toneKeys: selectSingleToneKey(filters.toneKeys, tone.key),
+    <div className="grid min-w-0 grid-cols-1 gap-4 border-b border-border py-4 pb-5">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-8 gap-y-4">
+        <FilterRow className="min-w-0 flex-1" label="分类">
+          <ArchiveHorizontalWheelScroll className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max gap-2.5 pb-1">
+              <FilterButton
+                active={!filters.categoryId}
+                onClick={() => onChange({ categoryId: null })}
+              >
+                全部
+              </FilterButton>
+              {categories.map((category) => (
+                <FilterButton
+                  active={filters.categoryId === category.id}
+                  key={category.id}
+                  onClick={() => onChange({ categoryId: category.id })}
+                >
+                  {category.name}
+                </FilterButton>
+              ))}
+            </div>
+          </ArchiveHorizontalWheelScroll>
+        </FilterRow>
+        <FilterRow label="色调">
+          <div className="flex flex-wrap items-center gap-1 md:-translate-y-2">
+            {TONE_PRESETS.map((tone) => {
+              const active = filters.toneKeys.includes(tone.key);
+              return (
+                <IconButton
+                  aria-label={
+                    active ? `清除${tone.name}色调筛选` : `筛选${tone.name}色调`
+                  }
+                  aria-pressed={active}
+                  className={cn(active && "bg-white/[0.08]")}
+                  key={tone.key}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    onChange({
+                      toneKeys: selectSingleToneKey(filters.toneKeys, tone.key),
+                    })
+                  }
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "h-3.5 w-3.5 rounded-full transition",
+                      active &&
+                        "ring-2 ring-white/85 ring-offset-2 ring-offset-background",
+                    )}
+                    style={{ backgroundColor: tone.colorHex }}
+                  />
+                </IconButton>
+              );
+            })}
+            <ArchiveColorPalette filters={filters} onChange={onChange} />
+          </div>
+        </FilterRow>
+      </div>
+      {tags.length ? (
+        <FilterRow label="标签">
+          <ArchiveHorizontalWheelScroll className="max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max gap-2 pb-1">
+              <FilterButton
+                active={!filters.tagIds.length}
+                onClick={() => onChange({ tagIds: [] })}
+              >
+                全部
+              </FilterButton>
+              {tags.map((tag) => {
+                const active = filters.tagIds.includes(tag.id);
+                return (
+                  <FilterButton
+                    active={active}
+                    disabled={
+                      !active &&
+                      filters.tagIds.length >= ARCHIVE_MAX_TAG_FILTERS
+                    }
+                    key={tag.id}
+                    onClick={() =>
+                      onChange({
+                        tagIds: active
+                          ? filters.tagIds.filter((id) => id !== tag.id)
+                          : [...filters.tagIds, tag.id],
+                      })
+                    }
+                  >
+                    {tag.name}
+                  </FilterButton>
+                );
               })}
-              key={tone.key}
-              onClick={(event) => handleToneClick(event, tone.key)}
+            </div>
+          </ArchiveHorizontalWheelScroll>
+        </FilterRow>
+      ) : null}
+      {hasFilters ? (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+          {filters.colors.map((color, index) => (
+            <FilterButton
+              aria-label={`移除自定义颜色 ${index + 1} ${color.hex}`}
+              className="gap-2 font-mono"
+              key={index}
+              onClick={() =>
+                onChange({
+                  colors: filters.colors.filter((_, i) => i !== index),
+                })
+              }
             >
               <span
-                className={cn(
-                  "h-3.5 w-3.5 rounded-full transition duration-200 group-hover:scale-110",
-                  isActive &&
-                    "h-4 w-4 ring-2 ring-white/85 shadow-[0_0_0_5px_rgba(255,255,255,0.1),0_0_18px_rgba(255,255,255,0.32)]",
-                  isPending && "scale-75 opacity-25 group-hover:scale-75",
-                )}
-                style={{ backgroundColor: tone.colorHex }}
+                aria-hidden="true"
+                className="h-3 w-3 rounded-full ring-1 ring-white/20"
+                style={{ backgroundColor: color.hex }}
               />
-              {isPending ? (
-                <InlineLoadingMark
-                  className="absolute h-[22px] w-[22px]"
-                  label={`正在应用${tone.name}色调筛选`}
-                />
-              ) : (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute bottom-full left-1/2 mb-2 h-6 w-10 -translate-x-1/2 rounded-full opacity-0 shadow-overlay transition duration-200 group-hover:translate-y-[-2px] group-hover:opacity-100 group-focus-visible:translate-y-[-2px] group-focus-visible:opacity-100"
-                  style={{ backgroundColor: tone.colorHex }}
-                />
-              )}
-            </Link>
-          );
-        })}
-      </FilterRow>
+              {color.hex} · {color.precision}
+              <CloseIcon aria-hidden="true" className="h-3 w-3" />
+            </FilterButton>
+          ))}
+          {filters.colors.length > 1 ? (
+            <span>
+              {filters.colorMode === "all" ? "匹配全部颜色" : "匹配任意颜色"}
+            </span>
+          ) : null}
+          <FilterButton
+            onClick={() =>
+              onChange({
+                categoryId: null,
+                tagIds: [],
+                toneKeys: [],
+                colors: [],
+                colorMode: "any",
+              })
+            }
+          >
+            <CloseIcon aria-hidden="true" className="h-3 w-3" />
+            清除筛选
+          </FilterButton>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 function FilterRow({
-  align = "start",
   children,
-  contentClassName,
+  className,
   label,
-  scrollable = false,
 }: {
-  align?: "start" | "end";
   children: ReactNode;
-  contentClassName?: string;
+  className?: string;
   label: string;
-  scrollable?: boolean;
 }) {
-  const contentClassNameValue = cn(
-    "min-w-0 flex-1 pb-0.5 max-md:w-full",
-    scrollable
-      ? "overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      : "flex items-center gap-2.5 overflow-hidden max-md:flex-wrap",
-    contentClassName,
-    align === "end" && "lg:flex-none lg:justify-end",
-  );
-
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-3.5 max-md:flex-col max-md:gap-2",
-        align === "end" && "lg:justify-end",
+        "flex min-w-0 items-start gap-3.5 max-md:w-full max-md:flex-col max-md:gap-2",
+        className,
       )}
     >
-      <p className="mt-2 shrink-0 font-sans text-[0.68rem] tracking-[0.18em] text-subtle">
+      <p className="mt-2 shrink-0 text-[0.68rem] tracking-[0.18em] text-subtle">
         {label}
       </p>
-      {scrollable ? (
-        <ArchiveHorizontalWheelScroll className={contentClassNameValue}>
-          {children}
-        </ArchiveHorizontalWheelScroll>
-      ) : (
-        <div className={contentClassNameValue}>{children}</div>
-      )}
+      <div className="min-w-0 max-w-full flex-1 max-md:w-full">{children}</div>
     </div>
-  );
-}
-
-function FilterLink({
-  active,
-  children,
-  href,
-}: {
-  active: boolean;
-  children: ReactNode;
-  href: string;
-}) {
-  return (
-    <Link
-      aria-pressed={active}
-      className={cn(
-        filterPillClass,
-        active
-          ? "border-white/15 bg-white-soft text-black-soft"
-          : "border-white/[0.08] bg-white/[0.03] text-subtle",
-      )}
-      href={href}
-    >
-      {children}
-    </Link>
   );
 }

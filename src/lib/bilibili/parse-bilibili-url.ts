@@ -46,11 +46,11 @@ export function parseBilibiliUrl(
   try {
     parsed = new URL(trimmed);
   } catch {
-    throw new BilibiliUrlError("请提供有效的 Bilibili 视频链接。");
+    throw new BilibiliUrlError("请提供有效的 Bilibili PV 链接");
   }
 
   if (!/^https?:$/.test(parsed.protocol)) {
-    throw new BilibiliUrlError("请提供有效的 Bilibili 视频链接。");
+    throw new BilibiliUrlError("请提供有效的 Bilibili PV 链接");
   }
 
   const hostname = parsed.hostname.toLowerCase();
@@ -59,7 +59,7 @@ export function parseBilibiliUrl(
     const bvid = extractBvidFromUrl(parsed);
 
     if (!bvid) {
-      throw new BilibiliUrlError("链接中未找到有效的 BV 号。");
+      throw new BilibiliUrlError("链接中未找到有效的 BV 号");
     }
 
     return {
@@ -68,5 +68,5 @@ export function parseBilibiliUrl(
     };
   }
 
-  throw new BilibiliUrlError("当前仅支持 Bilibili 视频链接。");
+  throw new BilibiliUrlError("当前仅支持 Bilibili PV 链接");
 }

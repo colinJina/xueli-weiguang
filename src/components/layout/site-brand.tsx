@@ -28,7 +28,7 @@ export function SiteBrand({
     <Link className={cn("flex items-center gap-3", className)} href={href}>
       <span
         className={cn(
-          "grid h-6 w-6 shrink-0 place-items-center text-[#c9cbd1]",
+          "grid h-6 w-6 shrink-0 place-items-center text-muted-foreground",
           markClassName,
         )}
       >
@@ -39,7 +39,7 @@ export function SiteBrand({
         <span className="flex items-center gap-2 leading-none">
           <span
             className={cn(
-              "truncate text-[1.85rem] font-bold tracking-[-0.04em] text-white",
+              "truncate text-xl font-bold tracking-[-0.04em] text-foreground md:text-[28px]",
               titleClassName,
             )}
           >
@@ -48,7 +48,7 @@ export function SiteBrand({
           {badge ? (
             <span
               className={cn(
-                "rounded-full border border-white/12 bg-white/[0.03] px-2 py-[3px] font-sans text-[0.6rem] tracking-[0.08em] text-[#c9cbd1]",
+                "rounded-full border border-white/[0.12] bg-white/[0.03] px-2 py-[3px] font-sans text-[0.6rem] tracking-[0.08em] text-[#c9cbd1]",
                 badgeClassName,
               )}
             >

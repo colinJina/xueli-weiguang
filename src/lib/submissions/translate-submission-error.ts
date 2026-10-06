@@ -1,16 +1,19 @@
 const ERROR_MAP: ReadonlyArray<{ match: RegExp; message: string }> = [
-  { match: /already submitted|duplicate|已投稿/i, message: "该视频已投稿，请勿重复提交。" },
+  { match: /already submitted|duplicate|已投稿/i, message: "该 PV 已投稿，请勿重复提交" },
   {
     match: /valid bilibili|有效的 bilibili|valid youtube|有效的 youtube|bv 号/i,
-    message: "请输入有效的 Bilibili 或 YouTube 视频链接。",
+    message: "请输入有效的 Bilibili 或 YouTube PV 链接",
   },
-  { match: /unauthorized|请先登录/i, message: "请先登录后再投稿。" },
-  { match: /network error|failed to fetch/i, message: "网络异常，请稍后重试。" },
+  { match: /unauthorized|请先登录/i, message: "请先登录后再投稿" },
+  { match: /network error|failed to fetch/i, message: "网络异常，请稍后重试" },
 ];
 
-export function translateSubmissionError(raw: string | null | undefined): string {
+export function translateSubmissionError(
+  raw: string | null | undefined,
+  fallbackMessage = "投稿失败，请稍后重试",
+): string {
   if (!raw) {
-    return "投稿失败，请稍后重试。";
+    return fallbackMessage;
   }
 
   for (const entry of ERROR_MAP) {
@@ -19,5 +22,5 @@ export function translateSubmissionError(raw: string | null | undefined): string
     }
   }
 
-  return raw;
+  return /[\u3400-\u9fff]/u.test(raw) ? raw : fallbackMessage;
 }

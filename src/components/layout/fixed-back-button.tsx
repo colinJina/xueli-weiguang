@@ -32,7 +32,7 @@ export function FixedBackButton({
     <IconButton
       aria-label={label}
       className={cn(
-        "fixed left-5 top-[100px] z-40 -translate-y-1/2 border-white/12 bg-[rgba(10,10,11,0.82)] text-foreground shadow-overlay backdrop-blur-[14px] hover:border-white/20 hover:bg-white/[0.08] sm:left-6",
+        "fixed left-5 top-[100px] z-40 -translate-y-1/2 border-white/[0.12] bg-[rgba(10,10,11,0.82)] text-foreground shadow-overlay backdrop-blur-[14px] hover:border-white/20 hover:bg-white/[0.08] sm:left-6",
         className,
       )}
       onClick={handleBack}

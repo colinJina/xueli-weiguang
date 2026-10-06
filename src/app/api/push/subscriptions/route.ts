@@ -17,7 +17,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   if (!isSameOriginJsonRequest(request)) {
-    return jsonError("INVALID_ORIGIN", "请求来源无效。", 403);
+    return jsonError("INVALID_ORIGIN", "请求来源无效", 403);
   }
 
   try {
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   if (!isSameOriginJsonRequest(request)) {
-    return jsonError("INVALID_ORIGIN", "请求来源无效。", 403);
+    return jsonError("INVALID_ORIGIN", "请求来源无效", 403);
   }
 
   try {
@@ -126,7 +126,7 @@ function handleSubscriptionError(error: unknown) {
   console.error("Failed to persist browser push subscription");
   return jsonError(
     "PUSH_SUBSCRIPTION_UNAVAILABLE",
-    "通知订阅暂时不可用，请稍后重试。",
+    "通知订阅暂时不可用，请稍后重试",
     503,
   );
 }

@@ -57,6 +57,7 @@ export function parseUserArchiveFilters(
 ): UserArchiveFilters {
   return {
     collectionId: parseCollectionId(searchParams.collectionId),
+    keyword: parseTagQuery(searchParams.keyword),
     tagIds: parseIdList(searchParams.tagIds ?? searchParams.tags),
     tagQuery: parseTagQuery(searchParams.tagQuery ?? searchParams.q),
     view: parseView(searchParams.view),
@@ -68,8 +69,11 @@ export function urlSearchParamsToUserArchiveSearchParams(
 ): UserArchiveSearchParams {
   return {
     collectionId: searchParams.get("collectionId") ?? undefined,
+    keyword: searchParams.get("keyword") ?? undefined,
     tagIds: searchParams.get("tagIds") ?? undefined,
     tagQuery: searchParams.get("tagQuery") ?? undefined,
+    q: searchParams.get("q") ?? undefined,
+    tags: searchParams.get("tags") ?? undefined,
     view: searchParams.get("view") ?? undefined,
   };
 }

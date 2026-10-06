@@ -4,23 +4,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthDialog } from "@/components/auth/auth-dialog";
-import {
-  FavoriteEditorDialog,
-  type FavoriteEditorVideo,
-} from "@/components/user/favorite-editor-dialog";
+import type { FavoriteEditorVideo } from "@/components/user/favorite-editor-dialog";
+import { FavoriteSelectionDialog } from "@/components/user/favorite-selection-dialog";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
-import { IconButton } from "@/components/ui/icon-button";
-import { usePageTopMessage } from "@/components/ui/page-top-message-provider";
 import { LikeBurstIcon } from "@/components/video/like-burst-icon";
+import { VideoShareTrigger } from "@/components/video/video-share-trigger";
+import { useVideoFavoriteStatus } from "@/components/video/use-video-favorite-status";
 import StatusAlertIcon from "@/components/icons/shared/alert-circle.svg";
-import CheckIcon from "@/components/icons/shared/check-circle.svg";
 import VideoBookmarkIcon from "@/components/icons/video/bookmark.svg";
-import VideoHeartIcon from "@/components/icons/video/heart.svg";
-import VideoShareIcon from "@/components/icons/video/share.svg";
+import VideoHeartIcon from "@/components/icons/shared/heart.svg";
+import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import { useAuth } from "@/lib/auth/use-auth";
-import type { UserArchiveVideoFavoriteState } from "@/lib/user-archive/types";
 import { formatCompactNumber } from "@/lib/videos/metrics";
+import type { VideoShareData } from "@/lib/videos/share";
 import type {
   VideoInteractionErrorResponse,
   VideoLikeResponse,
@@ -30,8 +27,8 @@ import type {
 type VideoDetailActionsProps = {
   likeCount: number;
   likeCountLabel: string;
-  favoriteState: UserArchiveVideoFavoriteState | null;
   favoriteVideo: FavoriteEditorVideo;
+  shareVideo: VideoShareData;
   onLikeCountChange: (nextCount: number, nextLabel: string) => void;
   storageProvider: VideoStorageProvider;
   videoId: string;
@@ -47,7 +44,7 @@ async function readLikeResponse(response: Response) {
     const message =
       payload && "message" in payload
         ? payload.message
-        : "点赞状态暂时无法更新，请稍后再试。";
+        : "点赞状态暂时无法更新，请稍后再试";
     throw new Error(message);
   }
 
@@ -57,15 +54,15 @@ async function readLikeResponse(response: Response) {
 export function VideoDetailActions({
   likeCount,
   likeCountLabel,
-  favoriteState,
   favoriteVideo,
+  shareVideo,
   onLikeCountChange,
   storageProvider,
   videoId,
 }: VideoDetailActionsProps) {
   const router = useRouter();
-  const { showMessage } = usePageTopMessage();
   const {
+    user,
     isReady,
     isAuthenticated,
     dialogMode,
@@ -81,8 +78,8 @@ export function VideoDetailActions({
   const [continueToFavorite, setContinueToFavorite] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const canUseLocalLikes = storageProvider === "cos";
-  const collectionState: UserArchiveVideoFavoriteState =
-    favoriteState ?? { collections: [], tags: [], memberships: [] };
+  const favoriteStatus = useVideoFavoriteStatus(videoId, user?.id, isReady);
+  const isFavorited = isAuthenticated && favoriteStatus.isFavorited === true;
 
   const refreshLikeState = useCallback(async () => {
     if (!canUseLocalLikes) {
@@ -162,7 +159,7 @@ export function VideoDetailActions({
     } catch (error) {
       setLiked(previousLiked);
       onLikeCountChange(previousCount, formatCompactNumber(previousCount));
-      setErrorMessage(error instanceof Error ? error.message : "点赞状态暂时无法更新，请稍后再试。");
+      setErrorMessage(error instanceof Error ? error.message : "点赞状态暂时无法更新，请稍后再试");
     } finally {
       setIsPending(false);
     }
@@ -184,29 +181,6 @@ export function VideoDetailActions({
     setFavoriteDialogOpen(true);
   }
 
-  async function handleShareClick() {
-    setErrorMessage(null);
-    const url = window.location.href;
-
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({ title: favoriteVideo.title, url });
-        return;
-      } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(url);
-      showMessage({ icon: <CheckIcon aria-hidden="true" />, text: "视频链接已复制" });
-    } catch {
-      setErrorMessage("分享暂时不可用，请复制浏览器地址后重试。");
-    }
-  }
-
   const likeButton = canUseLocalLikes ? (
     <Button
       aria-busy={isPending}
@@ -226,7 +200,7 @@ export function VideoDetailActions({
       className="gap-2 font-medium"
       disabled
       size="md"
-      title="外站视频保留原始点赞数据"
+      title="外站 PV 保留原始点赞数据"
       type="button"
       variant="pill"
     >
@@ -240,19 +214,21 @@ export function VideoDetailActions({
       <div className="flex flex-wrap gap-3 lg:justify-end">
         {likeButton}
 
-        <Button className="gap-2 font-medium" onClick={handleFavoriteClick} size="md" type="button" variant="pill">
-          <VideoBookmarkIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
-          <span>收藏与标签</span>
+        <Button aria-busy={favoriteStatus.isLoading} aria-pressed={favoriteStatus.isFavorited === null ? undefined : isFavorited} className="gap-2 font-medium" disabled={!isReady} onClick={handleFavoriteClick} size="md" title={favoriteStatus.error ?? undefined} type="button" variant={isFavorited ? "pillActive" : "pill"}>
+          {favoriteStatus.isLoading ? (
+            <SpinnerIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+          ) : (
+            <VideoBookmarkIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
+          )}
+          <span>{isFavorited ? "已收藏" : "收藏"}</span>
         </Button>
 
-        <IconButton aria-label="分享" onClick={handleShareClick} type="button">
-          <VideoShareIcon aria-hidden="true" className="h-[1.05rem] w-[1.05rem]" />
-        </IconButton>
+        <VideoShareTrigger key={shareVideo.id} video={shareVideo} />
       </div>
 
-      {errorMessage ? (
+      {errorMessage || favoriteStatus.error ? (
         <FormMessage className="lg:max-w-[20rem]" icon={<StatusAlertIcon aria-hidden="true" className="h-4 w-4 flex-none" />} variant="error">
-          {errorMessage}
+          {errorMessage ?? favoriteStatus.error}
         </FormMessage>
       ) : null}
 
@@ -279,16 +255,15 @@ export function VideoDetailActions({
         />
       ) : null}
 
-      <FavoriteEditorDialog
-        collections={collectionState.collections}
-        initialCollectionId={collectionState.memberships[0]?.collectionId ?? null}
-        memberships={collectionState.memberships}
-        onChanged={() => {
+      <FavoriteSelectionDialog
+        key={`${videoId}:${user?.id ?? "guest"}`}
+        onLoaded={(state) => favoriteStatus.updateFavoriteStatus(state.memberships.length > 0)}
+        onSaved={(result) => {
+          favoriteStatus.updateFavoriteStatus(result.isFavorited);
           router.refresh();
         }}
         onClose={() => setFavoriteDialogOpen(false)}
-        open={favoriteDialogOpen}
-        tags={collectionState.tags}
+        open={favoriteDialogOpen && isAuthenticated}
         video={favoriteVideo}
       />
     </div>

@@ -88,7 +88,7 @@ function validationError(message: string, extra?: UnknownRecord) {
 function fileTooLargeError(maxBytes: number) {
   return new NativeSubmissionApiError({
     code: "FILE_TOO_LARGE",
-    message: `视频文件不能超过 ${formatMegabytes(maxBytes)}。`,
+    message: `PV 文件不能超过 ${formatMegabytes(maxBytes)}`,
     status: 400,
     extra: { max: maxBytes, field: "video" },
   });
@@ -97,7 +97,7 @@ function fileTooLargeError(maxBytes: number) {
 function coverTooLargeError(maxBytes: number) {
   return new NativeSubmissionApiError({
     code: "FILE_TOO_LARGE",
-    message: `封面文件不能超过 ${formatMegabytes(maxBytes)}。`,
+    message: `封面文件不能超过 ${formatMegabytes(maxBytes)}`,
     status: 400,
     extra: { max: maxBytes, field: "cover" },
   });
@@ -106,7 +106,7 @@ function coverTooLargeError(maxBytes: number) {
 function unsupportedMimeError(extra: UnknownRecord) {
   return new NativeSubmissionApiError({
     code: "UNSUPPORTED_MIME",
-    message: "暂不支持该文件格式。",
+    message: "暂不支持该文件格式",
     status: 400,
     extra,
   });
@@ -115,7 +115,7 @@ function unsupportedMimeError(extra: UnknownRecord) {
 function storageUnavailableError() {
   return new NativeSubmissionApiError({
     code: "STORAGE_UNAVAILABLE",
-    message: "视频存储服务暂不可用，请稍后重试。",
+    message: "暂时无法上传，请稍后重试",
     status: 503,
   });
 }
@@ -123,7 +123,7 @@ function storageUnavailableError() {
 function objectNotFoundError(key: string) {
   return new NativeSubmissionApiError({
     code: "OBJECT_NOT_FOUND",
-    message: "上传未完成，请重新上传。",
+    message: "上传未完成，请重新上传",
     status: 400,
     extra: { key },
   });
@@ -132,7 +132,7 @@ function objectNotFoundError(key: string) {
 function mimeMismatchError(extra: UnknownRecord) {
   return new NativeSubmissionApiError({
     code: "MIME_MISMATCH",
-    message: "上传文件格式与提交信息不一致。",
+    message: "上传文件格式与提交信息不一致",
     status: 400,
     extra,
   });
@@ -141,7 +141,7 @@ function mimeMismatchError(extra: UnknownRecord) {
 function duplicateRefError() {
   return new NativeSubmissionApiError({
     code: "DUPLICATE_REF",
-    message: "该视频投稿已存在。",
+    message: "该 PV 投稿已存在",
     status: 409,
   });
 }
@@ -149,7 +149,7 @@ function duplicateRefError() {
 function pendingQuotaExceededError(pending: number) {
   return new NativeSubmissionApiError({
     code: "PENDING_QUOTA_EXCEEDED",
-    message: `当前有 ${NATIVE_PENDING_SUBMISSION_LIMIT} 条待审稿件，审核完成后可继续投稿。`,
+    message: `当前有 ${NATIVE_PENDING_SUBMISSION_LIMIT} 条待审核的投稿，审核完成后可继续投稿`,
     status: 429,
     extra: { pending },
   });
@@ -158,7 +158,7 @@ function pendingQuotaExceededError(pending: number) {
 function uploadSessionLimitExceededError(active: number) {
   return new NativeSubmissionApiError({
     code: "UPLOAD_SESSION_LIMIT_EXCEEDED",
-    message: `当前有 ${NATIVE_UPLOAD_SESSION_LIMIT} 个未完成上传，请完成或稍后再试。`,
+    message: `当前有 ${NATIVE_UPLOAD_SESSION_LIMIT} 个未完成上传，请完成或稍后再试`,
     status: 429,
     extra: { pending: active },
   });
@@ -167,7 +167,7 @@ function uploadSessionLimitExceededError(active: number) {
 function uploadSessionExpiredError() {
   return new NativeSubmissionApiError({
     code: "UPLOAD_SESSION_EXPIRED",
-    message: "上传凭证已过期，请重新选择文件上传。",
+    message: "上传已过期，请重新选择文件",
     status: 400,
   });
 }
@@ -175,7 +175,7 @@ function uploadSessionExpiredError() {
 function submissionCompletionInProgressError(leaseExpiresAt?: string | null) {
   return new NativeSubmissionApiError({
     code: "SUBMISSION_COMPLETION_IN_PROGRESS",
-    message: "投稿正在完成，请稍后重试。",
+    message: "投稿正在完成，请稍后重试",
     status: 409,
     extra: leaseExpiresAt ? { retryAfter: leaseExpiresAt } : undefined,
   });
@@ -245,8 +245,8 @@ function parseCoverMimeType(value: unknown): NativeCoverMimeType {
 
 function parsePositiveInteger(value: unknown, field: string): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
-    throw validationError("请求字段无效。", {
-      fields: { [field]: "必须是大于 0 的整数。" },
+    throw validationError("提交的信息有误，请检查后重试", {
+      fields: { [field]: "必须是大于 0 的整数" },
     });
   }
 
@@ -265,8 +265,8 @@ function validateVideoSize(value: unknown, maxBytes: number) {
 
 function parseString(value: unknown, field: string) {
   if (typeof value !== "string") {
-    throw validationError("请求字段无效。", {
-      fields: { [field]: "必须是字符串。" },
+    throw validationError("提交的信息有误，请检查后重试", {
+      fields: { [field]: "必须是字符串" },
     });
   }
 
@@ -277,8 +277,8 @@ function parseSubmissionId(value: unknown) {
   const submissionId = parseString(value, "submissionId").trim();
 
   if (!UUID_PATTERN.test(submissionId)) {
-    throw validationError("上传会话无效，请重新上传。", {
-      fields: { submissionId: "上传会话标识无效。" },
+    throw validationError("上传信息已失效，请重新选择文件", {
+      fields: { submissionId: "请重新选择文件" },
     });
   }
 
@@ -289,8 +289,8 @@ function parseObjectKey(value: unknown, field: "videoKey" | "coverKey") {
   const key = parseString(value, field).trim();
 
   if (!key) {
-    throw validationError("上传对象路径无效。", {
-      fields: { [field]: "对象路径不能为空。" },
+    throw validationError("上传信息无效，请重新选择文件", {
+      fields: { [field]: "请重新选择文件" },
     });
   }
 
@@ -301,8 +301,8 @@ function parseTitle(value: unknown) {
   const title = parseString(value, "title").trim();
 
   if (title.length < 1 || title.length > TITLE_MAX_LENGTH) {
-    throw validationError("请填写 1 到 80 字的标题。", {
-      fields: { title: `标题长度需在 1 到 ${TITLE_MAX_LENGTH} 字之间。` },
+    throw validationError("请填写 1 到 80 字的标题", {
+      fields: { title: `标题长度需在 1 到 ${TITLE_MAX_LENGTH} 字之间` },
     });
   }
 
@@ -317,9 +317,9 @@ function parseDescription(value: unknown) {
   const description = parseString(value, "description").trim();
 
   if (description.length > DESCRIPTION_MAX_LENGTH) {
-    throw validationError("简介不能超过 500 字。", {
+    throw validationError("简介不能超过 500 字", {
       fields: {
-        description: `简介不能超过 ${DESCRIPTION_MAX_LENGTH} 字。`,
+        description: `简介不能超过 ${DESCRIPTION_MAX_LENGTH} 字`,
       },
     });
   }
@@ -337,8 +337,8 @@ function assertStringEquals(input: {
   expected: string;
 }) {
   if (input.actual !== input.expected) {
-    throw validationError("上传对象路径无效。", {
-      fields: { [input.field]: "对象路径与当前用户不匹配。" },
+    throw validationError("上传信息无效，请重新选择文件", {
+      fields: { [input.field]: "请重新登录后上传" },
     });
   }
 }
@@ -480,8 +480,8 @@ async function claimNativeSubmissionCompletion(input: {
   }
 
   if (row.outcome === "invalid_keys") {
-    throw validationError("上传对象路径无效。", {
-      fields: { videoKey: "上传会话与对象路径不匹配。" },
+    throw validationError("上传信息无效，请重新选择文件", {
+      fields: { videoKey: "上传信息不一致，请重新选择文件" },
     });
   }
 
@@ -775,8 +775,8 @@ export async function completeNativeSubmission(
   if (videoHead.size !== videoSize) {
     await expireClaimAndCleanupNativeObjects(claimContext);
 
-    throw validationError("视频文件大小与提交信息不一致。", {
-      fields: { videoSize: "文件大小与上传对象不匹配。" },
+    throw validationError("PV 文件大小与提交信息不一致", {
+      fields: { videoSize: "文件大小与上传对象不匹配" },
       actual: videoHead.size,
       expected: videoSize,
     });
@@ -800,8 +800,8 @@ export async function completeNativeSubmission(
   if (coverHead.size <= 0) {
     await expireClaimAndCleanupNativeObjects(claimContext);
 
-    throw validationError("封面文件无效，请重新上传。", {
-      fields: { coverKey: "封面文件不能为空。" },
+    throw validationError("封面文件无效，请重新上传", {
+      fields: { coverKey: "封面文件不能为空" },
     });
   }
 

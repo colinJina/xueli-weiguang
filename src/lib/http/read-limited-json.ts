@@ -28,7 +28,7 @@ export async function readLimitedJsonObject(
   const contentLength = getContentLength(request);
 
   if (contentLength !== null && contentLength > maxBytes) {
-    throw new JsonRequestError("请求内容过大，请减少内容后重试。", 413);
+    throw new JsonRequestError("请求内容过大，请减少内容后重试", 413);
   }
 
   const reader = request.body?.getReader();
@@ -49,7 +49,7 @@ export async function readLimitedJsonObject(
 
         if (receivedBytes > maxBytes) {
           await reader.cancel().catch(() => undefined);
-          throw new JsonRequestError("请求内容过大，请减少内容后重试。", 413);
+          throw new JsonRequestError("请求内容过大，请减少内容后重试", 413);
         }
 
         rawBody += decoder.decode(value, { stream: true });
@@ -62,7 +62,7 @@ export async function readLimitedJsonObject(
       throw error;
     }
 
-    throw new JsonRequestError("请求内容无效，请重新提交。");
+    throw new JsonRequestError("请求内容无效，请重新提交");
   } finally {
     reader?.releaseLock();
   }
@@ -72,11 +72,11 @@ export async function readLimitedJsonObject(
   try {
     payload = JSON.parse(rawBody);
   } catch {
-    throw new JsonRequestError("请求内容无效，请重新提交。");
+    throw new JsonRequestError("请求内容无效，请重新提交");
   }
 
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    throw new JsonRequestError("请求内容无效，请重新提交。");
+    throw new JsonRequestError("请求内容无效，请重新提交");
   }
 
   return payload as Record<string, unknown>;

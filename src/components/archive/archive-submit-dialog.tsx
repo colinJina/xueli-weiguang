@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type COS from "cos-js-sdk-v5";
 
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { DialogShell } from "@/components/ui/dialog-shell";
@@ -10,8 +16,8 @@ import { FormMessage } from "@/components/ui/form-message";
 import ImageIcon from "@/components/icons/archive/image-file.svg";
 import LinkIcon from "@/components/icons/archive/link.svg";
 import LockIcon from "@/components/icons/archive/lock.svg";
-import RetryIcon from "@/components/icons/archive/retry.svg";
-import UploadIcon from "@/components/icons/archive/upload.svg";
+import RetryIcon from "@/components/icons/shared/retry.svg";
+import UploadIcon from "@/components/icons/shared/upload.svg";
 import VideoIcon from "@/components/icons/archive/video-file.svg";
 import SpinnerIcon from "@/components/icons/shared/spinner-16.svg";
 import SuccessIcon from "@/components/icons/shared/check-circle.svg";
@@ -24,9 +30,9 @@ import { TextField } from "@/components/ui/text-field";
 import { ADMIN_REQUIRED_MESSAGE } from "@/lib/auth/admin";
 import { cn } from "@/lib/utils";
 import { translateSubmissionError } from "@/lib/submissions/translate-submission-error";
+import { getNativeVideoMimeType } from "@/lib/storage/native-video-file";
 import {
   ALLOWED_COVER_MIME_TYPES,
-  ALLOWED_VIDEO_MIME_TYPES,
   NATIVE_COVER_MAX_BYTES,
   NATIVE_VIDEO_MAX_BYTES,
 } from "@/lib/storage/types";
@@ -74,21 +80,16 @@ function StatusNotice({
   return (
     <FormMessage
       icon={icon}
-      variant={status === "error" ? "error" : status === "submitting" ? "loading" : "success"}
+      variant={
+        status === "error"
+          ? "error"
+          : status === "submitting"
+            ? "loading"
+            : "success"
+      }
     >
       {message}
     </FormMessage>
-  );
-}
-
-function ProgressBar({ value }: { value: number }) {
-  return (
-    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]" role="presentation">
-      <div
-        className="h-full rounded-full bg-foreground transition-[width] duration-200"
-        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-      />
-    </div>
   );
 }
 
@@ -105,7 +106,11 @@ function getProgressPercent(info: UploadProgressInfo) {
     return Math.round(info.percent * 100);
   }
 
-  if (typeof info.loaded === "number" && typeof info.total === "number" && info.total > 0) {
+  if (
+    typeof info.loaded === "number" &&
+    typeof info.total === "number" &&
+    info.total > 0
+  ) {
     return Math.round((info.loaded / info.total) * 100);
   }
 
@@ -114,40 +119,40 @@ function getProgressPercent(info: UploadProgressInfo) {
 
 function parseNativeError(payload: NativeSubmissionApiErrorPayload | null) {
   if (!payload) {
-    return "上传失败，请稍后重试。";
+    return "上传失败，请稍后重试";
   }
 
   switch (payload.code) {
     case "UNAUTHENTICATED":
-      return "请先登录后再投稿。";
+      return "请先登录后再投稿";
     case "ADMIN_REQUIRED":
       return ADMIN_REQUIRED_MESSAGE;
     case "FILE_TOO_LARGE":
       if (payload.field === "cover") {
-        return `封面文件不能超过 ${formatFileSize(payload.max ?? NATIVE_COVER_MAX_BYTES)}。`;
+        return `封面文件不能超过 ${formatFileSize(payload.max ?? NATIVE_COVER_MAX_BYTES)}`;
       }
 
-      return `视频文件不能超过 ${formatFileSize(payload.max ?? NATIVE_VIDEO_MAX_BYTES)}。`;
+      return `PV 文件不能超过 ${formatFileSize(payload.max ?? NATIVE_VIDEO_MAX_BYTES)}`;
     case "UNSUPPORTED_MIME":
-      return "暂不支持该文件格式。";
+      return "暂不支持该文件格式";
     case "PENDING_QUOTA_EXCEEDED":
-      return `当前有 ${payload.pending ?? NATIVE_PENDING_SUBMISSION_LIMIT} 条待审稿件，审核完成后可继续投稿。`;
+      return `当前有 ${payload.pending ?? NATIVE_PENDING_SUBMISSION_LIMIT} 条待审核的投稿，审核完成后可继续投稿`;
     case "UPLOAD_SESSION_LIMIT_EXCEEDED":
-      return `当前有 ${NATIVE_UPLOAD_SESSION_LIMIT} 个未完成上传，请完成或稍后再试。`;
+      return `当前有 ${NATIVE_UPLOAD_SESSION_LIMIT} 个未完成上传，请完成或稍后再试`;
     case "UPLOAD_SESSION_EXPIRED":
-      return "上传凭证已过期，请重新选择文件上传。";
+      return "上传已过期，请重新选择文件";
     case "OBJECT_NOT_FOUND":
-      return "上传未完成，请重新上传。";
+      return "上传未完成，请重新上传";
     case "MIME_MISMATCH":
-      return "上传文件格式与提交信息不一致，请重新选择文件。";
+      return "上传文件格式与提交信息不一致，请重新选择文件";
     case "DUPLICATE_REF":
-      return "该视频投稿已存在。";
+      return "该 PV 投稿已存在";
     case "VALIDATION_FAILED":
-      return payload.message ?? "请检查投稿信息后重试。";
+      return payload.message ?? "请检查投稿信息后重试";
     case "STORAGE_UNAVAILABLE":
-      return "视频存储服务暂不可用，请稍后重试。";
+      return "暂时无法上传，请稍后重试";
     default:
-      return payload.message ?? "上传失败，请稍后重试。";
+      return "上传失败，请稍后重试";
   }
 }
 
@@ -185,8 +190,8 @@ function FileDropZone({
   return (
     <div
       className={cn(
-        "rounded-lg border border-dashed border-white/14 bg-white/[0.025] p-4 transition",
-        disabled ? "opacity-60" : "hover:border-white/24 hover:bg-white/[0.04]",
+        "rounded-lg border border-dashed border-white/[0.14] bg-white/[0.025] p-4 transition",
+        disabled ? "opacity-60" : "hover:border-white/[0.24] hover:bg-white/[0.04]",
       )}
       onDragOver={(event) => {
         if (disabled) {
@@ -202,7 +207,8 @@ function FileDropZone({
         handleFiles(event.dataTransfer.files);
       }}
     >
-      <input
+      <Input
+        aria-label={label}
         accept={accept}
         className="sr-only"
         disabled={disabled}
@@ -211,8 +217,10 @@ function FileDropZone({
         type="file"
       />
 
-      <button
-        className="flex w-full items-start gap-4 text-left disabled:cursor-not-allowed"
+      <Button
+        size="sm"
+        variant="unstyled"
+        className="flex w-full items-start justify-start gap-4 p-0 text-left disabled:cursor-not-allowed"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
         type="button"
@@ -221,7 +229,9 @@ function FileDropZone({
           {icon}
         </span>
         <span className="min-w-0 flex-1 space-y-2">
-          <span className="block text-sm font-bold text-foreground">{label}</span>
+          <span className="block text-sm font-bold text-foreground">
+            {label}
+          </span>
           <span className="block text-xs leading-5 text-muted">{helper}</span>
           {file ? (
             <span className="flex min-w-0 items-center gap-3 text-xs text-subtle">
@@ -234,17 +244,19 @@ function FileDropZone({
                 />
               ) : null}
               <span className="block min-w-0">
-                <span className="block truncate text-foreground">{file.name}</span>
+                <span className="block truncate text-foreground">
+                  {file.name}
+                </span>
                 <span>{formatFileSize(file.size)}</span>
               </span>
             </span>
           ) : null}
         </span>
-      </button>
+      </Button>
 
       {progress > 0 ? (
         <div className="mt-4 space-y-2">
-          <ProgressBar value={progress} />
+          <Progress aria-label={`${label}上传进度`} value={progress} />
           <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-subtle">
             <span>上传进度</span>
             <span>{progress}%</span>
@@ -316,6 +328,8 @@ export function ArchiveSubmitDialog({
     };
   }, [coverPreviewUrl]);
 
+  const videoMimeType = videoFile ? getNativeVideoMimeType(videoFile) : null;
+
   const nativeDisabledReason = useMemo(() => {
     if (!allowNativeUpload) {
       return ADMIN_REQUIRED_MESSAGE;
@@ -324,7 +338,7 @@ export function ArchiveSubmitDialog({
     const trimmedTitle = title.trim();
 
     if (status === "submitting") {
-      return "视频上传中";
+      return "PV 上传中";
     }
 
     if (!trimmedTitle) {
@@ -340,15 +354,19 @@ export function ArchiveSubmitDialog({
     }
 
     if (!videoFile) {
-      return "请先选择视频文件";
+      return "请先选择 PV 文件";
     }
 
-    if (!isAllowedFile(videoFile, ALLOWED_VIDEO_MIME_TYPES)) {
-      return "视频仅支持 MP4/WebM";
+    if (!videoMimeType) {
+      return "PV 仅支持 MP4/WebM，请先转换格式后再上传";
+    }
+
+    if (videoFile.size <= 0) {
+      return "PV 文件不能为空";
     }
 
     if (videoFile.size > NATIVE_VIDEO_MAX_BYTES) {
-      return "视频文件不能超过 50MB";
+      return "PV 文件不能超过 50MB";
     }
 
     if (!coverFile) {
@@ -368,7 +386,7 @@ export function ArchiveSubmitDialog({
     }
 
     return "";
-  }, [allowNativeUpload, coverFile, description, status, title, videoFile]);
+  }, [allowNativeUpload, coverFile, description, status, title, videoFile, videoMimeType]);
 
   if (!open) {
     return null;
@@ -436,12 +454,12 @@ export function ArchiveSubmitDialog({
 
     if (!url.trim()) {
       setStatus("error");
-      setMessage("请输入有效的 Bilibili 或 YouTube 视频链接。");
+      setMessage("请输入有效的 Bilibili 或 YouTube PV 链接");
       return;
     }
 
     setStatus("submitting");
-    setMessage("正在提交链接，请稍候。");
+    setMessage("正在提交链接，请稍候");
 
     try {
       const response = await fetch("/api/submissions", {
@@ -452,19 +470,23 @@ export function ArchiveSubmitDialog({
         body: JSON.stringify({ url: url.trim() }),
       });
 
-      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      const payload = (await response.json().catch(() => null)) as {
+        message?: string;
+      } | null;
 
       if (!response.ok) {
-        throw new Error(payload?.message ?? "投稿失败，请稍后重试。");
+        throw new Error(payload?.message ?? "投稿失败，请稍后重试");
       }
 
       setUrl("");
       setStatus("success");
-      setMessage("已收到，待审核。");
+      setMessage("投稿已收到，等待审核");
     } catch (error) {
       setStatus("error");
       setMessage(
-        translateSubmissionError(error instanceof Error ? error.message : "投稿失败，请稍后重试。"),
+        translateSubmissionError(
+          error instanceof Error ? error.message : "投稿失败，请稍后重试",
+        ),
       );
     }
   }
@@ -475,6 +497,7 @@ export function ArchiveSubmitDialog({
     region: string;
     key: string;
     file: File;
+    contentType: string;
     onProgress: (value: number) => void;
   }) {
     input.onProgress(1);
@@ -485,7 +508,7 @@ export function ArchiveSubmitDialog({
       Key: input.key,
       Body: input.file,
       ContentLength: input.file.size,
-      ContentType: input.file.type,
+      ContentType: input.contentType,
       onProgress(progressData) {
         input.onProgress(getProgressPercent(progressData));
       },
@@ -500,13 +523,16 @@ export function ArchiveSubmitDialog({
     coverMimeType: string;
     featureOnHome: boolean;
   }) {
-    const response = await fetch("/api/submissions/native/cos/upload-signature", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      "/api/submissions/native/cos/upload-signature",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
       },
-      body: JSON.stringify(input),
-    });
+    );
 
     const payload = (await response.json().catch(() => null)) as
       | NativeCosUploadCredentialResponse
@@ -514,7 +540,9 @@ export function ArchiveSubmitDialog({
       | null;
 
     if (!response.ok) {
-      throw new Error(parseNativeError(payload as NativeSubmissionApiErrorPayload | null));
+      throw new Error(
+        parseNativeError(payload as NativeSubmissionApiErrorPayload | null),
+      );
     }
 
     return payload as NativeCosUploadCredentialResponse;
@@ -539,9 +567,9 @@ export function ArchiveSubmitDialog({
       body: JSON.stringify(input),
     });
 
-    const payload = (await response.json().catch(() => null)) as
-      | NativeSubmissionApiErrorPayload
-      | null;
+    const payload = (await response
+      .json()
+      .catch(() => null)) as NativeSubmissionApiErrorPayload | null;
 
     if (!response.ok) {
       throw new Error(parseNativeError(payload));
@@ -551,9 +579,15 @@ export function ArchiveSubmitDialog({
   async function handleNativeSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!allowNativeUpload || nativeDisabledReason || !videoFile || !coverFile) {
+    if (
+      !allowNativeUpload ||
+      nativeDisabledReason ||
+      !videoFile ||
+      !videoMimeType ||
+      !coverFile
+    ) {
       setStatus("error");
-      setMessage(nativeDisabledReason || "请检查投稿信息后重试。");
+      setMessage(nativeDisabledReason || "请检查投稿信息后重试");
       return;
     }
 
@@ -561,19 +595,19 @@ export function ArchiveSubmitDialog({
     const trimmedDescription = description.trim();
 
     setStatus("submitting");
-    setMessage("正在申请上传凭证。");
+    setMessage("正在准备上传");
     setVideoProgress(0);
     setCoverProgress(0);
 
     try {
       const credentialResponse = await requestUploadCredential({
-        videoMimeType: videoFile.type,
+        videoMimeType,
         videoSize: videoFile.size,
         coverMimeType: coverFile.type,
         featureOnHome,
       });
 
-      setMessage("正在上传视频和封面。");
+      setMessage("正在上传 PV 和封面");
 
       const { default: CosConstructor } = await import("cos-js-sdk-v5");
       const cos = new CosConstructor({
@@ -590,6 +624,7 @@ export function ArchiveSubmitDialog({
         region: credentialResponse.region,
         key: credentialResponse.videoKey,
         file: videoFile,
+        contentType: videoMimeType,
         onProgress: setVideoProgress,
       });
       await uploadObject({
@@ -598,10 +633,11 @@ export function ArchiveSubmitDialog({
         region: credentialResponse.region,
         key: credentialResponse.coverKey,
         file: coverFile,
+        contentType: coverFile.type,
         onProgress: setCoverProgress,
       });
 
-      setMessage("正在登记投稿信息。");
+      setMessage("正在提交投稿");
 
       await completeNativeUpload({
         submissionId: credentialResponse.submissionId,
@@ -610,7 +646,7 @@ export function ArchiveSubmitDialog({
         title: trimmedTitle,
         description: trimmedDescription || null,
         videoSize: videoFile.size,
-        videoMimeType: videoFile.type,
+        videoMimeType,
         coverMimeType: coverFile.type,
         featureOnHome,
       });
@@ -624,10 +660,15 @@ export function ArchiveSubmitDialog({
       setVideoProgress(0);
       setCoverProgress(0);
       setStatus("success");
-      setMessage("已收到本地视频投稿，待审核。");
+      setMessage("投稿已收到，等待审核");
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "上传失败，请稍后重试。");
+      setMessage(
+        translateSubmissionError(
+          error instanceof Error ? error.message : null,
+          "上传失败，请稍后重试",
+        ),
+      );
     }
   }
 
@@ -635,8 +676,8 @@ export function ArchiveSubmitDialog({
   const isNativeSubmitDisabled = Boolean(nativeDisabledReason);
   const dialogDescription =
     allowNativeUpload && mode === "upload"
-      ? "上传本地视频与封面。文件会直传至 COS，审核通过前不会进入公开视频库。"
-      : "粘贴一条 Bilibili 或 YouTube 视频链接。我们会先记录投稿，再进入人工审核。";
+      ? "上传 PV 文件和封面，审核通过后收录"
+      : "提交 Bilibili 或 YouTube 链接，审核通过后收录";
 
   return (
     <DialogShell
@@ -645,209 +686,207 @@ export function ArchiveSubmitDialog({
       description={dialogDescription}
       maxWidthClassName="max-w-[640px]"
       onClose={onClose}
-      title="推荐你喜欢的视频"
+      title="投稿 PV"
     >
-      <div className="mt-5 flex items-center gap-3 border-b border-border pb-4">
+      <Tabs
+        value={!allowNativeUpload ? "link" : mode}
+        onValueChange={(next) => {
+          if (next === "link" || next === "upload") {
+            switchMode(next);
+          }
+        }}
+      >
         {allowNativeUpload ? (
-          <>
-            <button
-              aria-current={mode === "link" ? "page" : undefined}
-              disabled={isSubmitting}
-              onClick={() => switchMode("link")}
-              type="button"
-            >
-              <Chip size="md" variant={mode === "link" ? "selected" : "default"}>
-                <span className="inline-flex items-center gap-1.5">
-                  <LinkIcon />
-                  视频链接
-                </span>
-              </Chip>
-            </button>
-            <button
-              aria-current={mode === "upload" ? "page" : undefined}
-              disabled={isSubmitting}
-              onClick={() => switchMode("upload")}
-              type="button"
-            >
-              <Chip size="md" variant={mode === "upload" ? "selected" : "default"}>
-                <span className="inline-flex items-center gap-1.5">
-                  <UploadIcon />
-                  上传视频
-                </span>
-              </Chip>
-            </button>
-          </>
-        ) : (
-          <Chip size="md" variant="selected">
-            <span className="inline-flex items-center gap-1.5">
+          <TabsList
+            aria-label="投稿方式"
+            className="mt-5 justify-start border-b border-border pb-4"
+          >
+            <TabsTrigger disabled={isSubmitting} value="link">
               <LinkIcon />
-              视频链接
-            </span>
-          </Chip>
+              链接投稿
+            </TabsTrigger>
+            <TabsTrigger disabled={isSubmitting} value="upload">
+              <UploadIcon />
+              本地上传
+            </TabsTrigger>
+          </TabsList>
+        ) : (
+          <div className="mt-5 border-b border-border pb-4">
+            <Chip size="md" variant="selected">
+              <LinkIcon />
+              链接投稿
+            </Chip>
+          </div>
         )}
-      </div>
+        <TabsContent value={!allowNativeUpload ? "link" : mode}>
+          {!allowNativeUpload || mode === "link" ? (
+            <form className="mt-6 space-y-5" onSubmit={handleLinkSubmit}>
+              <div className="space-y-4 rounded-lg border border-border bg-surface px-5 py-5">
+                <TextField
+                  icon={<LinkIcon />}
+                  label="PV 链接"
+                  onChange={(event) => {
+                    setUrl(event.target.value);
+                    resetMessage();
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  type="text"
+                  value={url}
+                />
 
-      {!allowNativeUpload || mode === "link" ? (
-        <form className="mt-6 space-y-5" onSubmit={handleLinkSubmit}>
-          <div className="space-y-4 rounded-lg border border-border bg-surface px-5 py-5">
-            <TextField
-              autoFocus
-              icon={<LinkIcon />}
-              label="VIDEO URL"
-              onChange={(event) => {
-                setUrl(event.target.value);
-                resetMessage();
-              }}
-              placeholder="https://www.youtube.com/watch?v=..."
-              type="text"
-              value={url}
-            />
-
-            <p className="text-xs leading-6 text-subtle">
-              支持 Bilibili 完整链接或裸 BV 号，以及 YouTube watch、shorts、embed、youtu.be 链接。
-            </p>
-          </div>
-
-          {status === "submitting" || status === "success" || status === "error" ? (
-            <StatusNotice message={message} status={status} />
-          ) : null}
-
-          <div className="flex justify-end">
-            <Button disabled={isSubmitting} type="submit">
-              <span className="inline-flex items-center gap-2">
-                {isSubmitting ? <SpinnerIcon /> : <LinkIcon />}
-                {isSubmitting ? "提交中" : "提交链接"}
-              </span>
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <form className="mt-6 space-y-5" onSubmit={handleNativeSubmit}>
-          <div className="space-y-4 rounded-lg border border-border bg-surface px-5 py-5">
-            <TextField
-              autoFocus
-              disabled={isSubmitting}
-              icon={<UploadIcon />}
-              label="标题"
-              maxLength={TITLE_MAX_LENGTH}
-              onChange={(event) => {
-                setTitle(event.target.value);
-                resetMessage();
-              }}
-              placeholder="给这条视频起一个标题"
-              type="text"
-              value={title}
-            />
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <label
-                  className="inline-flex items-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.22em] text-muted"
-                  htmlFor="native-upload-description"
-                >
-                  <LinkIcon />
-                  简介
-                </label>
-                <span className="text-[11px] text-subtle">
-                  {description.trim().length}/{DESCRIPTION_MAX_LENGTH}
-                </span>
+                <p className="text-xs leading-6 text-subtle">
+                  支持 Bilibili 链接或 BV 号，以及 YouTube 链接
+                </p>
               </div>
-              <textarea
-                className="min-h-24 w-full resize-none rounded-md border border-border bg-surface px-4 py-3 text-sm leading-6 text-foreground outline-none transition placeholder:text-subtle focus:border-borderStrong focus:bg-panel disabled:opacity-60"
-                disabled={isSubmitting}
-                id="native-upload-description"
-                maxLength={DESCRIPTION_MAX_LENGTH}
-                onChange={(event) => {
-                  setDescription(event.target.value);
-                  resetMessage();
-                }}
-                placeholder="写下推荐理由或视频简介"
-                value={description}
-              />
-            </div>
 
-            <FileDropZone
-              accept="video/mp4,video/webm"
-              disabled={isSubmitting}
-              file={videoFile}
-              helper="拖入或点击选择，MP4/WebM，最大 50MB"
-              icon={<VideoIcon />}
-              inputRef={videoInputRef}
-              label="视频文件"
-              onFileChange={(file) => {
-                setVideoFile(file);
-                setVideoProgress(0);
-                resetMessage();
-              }}
-              progress={videoProgress}
-            />
+              {status === "submitting" ||
+              status === "success" ||
+              status === "error" ? (
+                <StatusNotice message={message} status={status} />
+              ) : null}
 
-            <FileDropZone
-              accept="image/jpeg,image/png,image/webp"
-              disabled={isSubmitting}
-              file={coverFile}
-              helper="拖入或点击选择，JPG/PNG/WebP，随后裁切为 16:9"
-              icon={<ImageIcon />}
-              inputRef={coverInputRef}
-              label="封面图"
-              onFileChange={handleCoverSourceChange}
-              previewUrl={coverPreviewUrl}
-              progress={coverProgress}
-            />
-
-            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/[0.08] bg-white/[0.025] p-4 transition hover:border-white/20 hover:bg-white/[0.04]">
-              <input
-                checked={featureOnHome}
-                className="mt-1 h-4 w-4 accent-white"
-                disabled={isSubmitting}
-                onChange={(event) => {
-                  setFeatureOnHome(event.target.checked);
-                  resetMessage();
-                }}
-                type="checkbox"
-              />
-              <span className="space-y-1">
-                <span className="block text-sm font-bold text-foreground">
-                  推送为首页精选
-                </span>
-                <span className="block text-xs leading-5 text-muted">
-                  审核通过后，这条视频的 16:9 封面会作为首页 Hero 视觉候选。
-                </span>
-              </span>
-            </label>
-          </div>
-
-          {status === "submitting" || status === "success" || status === "error" ? (
-            <StatusNotice message={message} status={status} />
-          ) : null}
-
-          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-            {isNativeSubmitDisabled ? (
-              <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-muted">
-                <LockIcon />
-                <span>{nativeDisabledReason}</span>
+              <div className="flex justify-end">
+                <Button disabled={isSubmitting} type="submit">
+                  <span className="inline-flex items-center gap-2">
+                    {isSubmitting ? <SpinnerIcon /> : <LinkIcon />}
+                    {isSubmitting ? "提交中" : "提交链接"}
+                  </span>
+                </Button>
               </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 text-xs text-subtle">
-                <SuccessIcon />
-                <span>信息已就绪</span>
-              </div>
-            )}
+            </form>
+          ) : (
+            <form className="mt-6 space-y-5" onSubmit={handleNativeSubmit}>
+              <div className="space-y-4 rounded-lg border border-border bg-surface px-5 py-5">
+                <TextField
+                  disabled={isSubmitting}
+                  icon={<UploadIcon />}
+                  label="标题"
+                  maxLength={TITLE_MAX_LENGTH}
+                  onChange={(event) => {
+                    setTitle(event.target.value);
+                    resetMessage();
+                  }}
+                  placeholder="输入 PV 标题"
+                  type="text"
+                  value={title}
+                />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <Label
+                      className="inline-flex items-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.22em] text-muted"
+                      htmlFor="native-upload-description"
+                    >
+                      <LinkIcon />
+                      简介
+                    </Label>
+                    <span className="text-[11px] text-subtle">
+                      {description.trim().length}/{DESCRIPTION_MAX_LENGTH}
+                    </span>
+                  </div>
+                  <Textarea
+                    className="min-h-24 w-full resize-none rounded-md border border-border bg-surface px-4 py-3 text-sm leading-6 text-foreground outline-none transition placeholder:text-subtle focus:border-borderStrong focus:bg-panel disabled:opacity-60"
+                    disabled={isSubmitting}
+                    id="native-upload-description"
+                    maxLength={DESCRIPTION_MAX_LENGTH}
+                    onChange={(event) => {
+                      setDescription(event.target.value);
+                      resetMessage();
+                    }}
+                    placeholder="填写 PV 简介或推荐理由"
+                    value={description}
+                  />
+                </div>
 
-            <Button disabled={isNativeSubmitDisabled} type="submit">
-              <span className="inline-flex items-center gap-2">
-                {isSubmitting ? (
-                  <SpinnerIcon />
-                ) : status === "error" ? (
-                  <RetryIcon />
+                <FileDropZone
+                  accept=".mp4,.webm,video/mp4,video/webm"
+                  disabled={isSubmitting}
+                  file={videoFile}
+                  helper="拖入或点击选择，MP4/WebM，最大 50MB"
+                  icon={<VideoIcon />}
+                  inputRef={videoInputRef}
+                  label="PV 文件"
+                  onFileChange={(file) => {
+                    setVideoFile(file);
+                    setVideoProgress(0);
+                    resetMessage();
+                  }}
+                  progress={videoProgress}
+                />
+
+                <FileDropZone
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={isSubmitting}
+                  file={coverFile}
+                  helper="拖入或点击选择，JPG/PNG/WebP，随后裁切为 16:9"
+                  icon={<ImageIcon />}
+                  inputRef={coverInputRef}
+                  label="封面图"
+                  onFileChange={handleCoverSourceChange}
+                  previewUrl={coverPreviewUrl}
+                  progress={coverProgress}
+                />
+
+                <Label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/[0.08] bg-white/[0.025] p-4 transition hover:border-white/20 hover:bg-white/[0.04]">
+                  <Checkbox
+                    checked={featureOnHome}
+                    className="mt-1"
+                    disabled={isSubmitting}
+                    onCheckedChange={(checked) => {
+                      setFeatureOnHome(checked === true);
+                      resetMessage();
+                    }}
+                  />
+                  <span className="space-y-1">
+                    <span className="block text-sm font-bold text-foreground">
+                      申请首页展示
+                    </span>
+                    <span className="block text-xs leading-5 text-muted">
+                      审核通过后可用于首页展示
+                    </span>
+                  </span>
+                </Label>
+              </div>
+
+              {status === "submitting" ||
+              status === "success" ||
+              status === "error" ? (
+                <StatusNotice message={message} status={status} />
+              ) : null}
+
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+                {isNativeSubmitDisabled ? (
+                  <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-muted">
+                    <LockIcon />
+                    <span>{nativeDisabledReason}</span>
+                  </div>
                 ) : (
-                  <UploadIcon />
+                  <div className="inline-flex items-center gap-2 text-xs text-subtle">
+                    <SuccessIcon />
+                    <span>信息已就绪</span>
+                  </div>
                 )}
-                {isSubmitting ? "上传中" : status === "error" ? "重新上传" : "提交视频"}
-              </span>
-            </Button>
-          </div>
-        </form>
-      )}
+
+                <Button disabled={isNativeSubmitDisabled} type="submit">
+                  <span className="inline-flex items-center gap-2">
+                    {isSubmitting ? (
+                      <SpinnerIcon />
+                    ) : status === "error" ? (
+                      <RetryIcon />
+                    ) : (
+                      <UploadIcon />
+                    )}
+                    {isSubmitting
+                      ? "上传中"
+                      : status === "error"
+                        ? "重新上传"
+                        : "提交 PV"}
+                  </span>
+                </Button>
+              </div>
+            </form>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {cropSourceFile ? (
         <ImageCropDialog
@@ -860,4 +899,3 @@ export function ArchiveSubmitDialog({
     </DialogShell>
   );
 }
-

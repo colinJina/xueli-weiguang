@@ -10,6 +10,7 @@ export type UserArchiveSearchParams = Record<string, UserArchiveSearchParamValue
 
 export type UserArchiveFilters = {
   collectionId: string | null;
+  keyword: string;
   tagIds: string[];
   tagQuery: string;
   view: UserArchiveView;
@@ -85,6 +86,12 @@ export type UserArchiveVideoFavoriteState = {
   collections: UserArchiveCollectionSummary[];
   tags: UserArchiveTagSummary[];
   memberships: UserArchiveVideoMembership[];
+};
+
+export type UserArchiveFavoriteSelectionResult = {
+  videoId: string;
+  collectionIds: string[];
+  isFavorited: boolean;
 };
 
 export type UserArchivePageData = {

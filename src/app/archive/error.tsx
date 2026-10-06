@@ -7,10 +7,9 @@ export default function ArchiveError({ reset }: { error: Error & { digest?: stri
     <RouteErrorView
       backHref="/"
       backLabel="返回首页"
-      description="作品归档暂时没有完整返回。你可以重新尝试，现有筛选和已发布作品不会因此被修改。"
-      eyebrow="ARCHIVE UNAVAILABLE"
+      description="PV 暂时无法加载，请稍后重试"
       onRetry={reset}
-      title="归档暂时不可用"
+      title="PV 加载失败"
     />
   );
 }

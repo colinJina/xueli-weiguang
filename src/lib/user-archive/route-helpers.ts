@@ -42,7 +42,7 @@ export async function readJsonObject(request: Request) {
         throw limitExceededError(error.message, 413);
       }
 
-      throw validationError("请求内容无效，请检查后重试。");
+      throw validationError("请求内容无效，请检查后重试");
     }
 
     throw error;

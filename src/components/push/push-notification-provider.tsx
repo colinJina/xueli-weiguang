@@ -189,7 +189,7 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
       setIsDialogOpen(false);
       showMessage({
         icon: <CheckIcon aria-hidden="true" />,
-        text: "新作品通知已开启",
+        text: "新 PV 通知已开启",
       });
     } catch {
       showMessage({
@@ -214,7 +214,7 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
       setSubscription(null);
       setIsDialogOpen(false);
       await revokeSubscription(endpoint).catch(() => undefined);
-      showMessage({ text: "新作品通知已关闭" });
+      showMessage({ text: "新 PV 通知已关闭" });
     } catch {
       showMessage({
         icon: <AlertIcon aria-hidden="true" />,
@@ -298,9 +298,9 @@ function PushNotificationDialog({
   return (
     <DialogShell
       closeLabel="关闭通知设置"
-      description="只在新作品正式公开时提醒，不会推送待审核投稿。"
+      description="只在新 PV 正式公开时提醒，不会推送待审核投稿"
       onClose={onClose}
-      title="新作品通知"
+      title="新 PV 通知"
     >
       <div className="space-y-5 pt-5">
         <div className="flex items-start gap-4 rounded-lg border border-border bg-surface px-4 py-4">
@@ -320,7 +320,7 @@ function PushNotificationDialog({
           {state.action === "enable" ? (
             <Button disabled={isBusy || !isReady} onClick={onEnable} type="button">
               {isBusy ? (
-                <SpinnerIcon aria-hidden="true" className="h-4 w-4 animate-spin" />
+                <SpinnerIcon aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" />
               ) : (
                 <BellIcon aria-hidden="true" className="h-4 w-4" />
               )}
@@ -330,7 +330,7 @@ function PushNotificationDialog({
           {state.action === "disable" ? (
             <Button disabled={isBusy} onClick={onDisable} type="button">
               {isBusy ? (
-                <SpinnerIcon aria-hidden="true" className="h-4 w-4 animate-spin" />
+                <SpinnerIcon aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" />
               ) : (
                 <BellIcon aria-hidden="true" className="h-4 w-4" />
               )}
@@ -358,7 +358,7 @@ function getDialogState({
     return {
       action: "none" as const,
       closeLabel: "稍后",
-      description: "正在确认当前浏览器的通知状态。",
+      description: "正在确认当前浏览器的通知状态",
       title: "正在准备通知",
     };
   }
@@ -367,7 +367,7 @@ function getDialogState({
     return {
       action: "none" as const,
       closeLabel: "知道了",
-      description: "请使用支持 Web Push 的新版 Chrome、Edge、Firefox 或 Safari。",
+      description: "请使用支持通知的新版 Chrome、Edge、Firefox 或 Safari",
       title: "当前浏览器不支持通知",
     };
   }
@@ -376,7 +376,7 @@ function getDialogState({
     return {
       action: "none" as const,
       closeLabel: "知道了",
-      description: "请先通过浏览器分享菜单添加到主屏幕，再从主屏幕打开雪笠微光。",
+      description: "请先通过浏览器分享菜单添加到主屏幕，再从主屏幕打开雪笠微光",
       title: "需要先添加到主屏幕",
     };
   }
@@ -385,7 +385,7 @@ function getDialogState({
     return {
       action: "none" as const,
       closeLabel: "知道了",
-      description: "浏览器已经阻止通知，请在地址栏的站点设置中重新允许通知。",
+      description: "浏览器已经阻止通知，请在地址栏的站点设置中重新允许通知",
       title: "通知权限已被关闭",
     };
   }
@@ -394,7 +394,7 @@ function getDialogState({
     return {
       action: "disable" as const,
       closeLabel: "保持开启",
-      description: "当前浏览器会在新作品首次公开后收到一条系统通知。",
+      description: "当前浏览器会在新 PV 首次公开后收到一条系统通知",
       title: "通知已开启",
     };
   }
@@ -402,8 +402,8 @@ function getDialogState({
   return {
     action: "enable" as const,
     closeLabel: "稍后",
-    description: "点击开启后，浏览器会询问系统通知权限。你可以随时回来关闭。",
-    title: "及时看到新作品",
+    description: "点击开启后，浏览器会询问系统通知权限，你可以随时回来关闭",
+    title: "及时看到新 PV",
   };
 }
 
